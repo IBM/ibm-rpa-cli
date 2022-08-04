@@ -55,20 +55,20 @@ namespace Joba.IBM.RPA
         private static async Task AddServerConfig(InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            ServerConfig config;
-            var configFile = new FileInfo(Path.Combine(Constants.LocalFolder, "server.json"));
-            if (configFile.Exists)
-                config = JsonSerializer.Deserialize<ServerConfig>(await File.ReadAllTextAsync(configFile.FullName, cancellation), Constants.SerializerOptions);
+            ServerConfig server;
+            var serverFile = new FileInfo(Constants.ServerFilePath);
+            if (serverFile.Exists)
+                server = JsonSerializer.Deserialize<ServerConfig>(await File.ReadAllTextAsync(serverFile.FullName, cancellation), Constants.SerializerOptions);
             else
             {
                 using var client = HttpFactory.Create(new Uri("https://api.wdgautomation.com/v1.0/"));
                 var json = await client.GetStringAsync("en/configuration", cancellation);
-                config = JsonSerializer.Deserialize<ServerConfig>(json, Constants.SerializerOptions);
+                server = JsonSerializer.Deserialize<ServerConfig>(json, Constants.SerializerOptions);
 
-                await File.WriteAllTextAsync(configFile.FullName, json);
+                await File.WriteAllTextAsync(serverFile.FullName, json, cancellation);
             }
 
-            context.BindingContext.AddService(s => config);
+            context.BindingContext.AddService(s => server);
         }
     }
 }

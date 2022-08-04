@@ -1,8 +1,6 @@
 ﻿using System.Globalization;
 using System.Net.Http.Json;
-using System.Runtime.Serialization;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Joba.IBM.RPA
@@ -16,50 +14,54 @@ namespace Joba.IBM.RPA
             this.client = client;
         }
 
-        public async Task<Session> AuthenticateAsync(Account account, CancellationToken cancellation)
+        public async Task<Session> AuthenticateAsync(int tenantCode, string userName, string password, CancellationToken cancellation)
         {
-            var tenant = await FetchTenantAsync(account, cancellation);
-            var token = await GetTokenAsync(account, tenant, cancellation);
-            return new Session(token.Token, tenant.Code, tenant.Id, tenant.Name, token.Name);
+            var tenants = await FetchTenantsAsync(userName, cancellation);
+            var tenant = tenants.FirstOrDefault(t => t.Code == tenantCode);
+            if (tenant == null)
+                throw new Exception(BuildException(tenantCode, userName, tenants.ToArray()));
+
+            return await AuthenticateAsync(tenant.Id, userName, password, cancellation);
         }
 
-        private async Task<TokenResponse> GetTokenAsync(Account account, Tenant tenant, CancellationToken cancellation)
+        public async Task<Session> AuthenticateAsync(Guid tenantId, string userName, string password, CancellationToken cancellation)
+        {
+            var token = await GetTokenAsync(tenantId, userName, password, cancellation);
+            return new Session(token.Token, token.TenantCode, tenantId, token.TenantName, token.PersonName);
+        }
+
+        private async Task<TokenResponse> GetTokenAsync(Guid tenantId, string userName, string password, CancellationToken cancellation)
         {
             var parameters = new Dictionary<string, string>
             {
                 { "grant_type", "password" },
-                { "username", account.UserName },
-                { "password", account.Password },
+                { "username", userName },
+                { "password", password },
                 { "culture", CultureInfo.CurrentCulture.Name },
             };
 
             var content = new FormUrlEncodedContent(parameters);
             var request = new HttpRequestMessage(HttpMethod.Post, "token") { Content = content };
-            request.Headers.Add("tenantid", tenant.Id.ToString());
+            request.Headers.Add("tenantid", tenantId.ToString());
             var response = await client.SendAsync(request, cancellation);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<TokenResponse>(Constants.SerializerOptions, cancellation);
         }
 
-        private async Task<Tenant> FetchTenantAsync(Account account, CancellationToken cancellation)
+        public async Task<IEnumerable<Tenant>> FetchTenantsAsync(string userName, CancellationToken cancellation)
         {
             var url = $"{CultureInfo.CurrentCulture.Name}/account/tenant";
-            var model = new { UserName = account.UserName };
+            var model = new { UserName = userName };
 
             var response = await client.PostAsJsonAsync(url, model, cancellation);
             response.EnsureSuccessStatusCode();
-            var tenants = await response.Content.ReadFromJsonAsync<Tenant[]>(Constants.SerializerOptions, cancellation);
-            var tenant = tenants.FirstOrDefault(t => t.Code == account.TenantCode);
-            if (tenant == null)
-                throw new Exception(BuildException(account, tenants));
-
-            return tenant;
+            return await response.Content.ReadFromJsonAsync<Tenant[]>(Constants.SerializerOptions, cancellation);
         }
 
-        private static string BuildException(Account account, Tenant[] tenants)
+        private static string BuildException(int tenantCode, string userName, Tenant[] tenants)
         {
             return new StringBuilder()
-                .AppendLine($"The specified tenant code '{account.TenantCode}' does not exist for the user '{account.UserName}'. Here are the available tenants:")
+                .AppendLine($"The specified tenant code '{tenantCode}' does not exist for the user '{userName}'. Here are the available tenants:")
                 .AppendLine(string.Join(Environment.NewLine, tenants.Select(t => $"{t.Code} - {t.Name}")))
                 .ToString();
         }
@@ -69,12 +71,14 @@ namespace Joba.IBM.RPA
             client?.Dispose();
         }
 
-        record class Tenant(Guid Id, int Code, string Name);
         struct TokenResponse
         {
             [JsonPropertyName("access_token")]
             public string Token { get; init; }
-            public string Name { get; init; }
+            [JsonPropertyName("name")]
+            public string PersonName { get; init; }
+            public int TenantCode { get; init; }
+            public string TenantName { get; init; }
         }
     }
 }

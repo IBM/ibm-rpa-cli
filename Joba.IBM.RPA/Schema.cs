@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     internal record struct Region(string Name, string Description, string ApiUrl);
     internal record struct Session(string Token, int TenantCode, Guid TenantId, string TenantName, string PersonName);
@@ -16,4 +10,6 @@ namespace Joba.IBM.RPA
             return new Profile(session.Token, session.TenantCode, session.TenantId, session.TenantName, session.PersonName, account.UserName, account.Password);
         }
     }
+
+    internal record class Tenant(Guid Id, int Code, string Name);
 }

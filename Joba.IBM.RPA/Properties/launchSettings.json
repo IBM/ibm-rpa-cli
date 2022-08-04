@@ -2,7 +2,7 @@
   "profiles": {
     "cli configure": {
       "commandName": "Project",
-      "commandLineArgs": "configure --region US1 --userName joberto.diniz@ibm.com --password p1mapggg --tenant 5283"
+      "commandLineArgs": "configure --region US1"
     },
     "cli": {
       "commandName": "Project",
