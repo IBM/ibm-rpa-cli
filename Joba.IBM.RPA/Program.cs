@@ -26,9 +26,15 @@ namespace Joba.IBM.RPA
             var parser = new CommandLineBuilder(command)
                 .UseDefaults()
                 .AddMiddleware(Middleware)
+                //.UseExceptionHandler(OnException)
                 .Build();
 
             return parser.InvokeAsync(args);
+        }
+
+        private static void OnException(Exception exception, InvocationContext context)
+        {
+            //TODO:
         }
 
         private static void ShowHelp(InvocationContext context)
@@ -46,29 +52,22 @@ namespace Joba.IBM.RPA
         {
             if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult)
             {
-                await AddServerConfig(context);
+                await LoadProfileAsync(context);
             }
 
             await next(context);
         }
 
-        private static async Task AddServerConfig(InvocationContext context)
+        private static async Task LoadProfileAsync(InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            ServerConfig server;
-            var serverFile = new FileInfo(Constants.ServerFilePath);
-            if (serverFile.Exists)
-                server = JsonSerializer.Deserialize<ServerConfig>(await File.ReadAllTextAsync(serverFile.FullName, cancellation), Constants.SerializerOptions);
-            else
-            {
-                using var client = HttpFactory.Create(new Uri("https://api.wdgautomation.com/v1.0/"));
-                var json = await client.GetStringAsync("en/configuration", cancellation);
-                server = JsonSerializer.Deserialize<ServerConfig>(json, Constants.SerializerOptions);
+            //ServerConfig server;
+            //var serverFile = new FileInfo(Constants.ServerFilePath);
+            //if (serverFile.Exists)
+            //    server = JsonSerializer.Deserialize<ServerConfig>(await File.ReadAllTextAsync(serverFile.FullName, cancellation), Constants.SerializerOptions);
+            
 
-                await File.WriteAllTextAsync(serverFile.FullName, json, cancellation);
-            }
-
-            context.BindingContext.AddService(s => server);
+            //context.BindingContext.AddService(s => server);
         }
     }
 }

@@ -14,6 +14,11 @@ namespace Joba.IBM.RPA
             this.client = client;
         }
 
+        public async Task<ServerConfig> GetConfigurationAsync(CancellationToken cancellation)
+        {
+            return await client.GetFromJsonAsync<ServerConfig>("en/configuration", Constants.SerializerOptions, cancellation);
+        }
+
         public async Task<Session> AuthenticateAsync(int tenantCode, string userName, string password, CancellationToken cancellation)
         {
             var tenants = await FetchTenantsAsync(userName, cancellation);
@@ -66,7 +71,7 @@ namespace Joba.IBM.RPA
                 .ToString();
         }
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             client?.Dispose();
         }

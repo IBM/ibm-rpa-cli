@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA
+﻿using System.Text.Json;
+
+namespace Joba.IBM.RPA
 {
     internal struct ServerConfig
     {
@@ -10,14 +12,10 @@
             init => regions = value.ToDictionary(d => d.Name, v => v);
         }
 
-        public ApiClient CreateClient(string region) => new(HttpFactory.Create(GetApiFor(region)));
-
-        private Uri GetApiFor(string region)
+        public Region? GetByName(string name)
         {
-            if (!regions.TryGetValue(region, out var candidate))
-                throw new Exception($"The region '{region}' does not exist");
-
-            return new Uri(candidate.ApiUrl);
+            regions.TryGetValue(name, out var region);
+            return region;
         }
     }
 }

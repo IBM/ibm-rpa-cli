@@ -2,7 +2,7 @@
   "profiles": {
     "cli configure": {
       "commandName": "Project",
-      "commandLineArgs": "configure --region US1"
+      "commandLineArgs": "configure"
     },
     "cli": {
       "commandName": "Project",
