@@ -49,7 +49,7 @@ namespace Joba.IBM.RPA
             var request = new HttpRequestMessage(HttpMethod.Post, "token") { Content = content };
             request.Headers.Add("tenantid", tenantId.ToString());
             var response = await client.SendAsync(request, cancellation);
-            response.EnsureSuccessStatusCode();
+            await response.ThrowWhenUnsuccessful(cancellation);
             return await response.Content.ReadFromJsonAsync<TokenResponse>(Constants.SerializerOptions, cancellation);
         }
 
@@ -59,7 +59,7 @@ namespace Joba.IBM.RPA
             var model = new { UserName = userName };
 
             var response = await client.PostAsJsonAsync(url, model, cancellation);
-            response.EnsureSuccessStatusCode();
+            await response.ThrowWhenUnsuccessful(cancellation);
             return await response.Content.ReadFromJsonAsync<Tenant[]>(Constants.SerializerOptions, cancellation);
         }
 

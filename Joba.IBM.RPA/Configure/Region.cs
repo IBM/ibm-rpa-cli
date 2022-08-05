@@ -20,7 +20,7 @@ namespace Joba.IBM.RPA
             var server = await client.GetConfigurationAsync(cancellation);
 
             if (string.IsNullOrEmpty(regionName))
-                return PromptToSelectRegion("Choose the region:", server.Regions);
+                return PromptToSelectRegion("Please, select the region", server.Regions);
 
             return server.GetByName(regionName) ??
                 PromptToSelectRegion($"The specified region '{regionName}' does not exist. Please select one:", server.Regions);

@@ -26,7 +26,7 @@ namespace Joba.IBM.RPA
             var parser = new CommandLineBuilder(command)
                 .UseDefaults()
                 .AddMiddleware(Middleware)
-                //.UseExceptionHandler(OnException)
+                .UseExceptionHandler(OnException)
                 .Build();
 
             return parser.InvokeAsync(args);
@@ -34,7 +34,10 @@ namespace Joba.IBM.RPA
 
         private static void OnException(Exception exception, InvocationContext context)
         {
-            //TODO:
+            exception.Trace();
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(exception.Message);
+            Console.ResetColor();
         }
 
         private static void ShowHelp(InvocationContext context)
@@ -61,13 +64,7 @@ namespace Joba.IBM.RPA
         private static async Task LoadProfileAsync(InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            //ServerConfig server;
-            //var serverFile = new FileInfo(Constants.ServerFilePath);
-            //if (serverFile.Exists)
-            //    server = JsonSerializer.Deserialize<ServerConfig>(await File.ReadAllTextAsync(serverFile.FullName, cancellation), Constants.SerializerOptions);
             
-
-            //context.BindingContext.AddService(s => server);
         }
     }
 }
