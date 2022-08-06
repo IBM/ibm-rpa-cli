@@ -1,12 +1,20 @@
 {
   "profiles": {
+    "cli": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    },
     "cli configure": {
       "commandName": "Project",
       "commandLineArgs": "configure"
     },
-    "cli": {
+    "cli project init": {
       "commandName": "Project",
-      "commandLineArgs": ""
+      "commandLineArgs": "project init"
+    },
+    "cli project fetch": {
+      "commandName": "Project",
+      "commandLineArgs": "project fetch \"Joba_System\""
     }
   }
 }

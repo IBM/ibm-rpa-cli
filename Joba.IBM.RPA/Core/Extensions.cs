@@ -33,5 +33,11 @@ namespace Joba.IBM.RPA
             System.Diagnostics.Trace.TraceError(text);
             return text;
         }
+
+        public static void CreateHidden(this DirectoryInfo dir)
+        {
+            dir.Create();
+            dir.Attributes |= FileAttributes.Hidden;
+        }
     }
 }

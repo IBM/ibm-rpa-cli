@@ -3,9 +3,9 @@ using System.CommandLine.Binding;
 
 namespace Joba.IBM.RPA
 {
-    record struct Account(int TenantCode, string UserName, string Password)
+    record class Account(int TenantCode, string UserName, string Password)
     {
-        public async Task<Session> AuthenticateAsync(ApiClient client, CancellationToken cancellation)
+        public async Task<Session> AuthenticateAsync(IAccountClient client, CancellationToken cancellation)
         {
             return await client.AuthenticateAsync(TenantCode, UserName, Password, cancellation);
         }
@@ -13,9 +13,9 @@ namespace Joba.IBM.RPA
 
     class AccountSelector
     {
-        private readonly ApiClient client;
+        private readonly IAccountClient client;
 
-        public AccountSelector(ApiClient client)
+        public AccountSelector(IAccountClient client)
         {
             this.client = client;
         }

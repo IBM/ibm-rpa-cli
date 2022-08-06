@@ -12,21 +12,39 @@ namespace Joba.IBM.RPA
     {
         public static Task<int> Main(string[] args)
         {
-            //https://www.youtube.com/watch?v=JNDgcBDZPkU
             //https://docs.microsoft.com/en-us/dotnet/standard/commandline/
             //example: https://github.com/dotnet/command-line-api/issues/1776#issuecomment-1165482490
             //bind class: https://github.com/dotnet/command-line-api/issues/1750#issuecomment-1152707726
 
+            /*
+             * Main purpose: manage "projects" and "environments" (tenants)
+             * Premises: update 'executeScript' to use '--version' parameter to gain performance since it caches scripts that way.
+             * - connect to more than one environment within a folder
+             * - create 'dev' 'test' and 'prod' subfolders
+             * - fetch the latest 'environment' wal files
+             * Roadmap
+             * - read wal files to get the 'parameters' they are using and create a local file with it
+             *   - allow specifying different values in other environments
+             * - handle chatbot settings
+             * - handle credentials
+             */
+
             Directory.CreateDirectory(Constants.LocalFolder);
 
-            var command = new RootCommand("");
+            var command = new RootCommand("Provides features to manage RPA through the command line");
             command.AddCommand(new ConfigureCommand());
+            command.AddCommand(new ProjectCommand());
             command.SetHandler(ShowHelp);
 
             var parser = new CommandLineBuilder(command)
-                .UseDefaults()
-                .AddMiddleware(Middleware)
+                .UseHelp()
+                .UseSuggestDirective()
+                .RegisterWithDotnetSuggest()
+                .UseTypoCorrections()
+                .UseParseErrorReporting()
                 .UseExceptionHandler(OnException)
+                .CancelOnProcessTermination()
+                .AddMiddleware(Middleware)
                 .Build();
 
             return parser.InvokeAsync(args);
@@ -53,7 +71,8 @@ namespace Joba.IBM.RPA
 
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
-            if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult)
+            if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult &&
+                context.ParseResult.CommandResult.Command.GetType() != typeof(ConfigureCommand))
             {
                 await LoadProfileAsync(context);
             }
@@ -64,7 +83,9 @@ namespace Joba.IBM.RPA
         private static async Task LoadProfileAsync(InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            
+            var profile = await Profile.LoadAsync(cancellation);
+            var client = profile.CreateClient();
+            context.BindingContext.AddService(s => client);
         }
     }
 }

@@ -1,18 +1,18 @@
 ﻿
 namespace Joba.IBM.RPA
 {
-    internal record struct Region(string Name, Uri ApiUrl, string? Description = null)
+    internal record class Region(string Name, Uri ApiUrl, string? Description = null)
     {
-        public ApiClient CreateClient() => new(HttpFactory.Create(ApiUrl));
+        public RpaClient CreateClient() => new(HttpFactory.Create(ApiUrl));
     }
 
     class RegionSelector : IDisposable
     {
-        private readonly ApiClient client;
+        private readonly RpaClient client;
 
         public RegionSelector()
         {
-            client = new ApiClient(HttpFactory.Create(new Uri("https://api.wdgautomation.com/v1.0/")));
+            client = new RpaClient(HttpFactory.Create(new Uri("https://api.wdgautomation.com/v1.0/")));
         }
 
         public async Task<Region> SelectAsync(string? regionName, CancellationToken cancellation)
@@ -35,9 +35,6 @@ namespace Joba.IBM.RPA
             return regions[choice.Value];
         }
 
-        public void Dispose()
-        {
-            client?.Dispose();
-        }
+        public void Dispose() => client?.Dispose();
     }
 }
