@@ -1,6 +1,6 @@
 ﻿using System.CommandLine.Binding;
 
-namespace Joba.IBM.RPA
+namespace Joba.IBM.RPA.Cli
 {
     internal static class Bind
     {

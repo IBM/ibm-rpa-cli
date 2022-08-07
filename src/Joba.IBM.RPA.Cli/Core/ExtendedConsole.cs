@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Joba.IBM.RPA
+namespace Joba.IBM.RPA.Cli
 {
     internal class ExtendedConsole : IFormatProvider, ICustomFormatter
     {
@@ -229,7 +229,7 @@ namespace Joba.IBM.RPA
                 Console.Clear();
 
                 if (!string.IsNullOrEmpty(title))
-                    Console.WriteLine($"{title} {Environment.NewLine}");
+                    Console.WriteLine($"{title} {System.Environment.NewLine}");
 
                 for (var i = 0; i < options.Length; i++)
                 {

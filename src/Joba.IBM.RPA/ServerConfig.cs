@@ -2,7 +2,7 @@
 
 namespace Joba.IBM.RPA
 {
-    internal struct ServerConfig
+    public struct ServerConfig
     {
         private readonly IDictionary<string, Region> regions;
 

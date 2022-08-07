@@ -3,9 +3,9 @@ using Polly;
 using Polly.Extensions.Http;
 using System.Net.Http.Headers;
 
-namespace Joba.IBM.RPA
+namespace Joba.IBM.RPA.Cli
 {
-    internal static class HttpFactory
+    public static class HttpRpaFactory
     {
         public static HttpClient Create(Uri address)
         {

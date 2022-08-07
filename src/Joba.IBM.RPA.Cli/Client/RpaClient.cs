@@ -1,12 +1,18 @@
 ﻿using System.Globalization;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Joba.IBM.RPA
+namespace Joba.IBM.RPA.Cli
 {
-    internal class RpaClient : IDisposable
+    class RpaClient : IRpaClient
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
         private readonly HttpClient client;
 
         public RpaClient(HttpClient client)
@@ -20,7 +26,7 @@ namespace Joba.IBM.RPA
         public IScriptClient Script { get; }
 
         public async Task<ServerConfig> GetConfigurationAsync(CancellationToken cancellation) =>
-            await client.GetFromJsonAsync<ServerConfig>($"{CultureInfo.CurrentCulture.Name}/configuration", Constants.SerializerOptions, cancellation);
+            await client.GetFromJsonAsync<ServerConfig>($"{CultureInfo.CurrentCulture.Name}/configuration", SerializerOptions, cancellation);
 
         public void Dispose()
         {
@@ -37,7 +43,7 @@ namespace Joba.IBM.RPA
             {
                 //https://us1api.wdgautomation.com/v1.0/en-US/script/489c65dc-c8df-48ed-afa6-be87057dabe7/version?offset=0&limit=10&search=&orderBy=version&asc=true&include=CreatedBy%2CScript
                 var url = $"{CultureInfo.CurrentCulture.Name}/script/{scriptId}/version?offset=0&limit=1&orderBy=version&asc=false";
-                var response = await client.GetFromJsonAsync<PagedResponse<ScriptVersion>>(url, Constants.SerializerOptions, cancellation);
+                var response = await client.GetFromJsonAsync<PagedResponse<ScriptVersion>>(url, SerializerOptions, cancellation);
                 if (response.Items.Length == 0)
                     return null;
 
@@ -87,14 +93,15 @@ namespace Joba.IBM.RPA
                 request.Headers.Add("tenantid", tenantId.ToString());
                 var response = await client.SendAsync(request, cancellation);
                 await response.ThrowWhenUnsuccessful(cancellation);
-                return await response.Content.ReadFromJsonAsync<TokenResponse>(Constants.SerializerOptions, cancellation);
+                return await response.Content.ReadFromJsonAsync<TokenResponse?>(SerializerOptions, cancellation)
+                    ?? throw new Exception("Could not read token from http response");
             }
 
             private static string BuildException(int tenantCode, string userName, Tenant[] tenants)
             {
                 return new StringBuilder()
                     .AppendLine($"The specified tenant code '{tenantCode}' does not exist for the user '{userName}'. Here are the available tenants:")
-                    .AppendLine(string.Join(Environment.NewLine, tenants.Select(t => $"{t.Code} - {t.Name}")))
+                    .AppendLine(string.Join(System.Environment.NewLine, tenants.Select(t => $"{t.Code} - {t.Name}")))
                     .ToString();
             }
 
@@ -105,7 +112,8 @@ namespace Joba.IBM.RPA
 
                 var response = await client.PostAsJsonAsync(url, model, cancellation);
                 await response.ThrowWhenUnsuccessful(cancellation);
-                return await response.Content.ReadFromJsonAsync<Tenant[]>(Constants.SerializerOptions, cancellation);
+                return await response.Content.ReadFromJsonAsync<Tenant[]>(SerializerOptions, cancellation)
+                    ?? throw new Exception("Could not read tenants from http response");
             }
 
             struct TokenResponse
@@ -121,18 +129,4 @@ namespace Joba.IBM.RPA
 
         record struct PagedResponse<T>(T[] Items);
     }
-
-    internal interface IAccountClient
-    {
-        Task<IEnumerable<Tenant>> FetchTenantsAsync(string userName, CancellationToken cancellation);
-        Task<Session> AuthenticateAsync(int tenantCode, string userName, string password, CancellationToken cancellation);
-    }
-
-    internal interface IScriptClient
-    {
-        Task<ScriptVersion?> GetLatestVersionAsync(Guid scriptId, CancellationToken cancellation);
-        Task<string> GetContentAsync(Guid scriptVersionId, CancellationToken cancellation);
-    }
-
-    record class ScriptVersion(Guid Id, Guid ScriptId, int Version, string ProductVersion);
 }

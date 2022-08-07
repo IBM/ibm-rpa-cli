@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "cli": {
+      "commandName": "Project",
+      "commandLineArgs": ""
+    },
+    "cli project": {
+      "commandName": "Project",
+      "commandLineArgs": "project \"Assistant\""
+    }
+  }
+}

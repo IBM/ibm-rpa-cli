@@ -2,7 +2,7 @@
 
 namespace Joba.IBM.RPA
 {
-    internal static class Extensions
+    public static class Extensions
     {
         public static async Task ThrowWhenUnsuccessful(this HttpResponseMessage response, CancellationToken cancellation = default)
         {

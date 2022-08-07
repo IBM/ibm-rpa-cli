@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Reflection;
 
-namespace Joba.IBM.RPA
+namespace Joba.IBM.RPA.Cli
 {
     internal class UserAgentHandler : DelegatingHandler
     {
@@ -9,13 +9,13 @@ namespace Joba.IBM.RPA
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var assembly = Assembly.GetEntryAssembly().GetName();
-            var version = assembly.Version.ToString(3);
-            var productName = assembly.Name;
-            var osBitness = Environment.Is64BitOperatingSystem ? "x64" : "x86";
-            var osPlatform = Environment.OSVersion.Platform;
-            var osVersion = Environment.OSVersion;
-            var machineName = Environment.MachineName;
+            var assembly = Assembly.GetEntryAssembly()?.GetName() ?? throw new Exception("Could not get assembly name");
+            var version = assembly.Version?.ToString(3) ?? "unknown";
+            var productName = assembly.Name ?? Constants.CliName;
+            var osBitness = System.Environment.Is64BitOperatingSystem ? "x64" : "x86";
+            var osPlatform = System.Environment.OSVersion.Platform;
+            var osVersion = System.Environment.OSVersion;
+            var machineName = System.Environment.MachineName;
 
             // {executableName}/{wdgVersion} ({osVersion}; {osPlatform}; {osBitness}) ({machineName})
             request.Headers.UserAgent.Add(new ProductInfoHeaderValue(productName, version));

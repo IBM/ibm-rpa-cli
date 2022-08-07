@@ -1,16 +1,6 @@
-﻿using System.CommandLine;
-using System.CommandLine.Binding;
-
-namespace Joba.IBM.RPA
+﻿
+namespace Joba.IBM.RPA.Cli
 {
-    record class Account(int TenantCode, string UserName, string Password)
-    {
-        public async Task<Session> AuthenticateAsync(IAccountClient client, CancellationToken cancellation)
-        {
-            return await client.AuthenticateAsync(TenantCode, UserName, Password, cancellation);
-        }
-    }
-
     class AccountSelector
     {
         private readonly IAccountClient client;
@@ -25,7 +15,7 @@ namespace Joba.IBM.RPA
             if (string.IsNullOrEmpty(userName))
             {
                 Console.Write("User name: ");
-                userName = Console.ReadLine();
+                userName = Console.ReadLine() ?? throw new OperationCanceledException("User did not provide the 'user name'");
             }
 
             if (!tenantCode.HasValue)

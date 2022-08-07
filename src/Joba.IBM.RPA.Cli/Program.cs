@@ -6,7 +6,7 @@ using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Text.Json;
 
-namespace Joba.IBM.RPA
+namespace Joba.IBM.RPA.Cli
 {
     static class Program
     {
@@ -32,8 +32,10 @@ namespace Joba.IBM.RPA
             Directory.CreateDirectory(Constants.LocalFolder);
 
             var command = new RootCommand("Provides features to manage RPA through the command line");
-            command.AddCommand(new ConfigureCommand());
             command.AddCommand(new ProjectCommand());
+            //command.AddCommand(new InitCommand());
+            //command.AddCommand(new SwitchCommand());
+            //command.AddCommand(new ConfigureCommand());
             command.SetHandler(ShowHelp);
 
             var parser = new CommandLineBuilder(command)
@@ -71,21 +73,20 @@ namespace Joba.IBM.RPA
 
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
-            if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult &&
-                context.ParseResult.CommandResult.Command.GetType() != typeof(ConfigureCommand))
+            if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult)
             {
-                await LoadProfileAsync(context);
+                //await LoadProfileAsync(context);
             }
 
             await next(context);
         }
 
-        private static async Task LoadProfileAsync(InvocationContext context)
-        {
-            var cancellation = context.GetCancellationToken();
-            var profile = await Profile.LoadAsync(cancellation);
-            var client = profile.CreateClient();
-            context.BindingContext.AddService(s => client);
-        }
+        //private static async Task LoadProfileAsync(InvocationContext context)
+        //{
+        //    var cancellation = context.GetCancellationToken();
+        //    var profile = await Profile.LoadAsync(cancellation);
+        //    var client = profile.CreateClient();
+        //    context.BindingContext.AddService(s => client);
+        //}
     }
 }

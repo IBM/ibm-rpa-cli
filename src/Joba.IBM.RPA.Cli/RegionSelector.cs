@@ -1,18 +1,13 @@
 ﻿
-namespace Joba.IBM.RPA
+namespace Joba.IBM.RPA.Cli
 {
-    internal record class Region(string Name, Uri ApiUrl, string? Description = null)
-    {
-        public RpaClient CreateClient() => new(HttpFactory.Create(ApiUrl));
-    }
-
     class RegionSelector : IDisposable
     {
         private readonly RpaClient client;
 
         public RegionSelector()
         {
-            client = new RpaClient(HttpFactory.Create(new Uri("https://api.wdgautomation.com/v1.0/")));
+            client = new RpaClient(HttpRpaFactory.Create(new Uri("https://api.wdgautomation.com/v1.0/")));
         }
 
         public async Task<Region> SelectAsync(string? regionName, CancellationToken cancellation)
