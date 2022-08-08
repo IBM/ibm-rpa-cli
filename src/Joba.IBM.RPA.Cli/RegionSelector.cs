@@ -3,12 +3,12 @@ namespace Joba.IBM.RPA.Cli
 {
     class RegionSelector : IDisposable
     {
-        private readonly RpaClient client;
+        private readonly IRpaClient client;
 
-        public RegionSelector()
-        {
-            client = new RpaClient(HttpRpaFactory.Create(new Uri("https://api.wdgautomation.com/v1.0/")));
-        }
+        public RegionSelector() : this(new RpaClient(HttpRpaFactory.Create(new Uri("https://api.wdgautomation.com/v1.0/"))))
+        { }
+
+        public RegionSelector(IRpaClient client) => this.client = client;
 
         public async Task<Region> SelectAsync(string? regionName, CancellationToken cancellation)
         {

@@ -6,24 +6,25 @@ namespace Joba.IBM.RPA
 {
     public class Project
     {
-        private  static readonly JsonSerializerOptions SerializerOptions = new()
+        private static readonly JsonSerializerOptions SerializerOptions = new()
         {
+            WriteIndented = true,
             PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            TypeInfoResolver = new IncludeInternalPropertyJsonTypeInfoResolver()
         };
 
         private readonly DirectoryInfo workingDir;
         private readonly DirectoryInfo rpaDir;
         private readonly FileInfo projectFile;
-        [JsonInclude]
-        internal readonly IList<Environment> environments = new List<Environment>();
-        private readonly IDictionary<string, Environment> environmentsMapping = new Dictionary<string, Environment>();
+        private IDictionary<string, Environment> environmentsMapping = new Dictionary<string, Environment>();
+        private IList<Environment> environments = new List<Environment>();
 
         [JsonConstructor]
-        protected Project()
+        internal Project()
             : this("...loading...", System.Environment.CurrentDirectory) { }
 
-        protected Project(string name, string workingDirPath)
+        internal Project(string name, string workingDirPath)
         {
             Name = name;
             workingDir = new DirectoryInfo(workingDirPath);
@@ -43,9 +44,21 @@ namespace Joba.IBM.RPA
         public ProjectSettings Settings { get; init; } = new ProjectSettings();
         [JsonIgnore]
         public Environment? CurrentEnvironment { get; private set; }
+        internal IList<Environment> Environments
+        {
+            get => environments;
+            set
+            {
+                environments = value ?? new List<Environment>();
+                environmentsMapping = environments.ToDictionary(k => k.Name, v => v);
+            }
+        }
 
         public Environment AddEnvironment(string name, Region region, Account account, Session session)
         {
+            if (environmentsMapping.ContainsKey(name))
+                throw new Exception($"Environment '{name}' already exists");
+
             var env = new Environment(name, region, account, session);
             environments.Add(env);
             environmentsMapping.Add(name, env);
@@ -55,22 +68,10 @@ namespace Joba.IBM.RPA
         public void SwitchTo(string envName)
         {
             if (!environmentsMapping.ContainsKey(envName))
-                throw new Exception($"Could not switch to {envName} because the environment does not exist");
+                throw new Exception($"Could not switch to '{envName}' because the environment does not exist");
 
             CurrentEnvironment = environmentsMapping[envName];
         }
-
-        //public WalFile Get(string shortName)
-        //{
-        //    if (!shortName.EndsWith(WalFile.Extension))
-        //        shortName = $"{shortName}{WalFile.Extension}";
-
-        //    var file = new FileInfo(Path.Combine(workingDir.FullName, shortName));
-        //    if (!file.Exists)
-        //        throw new FileNotFoundException($"Wal file '{shortName}' does not exist", file.FullName);
-
-        //    return WalFile.Read(file);
-        //}
 
         public async Task SaveAsync(CancellationToken cancellation)
         {
@@ -94,16 +95,13 @@ namespace Joba.IBM.RPA
 
     public class Environment
     {
-        [JsonInclude]
-        internal readonly Configuration configuration;
-
         [JsonConstructor]
         protected Environment() { }
 
         public Environment(string name, Region region, Account account, Session session)
         {
             Name = name;
-            configuration = new Configuration
+            Config = new Configuration
             {
                 RegionName = region.Name,
                 RegionUrl = region.ApiUrl.ToString(),
@@ -116,6 +114,7 @@ namespace Joba.IBM.RPA
         }
 
         public string Name { get; init; }
+        internal Configuration Config { get; init; }
 
         internal class Configuration
         {
