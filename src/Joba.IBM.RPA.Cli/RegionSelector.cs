@@ -18,12 +18,21 @@ namespace Joba.IBM.RPA.Cli
                 return PromptToSelectRegion("Please, select the region", server.Regions);
 
             return server.GetByName(regionName) ??
-                PromptToSelectRegion($"The specified region '{regionName}' does not exist. Please select one:", server.Regions);
+                PromptToSelectRegion($"The specified region {regionName:red} does not exist. Please select one:", server.Regions);
         }
 
         private static Region PromptToSelectRegion(string title, Region[] regions)
         {
             var choice = ExtendedConsole.ShowMenu(title, regions.Select(r => $"[{r.Name}] {r.Description}").ToArray());
+            if (!choice.HasValue)
+                throw new Exception("User skipped region selection");
+
+            return regions[choice.Value];
+        }
+
+        private static Region PromptToSelectRegion(ref ConsoleInterpolatedStringHandler builder, Region[] regions)
+        {
+            var choice = ExtendedConsole.ShowMenu(ref builder, regions.Select(r => $"[{r.Name}] {r.Description}").ToArray());
             if (!choice.HasValue)
                 throw new Exception("User skipped region selection");
 
