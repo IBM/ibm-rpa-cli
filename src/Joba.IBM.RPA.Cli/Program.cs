@@ -73,20 +73,20 @@ namespace Joba.IBM.RPA.Cli
 
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
-            if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult)
+            if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult
+                && context.ParseResult.CommandResult.Command.GetType() != typeof(ProjectCommand))
             {
-                //await LoadProfileAsync(context);
+                await LoadProjectAsync(context);
             }
 
             await next(context);
         }
 
-        //private static async Task LoadProfileAsync(InvocationContext context)
-        //{
-        //    var cancellation = context.GetCancellationToken();
-        //    var profile = await Profile.LoadAsync(cancellation);
-        //    var client = profile.CreateClient();
-        //    context.BindingContext.AddService(s => client);
-        //}
+        private static async Task LoadProjectAsync(InvocationContext context)
+        {
+            var cancellation = context.GetCancellationToken();
+            var project = await Project.LoadFromCurrentDirectoryAsync(cancellation);
+            context.BindingContext.AddService(s => project);
+        }
     }
 }

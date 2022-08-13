@@ -19,38 +19,12 @@ namespace Joba.IBM.RPA.Cli
         private async Task HandleAsync(string name, InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            var project = Project.Create(name);
+            var project = Project.CreateFromCurrentDirectory(name);
 
             //configure the environment
             var command = new EnvironmentCommand();
-            await command.HandleAsync(new EnvironmentCommand.Options("dev"), project, cancellation);
+            await command.HandleAsync(new EnvironmentCommand.Options(Environment.Development), project, cancellation);
         }
-
-        //internal class InitCommand : Command
-        //{
-        //    public InitCommand() : base("init", "Initializes a new project")
-        //    {
-        //        //var nameArgument = new Argument<string>("name", "The project name");
-        //        //AddArgument(nameArgument);
-
-        //        this.SetHandler(Handle, Bind.FromServiceProvider<InvocationContext>());
-        //    }
-
-        //    private async Task Handle(InvocationContext context)
-        //    {
-        //        var cancellation = context.GetCancellationToken();
-        //        var project = new Project(Environment.CurrentDirectory);
-        //        await project.CreateAsync(cancellation);
-
-        //        var files = project.EnumerableWalFiles().ToArray();
-        //        if (files.Length > 0)
-        //            Console.WriteLine($"Total of {files.Length} files are tracked");
-        //        else
-        //            Console.Write("Project created, but no wal files were found to be tracked.");
-        //        foreach (var file in files)
-        //            Console.WriteLine($" {file.Info.Name}");
-        //    }
-        //}
 
         //internal class FetchCommand : Command
         //{
@@ -106,8 +80,7 @@ namespace Joba.IBM.RPA.Cli
     {
         public EnvironmentCommand() : base("env", "Provides commands to manage environments")
         {
-            var name = new Argument<string>("name", "The environment name")
-                .FromAmong("dev", "test", "prod");
+            var name = new Argument<string>("name", "The environment name").FromAmong(Project.SupportedEnvironments);
             var region = new Option<string>("--region", "The region you want to connect");
             var userName = new Option<string>("--userName", "The user name, usually the e-mail, to use for authentication");
             var tenant = new Option<int?>("--tenant", "The tenant code to use for authentication");
@@ -136,13 +109,12 @@ namespace Joba.IBM.RPA.Cli
             var account = await accountSelector.SelectAsync(options.UserName, options.TenantCode, cancellation);
             var session = await account.AuthenticateAsync(client.Account, cancellation);
 
-            var environment = project.AddEnvironment(options.Name, region, account, session);
-            project.SwitchTo(environment.Name);
+            project.ConfigureEnvironmentAndSwitch(options.Name, region, account, session);
             await project.SaveAsync(cancellation);
 
-            ExtendedConsole.WriteLine($"Hi {session.PersonName:blue}, the environment {environment.Name:blue} has been configured:");
+            ExtendedConsole.WriteLine($"Hi {session.PersonName:blue}, the environment {project.CurrentEnvironment.Name:blue} has been configured:");
             ExtendedConsole.WriteLine($"Region {region.Name:blue}, Tenant {account.TenantCode:blue} - {session.TenantName:blue}");
-            ExtendedConsole.WriteLine($"Use the {Constants.CliName:blue} {Name:blue} to add more environments");
+            ExtendedConsole.WriteLine($"Use the {Constants.CliName:blue} {Name:blue} to configure more environments");
         }
 
 #pragma warning disable CS0108 // Member hides inherited member; missing new keyword
