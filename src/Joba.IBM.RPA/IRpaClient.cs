@@ -1,11 +1,5 @@
-﻿
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
-    public interface IHttpFactory
-    {
-
-    }
-
     public interface IRpaClient : IDisposable
     {
         Task<ServerConfig> GetConfigurationAsync(CancellationToken cancellation);

@@ -1,5 +1,4 @@
-﻿
-namespace Joba.IBM.RPA.Cli
+﻿namespace Joba.IBM.RPA.Cli
 {
     class RegionSelector : IDisposable
     {

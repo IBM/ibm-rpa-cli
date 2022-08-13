@@ -1,10 +1,7 @@
-﻿using System.CommandLine;
-using System.CommandLine.Builder;
+﻿using System.CommandLine.Builder;
 using System.CommandLine.Help;
-using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
-using System.Text.Json;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -33,6 +30,7 @@ namespace Joba.IBM.RPA.Cli
 
             var command = new RootCommand("Provides features to manage RPA through the command line");
             command.AddCommand(new ProjectCommand());
+            command.AddCommand(new EnvironmentCommand());
             //command.AddCommand(new InitCommand());
             //command.AddCommand(new SwitchCommand());
             //command.AddCommand(new ConfigureCommand());

@@ -28,7 +28,7 @@ namespace Joba.IBM.RPA
 
         public static string Trace(this Exception exception, string label = null)
         {
-            var arg = string.IsNullOrWhiteSpace(label) ? string.Empty : (label + ": ");
+            var arg = string.IsNullOrWhiteSpace(label) ? string.Empty : label + ": ";
             var text = $"{arg}{exception}, HResult {exception.HResult}";
             System.Diagnostics.Trace.TraceError(text);
             return text;

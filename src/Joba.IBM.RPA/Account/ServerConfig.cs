@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     public struct ServerConfig
     {

@@ -1,5 +1,4 @@
-﻿
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     public record class Account(int TenantCode, string UserName, string Password)
     {
