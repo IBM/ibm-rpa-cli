@@ -30,6 +30,13 @@ namespace Joba.IBM.RPA.Cli
             }
         }
 
+        public static void Indent() => Console.Write("\t");
+        public static void WriteLineIndented(ref ConsoleInterpolatedStringHandler builder)
+        {
+            Indent();
+            WriteLine(ref builder);
+        }
+
         public static void WriteLine(ref ConsoleInterpolatedStringHandler builder) => builder.WriteLine();
 
         public static void Write(ref ConsoleInterpolatedStringHandler builder) => builder.Write();

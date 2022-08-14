@@ -78,6 +78,15 @@ namespace Joba.IBM.RPA
             return walFile.Exists ? WalFile.Read(walFile) : null;
         }
 
+        internal IEnumerable<WalFile> GetFiles()
+        {
+            EnsureInitialized();
+            return file.Value.Directory
+                .EnumerateFiles($"*{WalFile.Extension}", SearchOption.TopDirectoryOnly)
+                .OrderBy(f => f.Name)
+                .Select(WalFile.Read);
+        }
+
         internal WalFile CreateFile(string fileName, ScriptVersion version)
         {
             if (!fileName.EndsWith(WalFile.Extension))

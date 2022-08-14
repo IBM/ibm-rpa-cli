@@ -90,6 +90,12 @@ namespace Joba.IBM.RPA
             return CurrentEnvironment.GetFile(fileName);
         }
 
+        public IEnumerable<WalFile> GetFiles()
+        {
+            EnsureCurrentEnvironment();
+            return CurrentEnvironment.GetFiles();
+        }
+
         public async Task<WalFile> CreateFileAsync(IScriptClient client, string fileName, CancellationToken cancellation)
         {
             EnsureCurrentEnvironment();

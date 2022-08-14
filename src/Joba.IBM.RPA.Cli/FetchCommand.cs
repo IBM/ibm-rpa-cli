@@ -4,7 +4,7 @@
     {
         public FetchCommand() : base("fetch", "Fetches the project files")
         {
-            var fileName = new Argument<string>("fileName", () => string.Empty, "The specific Wal file to fetch");
+            var fileName = new Argument<string>("fileName", () => string.Empty, "The specific wal file name");
             AddArgument(fileName);
 
             this.SetHandler(HandleAsync, fileName,
