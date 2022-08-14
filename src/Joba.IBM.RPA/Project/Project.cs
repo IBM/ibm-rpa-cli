@@ -31,13 +31,10 @@ namespace Joba.IBM.RPA
         {
             get
             {
-                if (string.IsNullOrEmpty(name))
-                {
-                    EnsureLoaded();
-                    name = environments[0].Name;
-                }
-
+                EnsureLoaded();
+#pragma warning disable CS8603 // Possible null reference return.
                 return name;
+#pragma warning restore CS8603 // Possible null reference return.
             }
         }
         public Environment CurrentEnvironment
@@ -55,10 +52,10 @@ namespace Joba.IBM.RPA
 
         private async Task LoadAsync(CancellationToken cancellation)
         {
-            var environmentFiles = EnvironmentFileCollection.CreateAndEnsureValid(rpaDir);
+            var collection = EnvironmentFileCollection.CreateAndEnsureValid(rpaDir);
 
             string? currentEnvironmentName = default;
-            foreach (var envFile in environmentFiles)
+            foreach (var envFile in collection)
             {
                 var environment = await Environment.LoadAsync(envFile, cancellation);
                 AddEnvironment(environment);
@@ -66,12 +63,13 @@ namespace Joba.IBM.RPA
                     currentEnvironmentName = envFile.EnvironmentName;
             }
 
+            name = collection.ProjectName;
             SwitchTo(currentEnvironmentName ?? Environment.Development);
         }
 
         private void EnsureLoaded()
         {
-            if (!environments.Any())
+            if (string.IsNullOrEmpty(name) || !environments.Any())
                 throw new InvalidOperationException($"The project hasn't been loaded. Please make sure to either call '{nameof(LoadAsync)}' or '{nameof(ConfigureEnvironmentAndSwitch)}' first.");
         }
 

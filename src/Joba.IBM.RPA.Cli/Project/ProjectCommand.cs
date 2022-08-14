@@ -69,21 +69,4 @@
         //    }
         //}
     }
-
-    class StatusCommand : Command
-    {
-        public StatusCommand() : base("status", "Inspects the status of the project and files in the current environment")
-        {
-            var name = new Argument<string>("name", "The project name");
-
-            this.SetHandler(HandleAsync,
-                Bind.FromServiceProvider<Project>(),
-                Bind.FromServiceProvider<InvocationContext>());
-        }
-
-        private async Task HandleAsync(Project project, InvocationContext context)
-        {
-            var cancellation = context.GetCancellationToken();
-        }
-    }
 }

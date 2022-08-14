@@ -1,12 +1,16 @@
 {
   "profiles": {
-    "cli": {
+    "rpa": {
       "commandName": "Project",
       "commandLineArgs": ""
     },
-    "cli project": {
+    "rpa project": {
       "commandName": "Project",
       "commandLineArgs": "project \"Assistant\""
+    },
+    "rpa status": {
+      "commandName": "Project",
+      "commandLineArgs": "status"
     }
   }
 }

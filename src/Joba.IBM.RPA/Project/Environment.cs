@@ -11,19 +11,18 @@ namespace Joba.IBM.RPA
             WriteIndented = true,
             PropertyNameCaseInsensitive = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            TypeInfoResolver = new IncludeInternalPropertyJsonTypeInfoResolver()
+            TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
         };
         public static readonly string Development = "dev";
         public static readonly string Testing = "test";
         public static readonly string Production = "prod";
         private EnvironmentFile? file;
 
-        [JsonConstructor]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         internal Environment() { }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         internal Environment(EnvironmentFile file, Region region, Account account, Session session)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             Name = file.EnvironmentName;
             Account = new AccountConfiguration
@@ -103,9 +102,11 @@ namespace Joba.IBM.RPA
 
     class EnvironmentFileCollection : IEnumerable<EnvironmentFile>
     {
-        private readonly IEnumerable<EnvironmentFile> files;
+        private readonly IList<EnvironmentFile> files;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         private EnvironmentFileCollection(DirectoryInfo rpaDir)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             files = rpaDir
                 .EnumerateFiles($"*{EnvironmentFile.FileExtension}", SearchOption.TopDirectoryOnly)
@@ -114,10 +115,15 @@ namespace Joba.IBM.RPA
                 .ToList();
 
             EnsureValid(rpaDir);
+#pragma warning disable CS8601 // Possible null reference assignment.
+            ProjectName = files[0].ProjectName;
+#pragma warning restore CS8601 // Possible null reference assignment.
         }
 
-        public static IEnumerable<EnvironmentFile> CreateAndEnsureValid(DirectoryInfo rpaDir) =>
-            new EnvironmentFileCollection(rpaDir).ToArray();
+        public string ProjectName { get; init; }
+
+        public static EnvironmentFileCollection CreateAndEnsureValid(DirectoryInfo rpaDir) =>
+            new EnvironmentFileCollection(rpaDir);
 
         private void EnsureValid(DirectoryInfo rpaDir)
         {
