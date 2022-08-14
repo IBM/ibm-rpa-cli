@@ -49,9 +49,45 @@ namespace Joba.IBM.RPA
             }
         }
         public IList<Environment> Environments => environments;
+        
+        public static async Task<Project> LoadFromCurrentDirectoryAsync(CancellationToken cancellation)
+        {
+            var project = new Project(new DirectoryInfo(System.Environment.CurrentDirectory));
+            await project.LoadAsync(cancellation);
+            return project;
+        }
+        public static Project CreateFromCurrentDirectory(string name) => new(new DirectoryInfo(System.Environment.CurrentDirectory), name);
+        
+        public void ConfigureEnvironmentAndSwitch(string environmentName, Region region, Account account, Session session)
+        {
+            if (environmentsMapping.ContainsKey(environmentName))
+                throw new Exception($"Environment '{environmentName}' already exists");
+
+            var env = new Environment(new EnvironmentFile(rpaDir, Name, environmentName), region, account, session);
+            AddEnvironment(env);
+            SwitchTo(env.Name);
+        }
+        
+        public void SwitchTo(string envName)
+        {
+            if (!environmentsMapping.ContainsKey(envName))
+                throw new Exception($"Could not switch to '{envName}' because the environment does not exist");
+
+            currentEnvironment = environmentsMapping[envName];
+            currentEnvironment.MarkAsCurrent();
+        }
+
+        public async Task SaveAsync(CancellationToken cancellation)
+        {
+            EnsureCurrentEnvironment();
+            await CurrentEnvironment.SaveAsync(cancellation);
+        }
 
         private async Task LoadAsync(CancellationToken cancellation)
         {
+            if (!rpaDir.Exists)
+                throw new Exception($"Could not load project because it does not exist in '{workingDir}'");
+
             var collection = EnvironmentFileCollection.CreateAndEnsureValid(rpaDir);
 
             string? currentEnvironmentName = default;
@@ -84,39 +120,6 @@ namespace Joba.IBM.RPA
             environments.Add(environment);
             environmentsMapping.Add(environment.Name, environment);
         }
-
-        public void ConfigureEnvironmentAndSwitch(string environmentName, Region region, Account account, Session session)
-        {
-            if (environmentsMapping.ContainsKey(environmentName))
-                throw new Exception($"Environment '{environmentName}' already exists");
-
-            var env = new Environment(new EnvironmentFile(rpaDir, Name, environmentName), region, account, session);
-            AddEnvironment(env);
-            SwitchTo(env.Name);
-        }
-
-        public void SwitchTo(string envName)
-        {
-            if (!environmentsMapping.ContainsKey(envName))
-                throw new Exception($"Could not switch to '{envName}' because the environment does not exist");
-
-            currentEnvironment = environmentsMapping[envName];
-            currentEnvironment.MarkAsCurrent();
-        }
-
-        public async Task SaveAsync(CancellationToken cancellation)
-        {
-            EnsureCurrentEnvironment();
-            await CurrentEnvironment.SaveAsync(cancellation);
-        }
-
-        public static async Task<Project> LoadFromCurrentDirectoryAsync(CancellationToken cancellation)
-        {
-            var project = new Project(new DirectoryInfo(System.Environment.CurrentDirectory));
-            await project.LoadAsync(cancellation);
-            return project;
-        }
-        public static Project CreateFromCurrentDirectory(string name) => new(new DirectoryInfo(System.Environment.CurrentDirectory), name);
 
         private string GetDebuggerDisplay() => $"{name} ({string.Join(",", environmentsMapping.Keys)})";
     }

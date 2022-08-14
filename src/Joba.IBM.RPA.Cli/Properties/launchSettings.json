@@ -11,6 +11,10 @@
     "rpa status": {
       "commandName": "Project",
       "commandLineArgs": "status"
+    },
+    "rpa switch": {
+      "commandName": "Project",
+      "commandLineArgs": "switch prod"
     }
   }
 }

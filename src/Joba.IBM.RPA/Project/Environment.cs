@@ -16,15 +16,26 @@ namespace Joba.IBM.RPA
         public static readonly string Development = "dev";
         public static readonly string Testing = "test";
         public static readonly string Production = "prod";
+        private readonly Lazy<Region> lazyRegion;
         private EnvironmentFile? file;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        internal Environment() { }
+        internal Environment()
+        {
+            lazyRegion = new Lazy<Region>(() =>
+            {
+                EnsureInitialized();
+                return new Region(Account.RegionName, new Uri(Account.RegionUrl));
+            });
+        }
 
         internal Environment(EnvironmentFile file, Region region, Account account, Session session)
+            : this()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
+#pragma warning disable CS8601 // Possible null reference assignment.
             Name = file.EnvironmentName;
+#pragma warning restore CS8601 // Possible null reference assignment.
             Account = new AccountConfiguration
             {
                 RegionName = region.Name,
@@ -38,6 +49,7 @@ namespace Joba.IBM.RPA
             Initialize(file);
         }
 
+        public Region Region => lazyRegion.Value;
         public string Name { get; init; }
         public bool IsCurrent { get; private set; }
         public EnvironmentSettings Settings { get; init; } = new EnvironmentSettings();
@@ -74,6 +86,7 @@ namespace Joba.IBM.RPA
             environment.Initialize(file);
             return environment;
         }
+
         private void Initialize(EnvironmentFile file) => this.file = file;
 
         private string GetDebuggerDisplay() => $"{Name} ({Account.RegionName}), Tenant = {Account.TenantName}, User = {Account.UserName}";

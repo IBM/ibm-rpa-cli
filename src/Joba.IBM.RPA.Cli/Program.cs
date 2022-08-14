@@ -32,8 +32,8 @@ namespace Joba.IBM.RPA.Cli
             command.AddCommand(new ProjectCommand());
             command.AddCommand(new EnvironmentCommand());
             command.AddCommand(new StatusCommand());
-            //command.AddCommand(new SwitchCommand());
-            //command.AddCommand(new ConfigureCommand());
+            command.AddCommand(new FetchCommand());
+            command.AddCommand(new SwitchCommand());
             command.SetHandler(ShowHelp);
 
             var parser = new CommandLineBuilder(command)
@@ -84,7 +84,10 @@ namespace Joba.IBM.RPA.Cli
         {
             var cancellation = context.GetCancellationToken();
             var project = await Project.LoadFromCurrentDirectoryAsync(cancellation);
+            //var client = project.CreateClient();
+
             context.BindingContext.AddService(s => project);
+            //context.BindingContext.AddService(s => client);
         }
     }
 }
