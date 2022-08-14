@@ -10,6 +10,7 @@ namespace Joba.IBM.RPA
         private readonly DirectoryInfo rpaDir;
         private readonly IDictionary<string, Environment> environmentsMapping = new Dictionary<string, Environment>();
         private readonly IList<Environment> environments = new List<Environment>();
+        private readonly Lazy<ISession> lazySession;
         private string? name;
         private Environment? currentEnvironment;
 
@@ -17,6 +18,11 @@ namespace Joba.IBM.RPA
         {
             this.workingDir = workingDir;
             rpaDir = new DirectoryInfo(Constants.GetRpaDirectoryPath(workingDir.FullName));
+            lazySession = new Lazy<ISession>(() =>
+            {
+                EnsureCurrentEnvironment();
+                return new InternalSession(CurrentEnvironment);
+            });
         }
         public Project(DirectoryInfo workingDir, string name)
             : this(workingDir)
@@ -49,7 +55,8 @@ namespace Joba.IBM.RPA
             }
         }
         public IList<Environment> Environments => environments;
-        
+        public ISession Session => lazySession.Value;
+
         public static async Task<Project> LoadFromCurrentDirectoryAsync(CancellationToken cancellation)
         {
             var project = new Project(new DirectoryInfo(System.Environment.CurrentDirectory));
@@ -57,17 +64,17 @@ namespace Joba.IBM.RPA
             return project;
         }
         public static Project CreateFromCurrentDirectory(string name) => new(new DirectoryInfo(System.Environment.CurrentDirectory), name);
-        
+
         public void ConfigureEnvironmentAndSwitch(string environmentName, Region region, Account account, Session session)
         {
             if (environmentsMapping.ContainsKey(environmentName))
                 throw new Exception($"Environment '{environmentName}' already exists");
 
-            var env = new Environment(new EnvironmentFile(rpaDir, Name, environmentName), region, account, session);
+            var env = new Environment(new EnvironmentFile(rpaDir, name, environmentName), region, account, session);
             AddEnvironment(env);
             SwitchTo(env.Name);
         }
-        
+
         public void SwitchTo(string envName)
         {
             if (!environmentsMapping.ContainsKey(envName))
@@ -75,6 +82,12 @@ namespace Joba.IBM.RPA
 
             currentEnvironment = environmentsMapping[envName];
             currentEnvironment.MarkAsCurrent();
+        }
+
+        public WalFile? GetFile(string fileName)
+        {
+            EnsureCurrentEnvironment();
+            return CurrentEnvironment.GetFile(fileName);
         }
 
         public async Task SaveAsync(CancellationToken cancellation)
@@ -105,7 +118,7 @@ namespace Joba.IBM.RPA
 
         private void EnsureLoaded()
         {
-            if (string.IsNullOrEmpty(name) || !environments.Any())
+            if (!environments.Any())
                 throw new InvalidOperationException($"The project hasn't been loaded. Please make sure to either call '{nameof(LoadAsync)}' or '{nameof(ConfigureEnvironmentAndSwitch)}' first.");
         }
 
@@ -122,5 +135,17 @@ namespace Joba.IBM.RPA
         }
 
         private string GetDebuggerDisplay() => $"{name} ({string.Join(",", environmentsMapping.Keys)})";
+
+        class InternalSession : ISession
+        {
+            public InternalSession(Environment environment)
+            {
+                Region = new Uri(environment.Account.RegionUrl);
+                Token = environment.Account.Token;
+            }
+
+            public Uri Region { get; }
+            public string Token { get; }
+        }
     }
 }

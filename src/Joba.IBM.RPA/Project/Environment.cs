@@ -16,17 +16,17 @@ namespace Joba.IBM.RPA
         public static readonly string Development = "dev";
         public static readonly string Testing = "test";
         public static readonly string Production = "prod";
-        private readonly Lazy<Region> lazyRegion;
+        //private readonly Lazy<Region> lazyRegion;
         private EnvironmentFile? file;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         internal Environment()
         {
-            lazyRegion = new Lazy<Region>(() =>
-            {
-                EnsureInitialized();
-                return new Region(Account.RegionName, new Uri(Account.RegionUrl));
-            });
+            //lazyRegion = new Lazy<Region>(() =>
+            //{
+            //    EnsureInitialized();
+            //    return new Region(Account.RegionName, new Uri(Account.RegionUrl));
+            //});
         }
 
         internal Environment(EnvironmentFile file, Region region, Account account, Session session)
@@ -44,12 +44,15 @@ namespace Joba.IBM.RPA
                 TenantCode = account.TenantCode,
                 TenantName = session.TenantName,
                 UserName = account.UserName,
-                UserPassword = account.Password
+                UserPassword = account.Password,
+                TenantId = session.TenantId,
+                Token = session.Token
             };
             Initialize(file);
         }
 
-        public Region Region => lazyRegion.Value;
+        //[JsonIgnore]
+        //public Region Region => lazyRegion.Value;
         public string Name { get; init; }
         public bool IsCurrent { get; private set; }
         public EnvironmentSettings Settings { get; init; } = new EnvironmentSettings();
@@ -57,12 +60,33 @@ namespace Joba.IBM.RPA
 
         internal void MarkAsCurrent() => IsCurrent = true;
 
+        internal static async Task<Environment> LoadAsync(EnvironmentFile file, CancellationToken cancellation)
+        {
+            using var stream = File.OpenRead(file.File.FullName);
+            var environment = await JsonSerializer.DeserializeAsync<Environment>(stream, SerializerOptions, cancellation)
+                ?? throw new Exception($"Could not load environment '{file.EnvironmentName}' from '{file.File.Name}'");
+
+            environment.Initialize(file);
+            return environment;
+        }
+
         internal async Task SaveAsync(CancellationToken cancellation)
         {
             EnsureInitialized();
             CreateDirectory();
             using var stream = File.OpenWrite(file.Value.File.FullName);
             await JsonSerializer.SerializeAsync(stream, this, SerializerOptions, cancellation);
+        }
+
+        internal WalFile? GetFile(string fileName)
+        {
+            EnsureInitialized();
+            if (!fileName.EndsWith(WalFile.Extension))
+                fileName = $"{fileName}{WalFile.Extension}";
+
+            var walFile = new FileInfo(Path.Combine(file.Value.Directory.FullName, fileName));
+
+            return walFile.Exists ? WalFile.Read(walFile) : null;
         }
 
         private void CreateDirectory()
@@ -77,16 +101,6 @@ namespace Joba.IBM.RPA
                 throw new InvalidOperationException($"The environment '{Name}' has not been initialized");
         }
 
-        internal static async Task<Environment> LoadAsync(EnvironmentFile file, CancellationToken cancellation)
-        {
-            using var stream = File.OpenRead(file.File.FullName);
-            var environment = await JsonSerializer.DeserializeAsync<Environment>(stream, SerializerOptions, cancellation)
-                ?? throw new Exception($"Could not load environment '{file.EnvironmentName}' from '{file.File.Name}'");
-
-            environment.Initialize(file);
-            return environment;
-        }
-
         private void Initialize(EnvironmentFile file) => this.file = file;
 
         private string GetDebuggerDisplay() => $"{Name} ({Account.RegionName}), Tenant = {Account.TenantName}, User = {Account.UserName}";
@@ -96,10 +110,12 @@ namespace Joba.IBM.RPA
             public string RegionName { get; set; }
             public string RegionUrl { get; set; }
             public int TenantCode { get; set; }
+            public Guid TenantId { get; set; }
             public string TenantName { get; set; }
             public string PersonName { get; set; }
             public string UserName { get; set; }
             public string UserPassword { get; set; }
+            public string Token { get; set; }
         }
     }
 

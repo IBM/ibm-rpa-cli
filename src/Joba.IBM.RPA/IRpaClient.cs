@@ -16,8 +16,13 @@
     public interface IScriptClient
     {
         Task<ScriptVersion?> GetLatestVersionAsync(Guid scriptId, CancellationToken cancellation);
+        Task<ScriptVersion?> GetLatestVersionAsync(string scriptName, CancellationToken cancellation);
+    }
+
+    public interface IScriptVersionClient
+    {
         Task<string> GetContentAsync(Guid scriptVersionId, CancellationToken cancellation);
     }
 
-    public record class ScriptVersion(Guid Id, Guid ScriptId, int Version, string ProductVersion);
+    public record class ScriptVersion(Guid Id, Guid ScriptId, int Version, Version ProductVersion, string Content);
 }

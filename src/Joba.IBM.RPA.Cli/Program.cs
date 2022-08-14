@@ -84,10 +84,8 @@ namespace Joba.IBM.RPA.Cli
         {
             var cancellation = context.GetCancellationToken();
             var project = await Project.LoadFromCurrentDirectoryAsync(cancellation);
-            //var client = project.CreateClient();
 
             context.BindingContext.AddService(s => project);
-            //context.BindingContext.AddService(s => client);
         }
     }
 }

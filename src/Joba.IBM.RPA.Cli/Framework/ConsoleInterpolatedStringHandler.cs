@@ -33,9 +33,8 @@ namespace Joba.IBM.RPA.Cli
 
             actions.Add(() =>
             {
-                Console.ForegroundColor = color;
-                Console.Write(t);
-                Console.ResetColor();
+                using (ExtendedConsole.BeginForegroundColor(color))
+                    Console.Write(t);
             });
         }
 

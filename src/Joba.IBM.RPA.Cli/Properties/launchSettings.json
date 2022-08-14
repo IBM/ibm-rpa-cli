@@ -6,7 +6,7 @@
     },
     "rpa project": {
       "commandName": "Project",
-      "commandLineArgs": "project \"Assistant\""
+      "commandLineArgs": "project Assistant"
     },
     "rpa status": {
       "commandName": "Project",
@@ -15,6 +15,10 @@
     "rpa switch": {
       "commandName": "Project",
       "commandLineArgs": "switch prod"
+    },
+    "rpa fetch": {
+      "commandName": "Project",
+      "commandLineArgs": "fetch Assistant"
     }
   }
 }

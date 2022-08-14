@@ -2,7 +2,7 @@
 
 namespace Joba.IBM.RPA
 {
-    class WalFile
+    public class WalFile
     {
         public static readonly string Extension = ".wal";
 
@@ -17,27 +17,54 @@ namespace Joba.IBM.RPA
         }
 
         public FileInfo Info { get; init; }
+        public bool IsFromServer => Id.HasValue;
         private string Content { get; set; }
         private Guid? Id { get; set; }
         private Guid? VersionId { get; set; }
-        private int? Version { get; set; }
-        private Version ProductVersion { get; set; }
+        public int? Version { get; set; }
+        private Version? ProductVersion { get; set; }
 
         public async Task UpdateToLatestAsync(IScriptClient client, CancellationToken cancellation)
         {
+            if (!IsFromServer)
+                throw new Exception($"The wal file '{Info.Name}' has not been downloaded from the server");
+
             var version = await client.GetLatestVersionAsync(Id!.Value, cancellation);
             if (version == null)
                 throw new Exception($"Could not find the latest version of {Info.Name}");
 
-            var content = await client.GetContentAsync(version.Id, cancellation);
+            if (version.Version < Version)
+                throw new Exception($"The local '{Version}' version is greater than the latest server {version.Version}' version");
+            if (version.Version != Version)
+            {
+                UpdateWith(version);
+                Save();
+            }
+        }
 
-            Content = content;
+        public async Task OverwriteToLatestAsync(IScriptClient client, string fileName, CancellationToken cancellation)
+        {
+            var version = await client.GetLatestVersionAsync(Path.GetFileNameWithoutExtension(fileName), cancellation);
+            if (version == null)
+                throw new Exception($"Could not find the latest version of {fileName}");
+
+            if (version.Version < Version)
+                throw new Exception($"The local '{Version}' version is greater than the latest server '{version.Version}' version");
+            
+            if (version.Version != Version)
+            {
+                UpdateWith(version);
+                Save();
+            }
+        }
+
+        private void UpdateWith(ScriptVersion version)
+        {
+            Content = version.Content;
             Id = version.ScriptId;
             VersionId = version.Id;
             Version = version.Version;
-            ProductVersion = System.Version.Parse(version.ProductVersion);
-
-            Save();
+            ProductVersion = version.ProductVersion;
         }
 
         private void Save()
@@ -54,7 +81,7 @@ namespace Joba.IBM.RPA
             Serializer.Serialize(stream, proto);
         }
 
-        public static WalFile Read(FileInfo file)
+        internal static WalFile Read(FileInfo file)
         {
             using var stream = File.OpenRead(file.FullName);
             var proto = Serializer.Deserialize<WalFileProto>(stream);

@@ -4,6 +4,32 @@ namespace Joba.IBM.RPA.Cli
 {
     internal class ExtendedConsole
     {
+        public static IDisposable BeginForegroundColor(ConsoleColor color)
+        {
+            return new ConsoleForegroundColor(color);
+        }
+
+        public static void WriteWarningLine(ref ConsoleInterpolatedStringHandler builder)
+        {
+            using (BeginForegroundColor(ConsoleColor.Yellow))
+                builder.WriteLine();
+        }
+
+        public static bool? YesOrNo(ref ConsoleInterpolatedStringHandler builder, ConsoleColor? color = null)
+        {
+            using (BeginForegroundColor(color ?? Console.ForegroundColor))
+            {
+                builder.WriteLine();
+                var keyInfo = Console.ReadKey(true);
+                return keyInfo.Key switch
+                {
+                    ConsoleKey.Y => true,
+                    ConsoleKey.N => false,
+                    _ => null,
+                };
+            }
+        }
+
         public static void WriteLine(ref ConsoleInterpolatedStringHandler builder) => builder.WriteLine();
 
         public static void Write(ref ConsoleInterpolatedStringHandler builder) => builder.Write();
@@ -44,6 +70,22 @@ namespace Joba.IBM.RPA.Cli
         {
             var menu = new ConsoleMenu(options);
             return menu.Run(title);
+        }
+
+        class ConsoleForegroundColor : IDisposable
+        {
+            private readonly ConsoleColor previousForegroundColor;
+
+            public ConsoleForegroundColor(ConsoleColor color)
+            {
+                previousForegroundColor = Console.ForegroundColor;
+                Console.ForegroundColor = color;
+            }
+
+            void IDisposable.Dispose()
+            {
+                Console.ForegroundColor = previousForegroundColor;
+            }
         }
 
         class ConsoleMenu

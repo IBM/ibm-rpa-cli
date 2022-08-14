@@ -15,12 +15,15 @@ namespace Joba.IBM.RPA.Cli
         public RpaClient(HttpClient client)
         {
             this.client = client;
+
             Account = new AccountClient(client);
-            Script = new ScriptClient(client);
+            ScriptVersion = new ScriptVersionClient(client);
+            Script = new ScriptClient(client, ScriptVersion);
         }
 
         public IAccountClient Account { get; }
         public IScriptClient Script { get; }
+        public IScriptVersionClient ScriptVersion { get; }
 
         public async Task<ServerConfig> GetConfigurationAsync(CancellationToken cancellation) =>
             await client.GetFromJsonAsync<ServerConfig>($"{CultureInfo.CurrentCulture.Name}/configuration", SerializerOptions, cancellation);
@@ -33,23 +36,58 @@ namespace Joba.IBM.RPA.Cli
         class ScriptClient : IScriptClient
         {
             private readonly HttpClient client;
+            private readonly IScriptVersionClient versionClient;
 
-            public ScriptClient(HttpClient client) => this.client = client;
+            public ScriptClient(HttpClient client, IScriptVersionClient versionClient)
+            {
+                this.client = client;
+                this.versionClient = versionClient;
+            }
 
             public async Task<ScriptVersion?> GetLatestVersionAsync(Guid scriptId, CancellationToken cancellation)
             {
-                //https://us1api.wdgautomation.com/v1.0/en-US/script/489c65dc-c8df-48ed-afa6-be87057dabe7/version?offset=0&limit=10&search=&orderBy=version&asc=true&include=CreatedBy%2CScript
+                //v1.0/en-US/script/{id}/info
+                //var url = $"{CultureInfo.CurrentCulture.Name}/script/{scriptId}/info";
+                //var test = await client.GetStringAsync(aaaa, cancellation);
+
                 var url = $"{CultureInfo.CurrentCulture.Name}/script/{scriptId}/version?offset=0&limit=1&orderBy=version&asc=false";
-                var response = await client.GetFromJsonAsync<PagedResponse<ScriptVersion>>(url, SerializerOptions, cancellation);
-                if (response.Items.Length == 0)
+                //var aa = await client.GetStringAsync(url);
+                var response = await client.GetFromJsonAsync<PagedResponse<ScriptVersionBuilder>>(url, SerializerOptions, cancellation);
+                if (response.Results.Length == 0)
                     return null;
 
-                return response.Items[0];
+                var builder = response.Results[0];
+                var content = await versionClient.GetContentAsync(builder.Id, cancellation);
+                return builder.Build(content);
             }
+
+            public async Task<ScriptVersion?> GetLatestVersionAsync(string scriptName, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/script?offset=0&limit=20&search={scriptName}&orderBy=lastPublishedDate&asc=desc";
+                var response = await client.GetFromJsonAsync<PagedResponse<Script>>(url, SerializerOptions, cancellation);
+                if (response.Results.Length == 0)
+                    return null;
+
+                var script = response.Results.FirstOrDefault(s => s.Name == scriptName);
+                if (script == null)
+                    return null;
+
+                return await GetLatestVersionAsync(script.Id, cancellation);
+            }
+
+            record class Script(Guid Id, string Name);
+        }
+
+        class ScriptVersionClient : IScriptVersionClient
+        {
+            private readonly HttpClient client;
+
+            public ScriptVersionClient(HttpClient client) => this.client = client;
 
             public async Task<string> GetContentAsync(Guid scriptVersionId, CancellationToken cancellation)
             {
-                return null;
+                var url = $"{CultureInfo.CurrentCulture.Name}/script-version/{scriptVersionId}/content";
+                return await client.GetStringAsync(url, cancellation);
             }
         }
 
@@ -124,6 +162,13 @@ namespace Joba.IBM.RPA.Cli
             }
         }
 
-        record struct PagedResponse<T>(T[] Items);
+        record struct PagedResponse<T>(T[] Results);
+
+        record class ScriptVersionBuilder(Guid Id, Guid ScriptId, int Version, string ProductVersion)
+        {
+            public ScriptVersion Build(string content) => string.IsNullOrEmpty(content) ?
+                throw new Exception($"Could not build {nameof(ScriptVersion)} because {nameof(content)} is null or empty") :
+                new(Id, ScriptId, Version, System.Version.Parse(ProductVersion), content);
+        }
     }
 }
