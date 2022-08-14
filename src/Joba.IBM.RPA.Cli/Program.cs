@@ -31,7 +31,7 @@ namespace Joba.IBM.RPA.Cli
             var command = new RootCommand("Provides features to manage RPA through the command line");
             command.AddCommand(new ProjectCommand());
             command.AddCommand(new EnvironmentCommand());
-            //command.AddCommand(new InitCommand());
+            command.AddCommand(new StatusCommand());
             //command.AddCommand(new SwitchCommand());
             //command.AddCommand(new ConfigureCommand());
             command.SetHandler(ShowHelp);

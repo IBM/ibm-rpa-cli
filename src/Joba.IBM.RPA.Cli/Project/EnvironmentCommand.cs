@@ -1,8 +1,8 @@
 ﻿namespace Joba.IBM.RPA.Cli
 {
-    internal class EnvironmentCommand : Command
+    class EnvironmentCommand : Command
     {
-        public EnvironmentCommand() : base("env", "Provides commands to manage environments")
+        public EnvironmentCommand() : base("env", "Configures an environment")
         {
             var name = new Argument<string>("name", "The environment name").FromAmong(Project.SupportedEnvironments);
             var region = new Option<string>("--region", "The region you want to connect");

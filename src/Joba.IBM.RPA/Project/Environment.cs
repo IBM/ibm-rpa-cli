@@ -6,18 +6,26 @@ namespace Joba.IBM.RPA
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     public class Environment
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            TypeInfoResolver = new IncludeInternalPropertyJsonTypeInfoResolver()
+        };
         public static readonly string Development = "dev";
         public static readonly string Testing = "test";
         public static readonly string Production = "prod";
+        private EnvironmentFile? file;
 
         [JsonConstructor]
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         internal Environment() { }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        public Environment(string name, Region region, Account account, Session session)
+        internal Environment(EnvironmentFile file, Region region, Account account, Session session)
         {
-            Name = name;
+            Name = file.EnvironmentName;
             Account = new AccountConfiguration
             {
                 RegionName = region.Name,
@@ -28,12 +36,46 @@ namespace Joba.IBM.RPA
                 UserName = account.UserName,
                 UserPassword = account.Password
             };
+            Initialize(file);
         }
 
         public string Name { get; init; }
-        public bool IsCurrent { get; init; }
+        public bool IsCurrent { get; private set; }
         public EnvironmentSettings Settings { get; init; } = new EnvironmentSettings();
         internal AccountConfiguration Account { get; init; } = new AccountConfiguration();
+
+        internal void MarkAsCurrent() => IsCurrent = true;
+
+        internal async Task SaveAsync(CancellationToken cancellation)
+        {
+            EnsureInitialized();
+            CreateDirectory();
+            using var stream = File.OpenWrite(file.Value.File.FullName);
+            await JsonSerializer.SerializeAsync(stream, this, SerializerOptions, cancellation);
+        }
+
+        private void CreateDirectory()
+        {
+            EnsureInitialized();
+            file.Value.CreateDirectory();
+        }
+
+        private void EnsureInitialized()
+        {
+            if (file == null)
+                throw new InvalidOperationException($"The environment '{Name}' has not been initialized");
+        }
+
+        internal static async Task<Environment> LoadAsync(EnvironmentFile file, CancellationToken cancellation)
+        {
+            using var stream = File.OpenRead(file.File.FullName);
+            var environment = await JsonSerializer.DeserializeAsync<Environment>(stream, SerializerOptions, cancellation)
+                ?? throw new Exception($"Could not load environment '{file.EnvironmentName}' from '{file.File.Name}'");
+
+            environment.Initialize(file);
+            return environment;
+        }
+        private void Initialize(EnvironmentFile file) => this.file = file;
 
         private string GetDebuggerDisplay() => $"{Name} ({Account.RegionName}), Tenant = {Account.TenantName}, User = {Account.UserName}";
 
@@ -84,6 +126,15 @@ namespace Joba.IBM.RPA
 
             EnsureSameProject();
             EnsureDifferentEnvironments();
+            EnsureDirectoriesExist();
+        }
+
+        private void EnsureDirectoriesExist()
+        {
+            var doNotHaveDir = files.Where(f => !(f.Directory?.Exists).GetValueOrDefault()).Select(f => f.Directory);
+            if (doNotHaveDir.Any())
+                throw new Exception($"Could not load project because the following environment folders do not exist: " +
+                    $"{string.Join(System.Environment.NewLine, doNotHaveDir)}");
         }
 
         private void EnsureDifferentEnvironments()
@@ -141,9 +192,16 @@ namespace Joba.IBM.RPA
             : this(new FileInfo(Path.Combine(rpaDir.FullName, $"{projectName}.{environmentName}{FileExtension}"))) { }
 
         public FileInfo File { get; }
+        public DirectoryInfo? Directory => IsParsed ? new(Path.Combine(File.Directory.Parent.FullName, EnvironmentName)) : null;
         public string? ProjectName { get; } = null;
         public string? EnvironmentName { get; } = null;
         internal bool IsParsed { get; }
+
+        public void CreateDirectory()
+        {
+            if (Directory != null && !Directory.Exists)
+                Directory.Create();
+        }
 
         public override string ToString() => File.FullName;
     }

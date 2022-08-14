@@ -1,15 +1,13 @@
 ﻿namespace Joba.IBM.RPA.Cli
 {
-    internal class ProjectCommand : Command
+    class ProjectCommand : Command
     {
-        public ProjectCommand() : base("project", "Manages project actions")
+        public ProjectCommand() : base("project", "Creates or initializes a RPA project")
         {
             var name = new Argument<string>("name", "The project name");
             AddArgument(name);
 
-            this.SetHandler(HandleAsync,
-                name,
-                Bind.FromServiceProvider<InvocationContext>());
+            this.SetHandler(HandleAsync, name, Bind.FromServiceProvider<InvocationContext>());
         }
 
         private async Task HandleAsync(string name, InvocationContext context)
@@ -70,5 +68,22 @@
         //        }
         //    }
         //}
+    }
+
+    class StatusCommand : Command
+    {
+        public StatusCommand() : base("status", "Inspects the status of the project and files in the current environment")
+        {
+            var name = new Argument<string>("name", "The project name");
+
+            this.SetHandler(HandleAsync,
+                Bind.FromServiceProvider<Project>(),
+                Bind.FromServiceProvider<InvocationContext>());
+        }
+
+        private async Task HandleAsync(Project project, InvocationContext context)
+        {
+            var cancellation = context.GetCancellationToken();
+        }
     }
 }

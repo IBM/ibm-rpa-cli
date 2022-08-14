@@ -6,21 +6,18 @@ namespace Joba.IBM.RPA
     public class Project
     {
         public static readonly string[] SupportedEnvironments = new string[] { Environment.Development, Environment.Testing, Environment.Production };
-        private static readonly JsonSerializerOptions SerializerOptions = new()
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            TypeInfoResolver = new IncludeInternalPropertyJsonTypeInfoResolver()
-        };
-
-        private string? name;
-        private Environment? currentEnvironment;
+        private readonly DirectoryInfo workingDir;
         private readonly DirectoryInfo rpaDir;
         private readonly IDictionary<string, Environment> environmentsMapping = new Dictionary<string, Environment>();
         private readonly IList<Environment> environments = new List<Environment>();
+        private string? name;
+        private Environment? currentEnvironment;
 
-        public Project(DirectoryInfo workingDir) => rpaDir = new DirectoryInfo(Constants.GetRpaDirectoryPath(workingDir.FullName));
+        public Project(DirectoryInfo workingDir)
+        {
+            this.workingDir = workingDir;
+            rpaDir = new DirectoryInfo(Constants.GetRpaDirectoryPath(workingDir.FullName));
+        }
         public Project(DirectoryInfo workingDir, string name)
             : this(workingDir)
         {
@@ -63,10 +60,7 @@ namespace Joba.IBM.RPA
             string? currentEnvironmentName = default;
             foreach (var envFile in environmentFiles)
             {
-                using var stream = File.OpenRead(envFile.File.FullName);
-                var environment = await JsonSerializer.DeserializeAsync<Environment>(stream, SerializerOptions, cancellation)
-                    ?? throw new Exception($"Could not load environment '{envFile.EnvironmentName}' from '{envFile.File.Name}'");
-
+                var environment = await Environment.LoadAsync(envFile, cancellation);
                 AddEnvironment(environment);
                 if (environment.IsCurrent)
                     currentEnvironmentName = envFile.EnvironmentName;
@@ -93,12 +87,12 @@ namespace Joba.IBM.RPA
             environmentsMapping.Add(environment.Name, environment);
         }
 
-        public void ConfigureEnvironmentAndSwitch(string name, Region region, Account account, Session session)
+        public void ConfigureEnvironmentAndSwitch(string environmentName, Region region, Account account, Session session)
         {
-            if (environmentsMapping.ContainsKey(name))
-                throw new Exception($"Environment '{name}' already exists");
+            if (environmentsMapping.ContainsKey(environmentName))
+                throw new Exception($"Environment '{environmentName}' already exists");
 
-            var env = new Environment(name, region, account, session);
+            var env = new Environment(new EnvironmentFile(rpaDir, Name, environmentName), region, account, session);
             AddEnvironment(env);
             SwitchTo(env.Name);
         }
@@ -109,14 +103,13 @@ namespace Joba.IBM.RPA
                 throw new Exception($"Could not switch to '{envName}' because the environment does not exist");
 
             currentEnvironment = environmentsMapping[envName];
+            currentEnvironment.MarkAsCurrent();
         }
 
         public async Task SaveAsync(CancellationToken cancellation)
         {
             EnsureCurrentEnvironment();
-            var file = new EnvironmentFile(rpaDir, Name, CurrentEnvironment.Name);
-            using var stream = File.OpenWrite(file.File.FullName);
-            await JsonSerializer.SerializeAsync(stream, CurrentEnvironment, SerializerOptions, cancellation);
+            await CurrentEnvironment.SaveAsync(cancellation);
         }
 
         public static async Task<Project> LoadFromCurrentDirectoryAsync(CancellationToken cancellation)
