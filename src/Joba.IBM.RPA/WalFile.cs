@@ -16,6 +16,12 @@ namespace Joba.IBM.RPA
             ProductVersion = new Version(proto.ProductVersion);
         }
 
+        internal WalFile(FileInfo file, ScriptVersion version)
+        {
+            Info = file;
+            UpdateWith(version);
+        }
+
         public FileInfo Info { get; init; }
         public bool IsFromServer => Id.HasValue;
         private string Content { get; set; }
@@ -50,7 +56,7 @@ namespace Joba.IBM.RPA
 
             if (version.Version < Version)
                 throw new Exception($"The local '{Version}' version is greater than the latest server '{version.Version}' version");
-            
+
             if (version.Version != Version)
             {
                 UpdateWith(version);
@@ -86,6 +92,13 @@ namespace Joba.IBM.RPA
             using var stream = File.OpenRead(file.FullName);
             var proto = Serializer.Deserialize<WalFileProto>(stream);
             return new WalFile(file, proto);
+        }
+
+        internal static WalFile Create(FileInfo file, ScriptVersion version)
+        {
+            var wal = new WalFile(file, version);
+            wal.Save();
+            return wal;
         }
 
         [ProtoContract]

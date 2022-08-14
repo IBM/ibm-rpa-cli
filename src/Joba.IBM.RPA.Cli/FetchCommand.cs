@@ -35,8 +35,8 @@
                 var wal = project.GetFile(fileName);
                 if (wal == null)
                 {
-                    throw new NotImplementedException();
-                    //TODO: fetch latest and create wal file
+                    wal = await project.CreateFileAsync(client.Script, fileName, cancellation);
+                    ExtendedConsole.WriteLine($"{wal.Info.Name:blue} has been created from the latest server version {wal.Version:green}");
                 }
                 else if (!wal.IsFromServer)
                 {

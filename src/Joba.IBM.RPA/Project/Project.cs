@@ -90,6 +90,16 @@ namespace Joba.IBM.RPA
             return CurrentEnvironment.GetFile(fileName);
         }
 
+        public async Task<WalFile> CreateFileAsync(IScriptClient client, string fileName, CancellationToken cancellation)
+        {
+            EnsureCurrentEnvironment();
+            var version = await client.GetLatestVersionAsync(fileName, cancellation);
+            if (version == null)
+                throw new Exception($"Could not find the latest version of {fileName}");
+
+            return CurrentEnvironment.CreateFile(fileName, version);
+        }
+
         public async Task SaveAsync(CancellationToken cancellation)
         {
             EnsureCurrentEnvironment();

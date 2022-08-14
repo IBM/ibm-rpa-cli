@@ -16,23 +16,14 @@ namespace Joba.IBM.RPA
         public static readonly string Development = "dev";
         public static readonly string Testing = "test";
         public static readonly string Production = "prod";
-        //private readonly Lazy<Region> lazyRegion;
         private EnvironmentFile? file;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        internal Environment()
-        {
-            //lazyRegion = new Lazy<Region>(() =>
-            //{
-            //    EnsureInitialized();
-            //    return new Region(Account.RegionName, new Uri(Account.RegionUrl));
-            //});
-        }
+        internal Environment() { }
 
         internal Environment(EnvironmentFile file, Region region, Account account, Session session)
-            : this()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 #pragma warning disable CS8601 // Possible null reference assignment.
             Name = file.EnvironmentName;
 #pragma warning restore CS8601 // Possible null reference assignment.
@@ -51,8 +42,6 @@ namespace Joba.IBM.RPA
             Initialize(file);
         }
 
-        //[JsonIgnore]
-        //public Region Region => lazyRegion.Value;
         public string Name { get; init; }
         public bool IsCurrent { get; private set; }
         public EnvironmentSettings Settings { get; init; } = new EnvironmentSettings();
@@ -87,6 +76,15 @@ namespace Joba.IBM.RPA
             var walFile = new FileInfo(Path.Combine(file.Value.Directory.FullName, fileName));
 
             return walFile.Exists ? WalFile.Read(walFile) : null;
+        }
+
+        internal WalFile CreateFile(string fileName, ScriptVersion version)
+        {
+            if (!fileName.EndsWith(WalFile.Extension))
+                fileName = $"{fileName}{WalFile.Extension}";
+
+            var walFile = new FileInfo(Path.Combine(file.Value.Directory.FullName, fileName));
+            return WalFile.Create(walFile, version);
         }
 
         private void CreateDirectory()

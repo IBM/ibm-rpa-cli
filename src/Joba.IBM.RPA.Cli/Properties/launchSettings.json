@@ -4,7 +4,7 @@
       "commandName": "Project",
       "commandLineArgs": ""
     },
-    "rpa project": {
+    "rpa project assistant": {
       "commandName": "Project",
       "commandLineArgs": "project Assistant"
     },
@@ -12,13 +12,21 @@
       "commandName": "Project",
       "commandLineArgs": "status"
     },
-    "rpa switch": {
+    "rpa switch prod": {
       "commandName": "Project",
       "commandLineArgs": "switch prod"
     },
     "rpa fetch": {
       "commandName": "Project",
+      "commandLineArgs": "fetch"
+    },
+    "rpa fetch assistant": {
+      "commandName": "Project",
       "commandLineArgs": "fetch Assistant"
+    },
+    "rpa fetch assistant_time": {
+      "commandName": "Project",
+      "commandLineArgs": "fetch Assistant_Time"
     }
   }
 }
