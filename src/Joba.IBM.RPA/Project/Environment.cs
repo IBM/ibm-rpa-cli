@@ -27,7 +27,7 @@ namespace Joba.IBM.RPA
 #pragma warning disable CS8601 // Possible null reference assignment.
             Name = file.EnvironmentName;
 #pragma warning restore CS8601 // Possible null reference assignment.
-            Account = new AccountConfiguration
+            Remote = new RemoteSettings
             {
                 RegionName = region.Name,
                 RegionUrl = region.ApiUrl.ToString(),
@@ -35,7 +35,6 @@ namespace Joba.IBM.RPA
                 TenantCode = account.TenantCode,
                 TenantName = session.TenantName,
                 UserName = account.UserName,
-                UserPassword = account.Password,
                 TenantId = session.TenantId,
                 Token = session.Token
             };
@@ -45,7 +44,7 @@ namespace Joba.IBM.RPA
         public string Name { get; init; }
         public bool IsCurrent { get; private set; }
         public EnvironmentSettings Settings { get; init; } = new EnvironmentSettings();
-        internal AccountConfiguration Account { get; init; } = new AccountConfiguration();
+        internal RemoteSettings Remote { get; init; } = new RemoteSettings();
 
         internal void MarkAsCurrent() => IsCurrent = true;
 
@@ -110,9 +109,9 @@ namespace Joba.IBM.RPA
 
         private void Initialize(EnvironmentFile file) => this.file = file;
 
-        private string GetDebuggerDisplay() => $"{Name} ({Account.RegionName}), Tenant = {Account.TenantName}, User = {Account.UserName}";
+        private string GetDebuggerDisplay() => $"{Name} ({Remote.RegionName}), Tenant = {Remote.TenantName}, User = {Remote.UserName}";
 
-        internal class AccountConfiguration
+        internal class RemoteSettings
         {
             public string RegionName { get; set; }
             public string RegionUrl { get; set; }
@@ -121,7 +120,6 @@ namespace Joba.IBM.RPA
             public string TenantName { get; set; }
             public string PersonName { get; set; }
             public string UserName { get; set; }
-            public string UserPassword { get; set; }
             public string Token { get; set; }
         }
     }

@@ -156,8 +156,8 @@ namespace Joba.IBM.RPA
         {
             public InternalSession(Environment environment)
             {
-                Region = new Region(environment.Account.RegionName, new Uri(environment.Account.RegionUrl));
-                Token = environment.Account.Token;
+                Region = new Region(environment.Remote.RegionName, new Uri(environment.Remote.RegionUrl));
+                Token = environment.Remote.Token;
             }
 
             public Region Region { get; }
