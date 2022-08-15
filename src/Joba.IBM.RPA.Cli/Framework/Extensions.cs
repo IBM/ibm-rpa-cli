@@ -9,7 +9,7 @@ namespace Joba.IBM.RPA.Cli
 
         public static IRpaClient CreateClient(this Project project)
         {
-            var client = HttpRpaFactory.Create(project.Session.Region);
+            var client = HttpRpaFactory.Create(project.Session.Region.ApiUrl);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", project.Session.Token);
 
             return new RpaClient(client);

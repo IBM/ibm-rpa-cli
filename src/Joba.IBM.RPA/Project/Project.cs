@@ -156,11 +156,11 @@ namespace Joba.IBM.RPA
         {
             public InternalSession(Environment environment)
             {
-                Region = new Uri(environment.Account.RegionUrl);
+                Region = new Region(environment.Account.RegionName, new Uri(environment.Account.RegionUrl));
                 Token = environment.Account.Token;
             }
 
-            public Uri Region { get; }
+            public Region Region { get; }
             public string Token { get; }
         }
     }

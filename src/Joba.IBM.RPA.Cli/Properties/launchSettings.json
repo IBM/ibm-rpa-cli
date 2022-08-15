@@ -27,10 +27,6 @@
     "rpa fetch assistant": {
       "commandName": "Project",
       "commandLineArgs": "fetch Assistant"
-    },
-    "rpa fetch assistant_time": {
-      "commandName": "Project",
-      "commandLineArgs": "fetch Assistant_Time"
     }
   }
 }

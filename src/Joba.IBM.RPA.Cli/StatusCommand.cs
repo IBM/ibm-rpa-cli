@@ -7,15 +7,18 @@
             var fileName = new Argument<string>("fileName", () => string.Empty, "The specific wal file name");
 
             AddArgument(fileName);
-            this.SetHandler(HandleAsync, fileName,
+            this.SetHandler(Handle, fileName,
                 Bind.FromServiceProvider<Project>(),
                 Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private void HandleAsync(string fileName, Project project, InvocationContext context)
-        {
-            //var cancellation = context.GetCancellationToken();
+        private void Handle(string fileName, Project project, InvocationContext context) =>
+           Handle(fileName, project);
 
+        public void Handle(Project project) => Handle(string.Empty, project);
+
+        public void Handle(string fileName, Project project)
+        {
             ExtendedConsole.WriteLine($"Project {project.Name:blue}, on environment {project.CurrentEnvironment.Name:blue}");
 
             if (!string.IsNullOrEmpty(fileName))

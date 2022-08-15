@@ -17,12 +17,11 @@
     {
         Task<ScriptVersion?> GetLatestVersionAsync(Guid scriptId, CancellationToken cancellation);
         Task<ScriptVersion?> GetLatestVersionAsync(string scriptName, CancellationToken cancellation);
+        Task<IEnumerable<Script>> SearchAsync(string scriptName, int limit, CancellationToken cancellation);
     }
 
     public interface IScriptVersionClient
     {
         Task<string> GetContentAsync(Guid scriptVersionId, CancellationToken cancellation);
     }
-
-    public record class ScriptVersion(Guid Id, Guid ScriptId, int Version, Version ProductVersion, string Content);
 }

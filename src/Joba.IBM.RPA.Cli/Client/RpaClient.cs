@@ -51,7 +51,6 @@ namespace Joba.IBM.RPA.Cli
                 //var test = await client.GetStringAsync(aaaa, cancellation);
 
                 var url = $"{CultureInfo.CurrentCulture.Name}/script/{scriptId}/version?offset=0&limit=1&orderBy=version&asc=false";
-                //var aa = await client.GetStringAsync(url);
                 var response = await client.GetFromJsonAsync<PagedResponse<ScriptVersionBuilder>>(url, SerializerOptions, cancellation);
                 if (response.Results.Length == 0)
                     return null;
@@ -75,7 +74,12 @@ namespace Joba.IBM.RPA.Cli
                 return await GetLatestVersionAsync(script.Id, cancellation);
             }
 
-            record class Script(Guid Id, string Name);
+            public async Task<IEnumerable<Script>> SearchAsync(string scriptName, int limit, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/script?offset=0&limit={limit}&search={scriptName}&orderBy=lastPublishedDate&asc=desc";
+                var response = await client.GetFromJsonAsync<PagedResponse<Script>>(url, SerializerOptions, cancellation);
+                return response.Results;
+            }
         }
 
         class ScriptVersionClient : IScriptVersionClient

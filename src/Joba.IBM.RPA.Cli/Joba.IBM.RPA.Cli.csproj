@@ -8,7 +8,7 @@
 		<LangVersion>preview</LangVersion>
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>rpa</ToolCommandName>
-		<PackageOutputPath>.\nupkg</PackageOutputPath>
+		<PackageOutputPath>./nupkg</PackageOutputPath>
 		<AssemblyName>rpa</AssemblyName>
 	</PropertyGroup>
 

@@ -4,7 +4,7 @@
 
     public interface ISession
     {
-        Uri Region { get; }
+        Region Region { get; }
         string Token { get; }
     }
 }
