@@ -1,8 +1,8 @@
 ﻿namespace Joba.IBM.RPA.Cli
 {
-    class FetchCommand : Command
+    class PullCommand : Command
     {
-        public FetchCommand() : base("fetch", "Fetches the project files")
+        public PullCommand() : base("pull", "Pull the project files")
         {
             var fileName = new Argument<string>("fileName", () => string.Empty, "The specific wal file name");
             AddArgument(fileName);
@@ -15,7 +15,7 @@
         private async Task HandleAsync(string fileName, Project project, InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            var fetchService = new FetchService(project);
+            var fetchService = new PullService(project);
 
             if (string.IsNullOrEmpty(fileName))
             {

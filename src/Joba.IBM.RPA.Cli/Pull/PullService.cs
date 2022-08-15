@@ -1,11 +1,11 @@
 ﻿namespace Joba.IBM.RPA.Cli
 {
-    class FetchService
+    class PullService
     {
         private readonly Project project;
         private readonly IRpaClient client;
 
-        public FetchService(Project project)
+        public PullService(Project project)
         {
             this.project = project;
             client = project.CreateClient();

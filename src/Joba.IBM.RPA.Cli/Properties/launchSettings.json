@@ -20,13 +20,13 @@
       "commandName": "Project",
       "commandLineArgs": "switch prod"
     },
-    "rpa fetch": {
+    "rpa pull": {
       "commandName": "Project",
-      "commandLineArgs": "fetch"
+      "commandLineArgs": "pull"
     },
-    "rpa fetch assistant": {
+    "rpa pull assistant": {
       "commandName": "Project",
-      "commandLineArgs": "fetch Assistant"
+      "commandLineArgs": "pull Assistant"
     }
   }
 }

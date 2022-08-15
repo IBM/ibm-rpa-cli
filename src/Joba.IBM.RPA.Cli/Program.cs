@@ -15,10 +15,29 @@ namespace Joba.IBM.RPA.Cli
 
             /*
              * Main purpose: manage "projects" and "environments" (tenants)
-             * Premises: update 'executeScript' to use '--version' parameter to gain performance since it caches scripts that way.
-             * - connect to more than one environment within a folder
-             * - create 'dev' 'test' and 'prod' subfolders
-             * - fetch the latest 'environment' wal files
+             * Commands ideas
+             * - rpa pull (pulls all the project files - wal & parameters)
+             * - rpa pull <name> (pulls the wal file)
+             * - rpa pull --parameter (pulls only parameters)
+             * - rpa pull <name> --parameter (pulls the parameter)
+             
+             * - rpa push (pushes all the project files - wal & parameters)
+             * - rpa push <name> (pushes the wal file)
+             * - rpa push --parameter (pushes only parameters)
+             * - rpa push <name> --parameter (pushes the parameter)
+             * 
+             * - rpa fetch (fetches the files and compare with the local copy, showing either they match or not)
+             * - rpa fetch <name> (fetches the wal file)
+             * - rpa fetch --parameter (fetches only parameters)
+             * - rpa fetch <name> --parameter (fetches the parameter)
+             * 
+             * - rpa tag <tagname> 
+             *    (tags the current local files to a version. This would be used in the 'promote', to assert that
+             *     those files versions will be the exact ones that gets promoted. This tag would be saved within the project configuration
+             *     with all the files, their versions, and hashes, so when 'promote' is called, we can compare the server hash with the tag hash)
+             * - rpa promote <tag> <env> 
+             *    (promote the project tag to another environment, by downloading the tagged files versions on a 'staging area',
+             *     and pushing them to the new <env> if the hash matches, then delete the staging.)             
              * Roadmap
              * - read wal files to get the 'parameters' they are using and create a local file with it
              *   - allow specifying different values in other environments
@@ -32,7 +51,7 @@ namespace Joba.IBM.RPA.Cli
             command.AddCommand(new ProjectCommand());
             command.AddCommand(new EnvironmentCommand());
             command.AddCommand(new StatusCommand());
-            command.AddCommand(new FetchCommand());
+            command.AddCommand(new PullCommand());
             command.AddCommand(new SwitchCommand());
             command.SetHandler(ShowHelp);
 
