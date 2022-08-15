@@ -47,15 +47,7 @@ namespace Joba.IBM.RPA.Cli
 
             Directory.CreateDirectory(Constants.LocalFolder);
 
-            var command = new RootCommand("Provides features to manage RPA through the command line");
-            command.AddCommand(new ProjectCommand());
-            command.AddCommand(new EnvironmentCommand());
-            command.AddCommand(new StatusCommand());
-            command.AddCommand(new PullCommand());
-            command.AddCommand(new SwitchCommand());
-            command.SetHandler(ShowHelp);
-
-            var parser = new CommandLineBuilder(command)
+            var parser = new CommandLineBuilder(new RpaCommand())
                 .UseHelp()
                 .UseSuggestDirective()
                 .RegisterWithDotnetSuggest()
@@ -75,17 +67,6 @@ namespace Joba.IBM.RPA.Cli
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(exception.Message);
             Console.ResetColor();
-        }
-
-        private static void ShowHelp(InvocationContext context)
-        {
-            using var output = context.Console.Out.CreateTextWriter();
-            var helpContext = new HelpContext(context.HelpBuilder,
-                                              context.ParseResult.CommandResult.Command,
-                                              output,
-                                              context.ParseResult);
-
-            context.HelpBuilder.Write(helpContext);
         }
 
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)

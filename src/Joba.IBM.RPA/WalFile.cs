@@ -94,6 +94,12 @@ namespace Joba.IBM.RPA
             return new WalFile(file, proto);
         }
 
+        public static string ReadAllText(FileInfo file)
+        {
+            var wal = Read(file);
+            return wal.Content;
+        }
+
         internal static WalFile Create(FileInfo file, ScriptVersion version)
         {
             var wal = new WalFile(file, version);
