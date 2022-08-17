@@ -25,7 +25,7 @@ namespace Joba.IBM.RPA
         {
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 #pragma warning disable CS8601 // Possible null reference assignment.
-            Name = file.EnvironmentName;
+            Alias = file.Alias;
 #pragma warning restore CS8601 // Possible null reference assignment.
             Remote = new RemoteSettings
             {
@@ -41,7 +41,7 @@ namespace Joba.IBM.RPA
             Initialize(file);
         }
 
-        public string Name { get; init; }
+        public string Alias { get; init; }
         public bool IsCurrent { get; private set; }
         public EnvironmentSettings Settings { get; init; } = new EnvironmentSettings();
         internal RemoteSettings Remote { get; init; } = new RemoteSettings();
@@ -52,7 +52,7 @@ namespace Joba.IBM.RPA
         {
             using var stream = File.OpenRead(file.File.FullName);
             var environment = await JsonSerializer.DeserializeAsync<Environment>(stream, SerializerOptions, cancellation)
-                ?? throw new Exception($"Could not load environment '{file.EnvironmentName}' from '{file.File.Name}'");
+                ?? throw new Exception($"Could not load environment '{file.Alias}' from '{file.File.Name}'");
 
             environment.Initialize(file);
             return environment;
@@ -104,12 +104,12 @@ namespace Joba.IBM.RPA
         private void EnsureInitialized()
         {
             if (file == null)
-                throw new InvalidOperationException($"The environment '{Name}' has not been initialized");
+                throw new InvalidOperationException($"The environment '{Alias}' has not been initialized");
         }
 
         private void Initialize(EnvironmentFile file) => this.file = file;
 
-        private string GetDebuggerDisplay() => $"{Name} ({Remote.RegionName}), Tenant = {Remote.TenantName}, User = {Remote.UserName}";
+        private string GetDebuggerDisplay() => $"{Alias} ({Remote.RegionName}), Tenant = {Remote.TenantName}, User = {Remote.UserName}";
 
         internal class RemoteSettings
         {
@@ -179,7 +179,7 @@ namespace Joba.IBM.RPA
 
         private void EnsureDifferentEnvironments()
         {
-            var differentEnvironments = files.GroupBy(f => f.EnvironmentName).All(g => g.Count() == files.Count());
+            var differentEnvironments = files.GroupBy(f => f.Alias).All(g => g.Count() == files.Count());
             if (!differentEnvironments)
                 throw new Exception(
                     $"Could not load the project because all environments should be different." +
@@ -213,8 +213,8 @@ namespace Joba.IBM.RPA
     {
         public static readonly string FileExtension = ".json";
         private static readonly string FileNameGroup = "fileName";
-        private static readonly string EnvironmentGroup = "environment";
-        private static readonly Regex EnvironmentFileExpression = new($@"(?<{FileNameGroup}>^[^\.]+)\.(?<{EnvironmentGroup}>[^\.]+)\{FileExtension}");
+        private static readonly string AliasGroup = "alias";
+        private static readonly Regex EnvironmentFileExpression = new($@"(?<{FileNameGroup}>^[^\.]+)\.(?<{AliasGroup}>[^\.]+)\{FileExtension}");
 
         public EnvironmentFile(FileInfo file)
         {
@@ -224,17 +224,17 @@ namespace Joba.IBM.RPA
             if (IsParsed)
             {
                 ProjectName = match.Groups[FileNameGroup].Value;
-                EnvironmentName = match.Groups[EnvironmentGroup].Value;
+                Alias = match.Groups[AliasGroup].Value;
             }
         }
 
-        public EnvironmentFile(DirectoryInfo rpaDir, string projectName, string environmentName)
-            : this(new FileInfo(Path.Combine(rpaDir.FullName, $"{projectName}.{environmentName}{FileExtension}"))) { }
+        public EnvironmentFile(DirectoryInfo rpaDir, string projectName, string alias)
+            : this(new FileInfo(Path.Combine(rpaDir.FullName, $"{projectName}.{alias}{FileExtension}"))) { }
 
         public FileInfo File { get; }
-        public DirectoryInfo? Directory => IsParsed ? new(Path.Combine(File.Directory.Parent.FullName, EnvironmentName)) : null;
+        public DirectoryInfo? Directory => IsParsed ? new(Path.Combine(File.Directory.Parent.FullName, Alias)) : null;
         public string? ProjectName { get; } = null;
-        public string? EnvironmentName { get; } = null;
+        public string? Alias { get; } = null;
         internal bool IsParsed { get; }
 
         public void CreateDirectory()

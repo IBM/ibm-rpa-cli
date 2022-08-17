@@ -19,7 +19,7 @@
 
         public void Handle(string fileName, Project project)
         {
-            ExtendedConsole.WriteLine($"Project {project.Name:blue}, on environment {project.CurrentEnvironment.Name:blue}");
+            ExtendedConsole.WriteLine($"Project {project.Name:blue}, on environment {project.CurrentEnvironment.Alias:blue}");
 
             if (!string.IsNullOrEmpty(fileName))
             {

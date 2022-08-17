@@ -65,14 +65,14 @@ namespace Joba.IBM.RPA
         }
         public static Project CreateFromCurrentDirectory(string name) => new(new DirectoryInfo(System.Environment.CurrentDirectory), name);
 
-        public void ConfigureEnvironmentAndSwitch(string environmentName, Region region, Account account, Session session)
+        public void ConfigureEnvironmentAndSwitch(string alias, Region region, Account account, Session session)
         {
-            if (environmentsMapping.ContainsKey(environmentName))
-                throw new Exception($"Environment '{environmentName}' already exists");
+            if (environmentsMapping.ContainsKey(alias))
+                throw new Exception($"Environment '{alias}' already exists");
 
-            var env = new Environment(new EnvironmentFile(rpaDir, name, environmentName), region, account, session);
+            var env = new Environment(new EnvironmentFile(rpaDir, name, alias), region, account, session);
             AddEnvironment(env);
-            SwitchTo(env.Name);
+            SwitchTo(env.Alias);
         }
 
         public void SwitchTo(string envName)
@@ -125,7 +125,7 @@ namespace Joba.IBM.RPA
                 var environment = await Environment.LoadAsync(envFile, cancellation);
                 AddEnvironment(environment);
                 if (environment.IsCurrent)
-                    currentEnvironmentName = envFile.EnvironmentName;
+                    currentEnvironmentName = envFile.Alias;
             }
 
             name = collection.ProjectName;
@@ -147,7 +147,7 @@ namespace Joba.IBM.RPA
         private void AddEnvironment(Environment environment)
         {
             environments.Add(environment);
-            environmentsMapping.Add(environment.Name, environment);
+            environmentsMapping.Add(environment.Alias, environment);
         }
 
         private string GetDebuggerDisplay() => $"{name} ({string.Join(",", environmentsMapping.Keys)})";
