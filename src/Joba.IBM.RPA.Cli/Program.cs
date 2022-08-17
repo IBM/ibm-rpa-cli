@@ -71,11 +71,9 @@ namespace Joba.IBM.RPA.Cli
 
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
-            if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult
-                && context.ParseResult.CommandResult.Command.GetType() != typeof(ProjectCommand))
-            {
+            if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult &&
+                context.ParseResult.CommandResult.Command.GetType() != typeof(ProjectCommand))
                 await LoadProjectAsync(context);
-            }
 
             await next(context);
         }
@@ -83,9 +81,12 @@ namespace Joba.IBM.RPA.Cli
         private static async Task LoadProjectAsync(InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            var project = await Project.LoadFromCurrentDirectoryAsync(cancellation);
+            var project = await ProjectFactory.LoadFromCurrentDirectoryAsync(cancellation);
+            var environment = await project.GetCurrentEnvironmentAsync(cancellation);
 
             context.BindingContext.AddService(s => project);
+            if (environment != null)
+                context.BindingContext.AddService(s => environment);
         }
     }
 }

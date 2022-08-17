@@ -9,32 +9,40 @@
             AddArgument(fileName);
             this.SetHandler(Handle, fileName,
                 Bind.FromServiceProvider<Project>(),
+                Bind.FromServiceProvider<Environment?>(),
                 Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private void Handle(string fileName, Project project, InvocationContext context) =>
-           Handle(fileName, project);
+        private void Handle(string fileName, Project project, Environment? environment, InvocationContext context) =>
+           Handle(fileName, project, environment);
 
-        public void Handle(Project project) => Handle(string.Empty, project);
+        public void Handle(Project project, Environment environment) => Handle(string.Empty, project, environment);
 
-        public void Handle(string fileName, Project project)
+        private static void Handle(string fileName, Project project, Environment? environment)
         {
-            ExtendedConsole.WriteLine($"Project {project.Name:blue}, on environment {project.CurrentEnvironment.Alias:blue}");
-
-            if (!string.IsNullOrEmpty(fileName))
-            {
-                var wal = project.GetFile(fileName);
-                if (wal == null)
-                    throw new Exception($"The file '{fileName}' does not exist");
-
-                var renderer = new WalFileRenderer();
-                renderer.Render(wal);
-            }
+            if (environment == null)
+                ExtendedConsole.WriteLine($"Project {project.Name:blue}. No current environment.");
             else
             {
-                var renderer = new WalFileRenderer();
-                foreach (var wal in project.GetFiles())
-                    renderer.Render(wal);
+                var envRenderer = new EnvironmentRenderer();
+                var walRenderer = new WalFileRenderer();
+                ExtendedConsole.WriteLine($"Project {project.Name:blue}, on environment");
+                envRenderer.RenderLineIndented(environment, 2);
+
+                if (!string.IsNullOrEmpty(fileName))
+                {
+                    var wal = environment.GetLocalWal(fileName);
+                    if (wal == null)
+                        throw new Exception($"The file '{fileName}' does not exist");
+
+                    walRenderer.Render(wal);
+                }
+                else
+                {
+                    ExtendedConsole.WriteLineIndented($"Wal files:", 4);
+                    foreach (var wal in environment.GetLocalWals())
+                        walRenderer.Render(wal);
+                }
             }
         }
     }
@@ -43,11 +51,11 @@
     {
         public void Render(WalFile wal)
         {
-            var color = wal.Version.HasValue ? ConsoleColor.Green : ConsoleColor.Red;
-            var version = wal.Version.HasValue ? wal.Version.Value.ToString("D5") : "local";
+            var color = wal.Version.HasValue ? Console.ForegroundColor : ConsoleColor.Red;
+            var version = wal.Version.HasValue ? wal.Version.Value.ToString("D3") : "local";
             using (ExtendedConsole.BeginForegroundColor(color))
             {
-                ExtendedConsole.WriteLineIndented($"{version} {wal.Info.Name}");
+                ExtendedConsole.WriteLineIndented($"{wal.Info.Name,40} {version}");
             }
         }
     }

@@ -11,7 +11,7 @@ namespace Joba.IBM.RPA.Cli
         {
             var assembly = Assembly.GetEntryAssembly()?.GetName() ?? throw new Exception("Could not get assembly name");
             var version = assembly.Version?.ToString(3) ?? "unknown";
-            var productName = assembly.Name ?? Constants.CliName;
+            var productName = assembly.Name ?? "unknown";
             var osBitness = System.Environment.Is64BitOperatingSystem ? "x64" : "x86";
             var osPlatform = System.Environment.OSVersion.Platform;
             var osVersion = System.Environment.OSVersion;

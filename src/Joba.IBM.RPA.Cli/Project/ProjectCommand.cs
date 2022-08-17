@@ -5,19 +5,27 @@
         public ProjectCommand() : base("project", "Creates or initializes a RPA project")
         {
             var name = new Argument<string>("name", "The project name");
+            var environmentName = new Option<string>("--env", "Specifies the first environment to set up after the project is created.");
+            
             AddArgument(name);
-
-            this.SetHandler(HandleAsync, name, Bind.FromServiceProvider<InvocationContext>());
+            AddOption(environmentName);
+            this.SetHandler(HandleAsync, name, environmentName, Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private async Task HandleAsync(string name, InvocationContext context)
+        private async Task HandleAsync(string name, string? environmentName, InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            var project = Project.CreateFromCurrentDirectory(name);
+            var project = ProjectFactory.CreateFromCurrentDirectory(name);
+            await project.SaveAsync(cancellation);
 
-            //after creating the project, automatically configure the 'dev' environment
-            var command = new EnvironmentCommand();
-            await command.HandleAsync(new EnvironmentCommand.Options(Environment.Development), project, cancellation);
+            if (string.IsNullOrEmpty(environmentName))
+                ExtendedConsole.WriteLine($"Project {project.Name:blue} has been initialized. " +
+                    $"Use {RpaCommand.CommandName:blue} {EnvironmentCommand.CommandName:blue} to add environments.");
+            else
+            {
+                var command = new EnvironmentCommand();
+                await command.HandleAsync(new EnvironmentCommand.Options(environmentName), project, cancellation);
+            }
         }
     }
 }

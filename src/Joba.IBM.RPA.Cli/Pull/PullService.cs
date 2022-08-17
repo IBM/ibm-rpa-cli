@@ -3,18 +3,20 @@
     class PullService
     {
         private readonly Project project;
+        private readonly Environment environment;
         private readonly IRpaClient client;
 
-        public PullService(Project project)
+        public PullService(Project project, Environment environment)
         {
             this.project = project;
-            client = project.CreateClient();
+            this.environment = environment;
+            client = RpaClientFactory.CreateClient(environment);
         }
 
         public async Task AllAsync(CancellationToken cancellation)
         {
             var choice = ExtendedConsole.YesOrNo($"This operation will fetch the latest server versions of wal files which names start with {project.Name:blue}. " +
-                    $"If there are local copies in the {project.CurrentEnvironment.Alias:blue} folder, they will be overwritten. This is irreversible. " +
+                    $"If there are local copies in the {environment.Alias:blue} ({environment.Directory}) directory, they will be overwritten. This is irreversible. " +
                     $"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
 
             if (!choice.HasValue)
@@ -32,9 +34,9 @@
                 ExtendedConsole.WriteLine($"Fetching files from {project.Name:blue} project...");
                 ExtendedConsole.WriteLineIndented($"({index + 1}/{scripts.Length}) fetching {script.Name:blue}");
 
-                var wal = project.GetFile(script.Name);
+                var wal = environment.GetLocalWal(script.Name);
                 if (wal == null)
-                    _ = await project.CreateFileAsync(client.Script, script.Name, cancellation);
+                    _ = await environment.CreateWalAsync(client.Script, script.Name, cancellation);
                 else
                     await wal.OverwriteToLatestAsync(client.Script, script.Name, cancellation);
             }
@@ -42,11 +44,13 @@
 
         public async Task OneAsync(string fileName, CancellationToken cancellation)
         {
-            var wal = project.GetFile(fileName);
+            var envRenderer = new EnvironmentRenderer();
+            var wal = environment.GetLocalWal(fileName);
             if (wal == null)
             {
-                wal = await project.CreateFileAsync(client.Script, fileName, cancellation);
-                ExtendedConsole.WriteLine($"From {project.CurrentEnvironment.Alias:blue}, [{project.Session.Region.Name:blue}]({project.Session.Region.ApiUrl})");
+                wal = await environment.CreateWalAsync(client.Script, fileName, cancellation);
+                ExtendedConsole.Write($"From ");
+                envRenderer.RenderLine(environment);
                 ExtendedConsole.WriteLineIndented($"{wal.Info.Name:blue} has been created from the latest server version {wal.Version:green}");
             }
             else if (!wal.IsFromServer)
@@ -62,7 +66,9 @@
 
                 var previousVersion = "local";
                 await wal.OverwriteToLatestAsync(client.Script, fileName, cancellation);
-                ExtendedConsole.WriteLine($"From {project.CurrentEnvironment.Alias:blue}, [{project.Session.Region.Name:blue}]({project.Session.Region.ApiUrl})");
+
+                ExtendedConsole.Write($"From ");
+                envRenderer.RenderLine(environment);
                 ExtendedConsole.WriteLineIndented($"{wal.Info.Name:blue} has been updated from {previousVersion:darkgray} to {wal.Version:green} version. " +
                         $"Close the file in Studio and open it again.");
             }
@@ -78,7 +84,8 @@
                 var previousVersion = wal.Version;
                 await wal.UpdateToLatestAsync(client.Script, cancellation);
 
-                ExtendedConsole.WriteLine($"From {project.CurrentEnvironment.Alias:blue}, [{project.Session.Region.Name:blue}]({project.Session.Region.ApiUrl})");
+                ExtendedConsole.Write($"From ");
+                envRenderer.RenderLine(environment);
                 if (previousVersion == wal.Version)
                     ExtendedConsole.WriteLineIndented($"No change. {wal.Info.Name:blue} is already in the latest {wal.Version:blue} version");
                 else

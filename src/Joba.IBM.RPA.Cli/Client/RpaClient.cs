@@ -15,12 +15,15 @@ namespace Joba.IBM.RPA.Cli
         public RpaClient(HttpClient client)
         {
             this.client = client;
+            if (client.BaseAddress == null)
+                throw new ArgumentException($"The '{nameof(client)}' needs to have '{nameof(client.BaseAddress)}' set");
 
             Account = new AccountClient(client);
             ScriptVersion = new ScriptVersionClient(client);
             Script = new ScriptClient(client, ScriptVersion);
         }
 
+        public Uri Address => client.BaseAddress!;
         public IAccountClient Account { get; }
         public IScriptClient Script { get; }
         public IScriptVersionClient ScriptVersion { get; }
@@ -111,16 +114,10 @@ namespace Joba.IBM.RPA.Cli
                 if (tenant == null)
                     throw new Exception(BuildException(tenantCode, userName, tenants.ToArray()));
 
-                return await AuthenticateAsync(tenant.Id, userName, password, cancellation);
+                return await GetTokenAsync(tenant.Id, userName, password, cancellation);
             }
 
-            private async Task<Session> AuthenticateAsync(Guid tenantId, string userName, string password, CancellationToken cancellation)
-            {
-                var token = await GetTokenAsync(tenantId, userName, password, cancellation);
-                return new Session(token.Token, token.TenantCode, tenantId, token.TenantName, token.PersonName);
-            }
-
-            private async Task<TokenResponse> GetTokenAsync(Guid tenantId, string userName, string password, CancellationToken cancellation)
+            private async Task<Session> GetTokenAsync(Guid tenantId, string userName, string password, CancellationToken cancellation)
             {
                 var parameters = new Dictionary<string, string>
                 {
@@ -135,7 +132,7 @@ namespace Joba.IBM.RPA.Cli
                 request.Headers.Add("tenantid", tenantId.ToString());
                 var response = await client.SendAsync(request, cancellation);
                 await response.ThrowWhenUnsuccessful(cancellation);
-                return await response.Content.ReadFromJsonAsync<TokenResponse?>(SerializerOptions, cancellation)
+                return await response.Content.ReadFromJsonAsync<Session?>(SerializerOptions, cancellation)
                     ?? throw new Exception("Could not read token from http response");
             }
 
@@ -156,16 +153,6 @@ namespace Joba.IBM.RPA.Cli
                 await response.ThrowWhenUnsuccessful(cancellation);
                 return await response.Content.ReadFromJsonAsync<Tenant[]>(SerializerOptions, cancellation)
                     ?? throw new Exception("Could not read tenants from http response");
-            }
-
-            struct TokenResponse
-            {
-                [JsonPropertyName("access_token")]
-                public string Token { get; init; }
-                [JsonPropertyName("name")]
-                public string PersonName { get; init; }
-                public int TenantCode { get; init; }
-                public string TenantName { get; init; }
             }
         }
 

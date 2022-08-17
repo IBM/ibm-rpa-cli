@@ -9,19 +9,20 @@
 
             this.SetHandler(HandleAsync, fileName,
                 Bind.FromServiceProvider<Project>(),
+                Bind.FromServiceProvider<Environment>(),
                 Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private async Task HandleAsync(string fileName, Project project, InvocationContext context)
+        private async Task HandleAsync(string fileName, Project project, Environment environment, InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            var fetchService = new PullService(project);
+            var fetchService = new PullService(project, environment);
 
             if (string.IsNullOrEmpty(fileName))
             {
                 await fetchService.AllAsync(cancellation);
                 var command = new StatusCommand();
-                command.Handle(project);
+                command.Handle(project, environment);
             }
             else
                 await fetchService.OneAsync(fileName, cancellation);

@@ -5,6 +5,7 @@ namespace Joba.IBM.RPA.Cli
 {
     class RpaCommand : RootCommand
     {
+        public static readonly string CommandName = "rpa";
         public RpaCommand() : base("Provides features to manage RPA through the command line")
         {
             //TODO: git merge support: https://git-scm.com/docs/git-mergetool

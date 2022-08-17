@@ -30,10 +30,16 @@ namespace Joba.IBM.RPA.Cli
             }
         }
 
-        public static void Indent() => Console.Write("\t");
+        public static void IndentTab() => Console.Write("\t");
+        public static void Indent(int padding) => Console.Write(new string(' ',padding));
         public static void WriteLineIndented(ref ConsoleInterpolatedStringHandler builder)
         {
-            Indent();
+            IndentTab();
+            WriteLine(ref builder);
+        }
+        public static void WriteLineIndented(ref ConsoleInterpolatedStringHandler builder, int padding)
+        {
+            Indent(padding);
             WriteLine(ref builder);
         }
 

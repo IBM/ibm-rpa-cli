@@ -2,6 +2,7 @@
 {
     public interface IRpaClient : IDisposable
     {
+        Uri Address { get; }
         Task<ServerConfig> GetConfigurationAsync(CancellationToken cancellation);
         IAccountClient Account { get; }
         IScriptClient Script { get; }

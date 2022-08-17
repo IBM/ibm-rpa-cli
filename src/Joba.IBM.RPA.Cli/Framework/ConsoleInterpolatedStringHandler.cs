@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Drawing;
+using System.Runtime.CompilerServices;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -35,6 +36,20 @@ namespace Joba.IBM.RPA.Cli
             {
                 using (ExtendedConsole.BeginForegroundColor(color))
                     Console.Write(t);
+            });
+        }
+
+        public void AppendFormatted(string? value, int alignment = 0, string? format = default)
+        {
+            if (value == null)
+                return;
+
+            actions.Add(() =>
+            {
+                if (alignment < 0)
+                    Console.Write(value.PadLeft(Math.Abs(alignment)));
+                else
+                    Console.Write(value.PadRight(alignment));
             });
         }
 

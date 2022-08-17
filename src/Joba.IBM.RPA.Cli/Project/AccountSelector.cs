@@ -9,7 +9,7 @@
             this.client = client;
         }
 
-        public async Task<Account> SelectAsync(string? userName, int? tenantCode, CancellationToken cancellation)
+        public async Task<AccountCredentials> SelectAsync(string? userName, int? tenantCode, CancellationToken cancellation)
         {
             if (string.IsNullOrEmpty(userName))
             {
@@ -23,7 +23,7 @@
             Console.Write("Password: ");
             var password = ExtendedConsole.Password();
 
-            return new Account(tenantCode.Value, userName, password);
+            return new AccountCredentials(tenantCode.Value, userName, password);
         }
 
         private async Task<int> PromptToSelectTenantAsync(string userName, CancellationToken cancellation)

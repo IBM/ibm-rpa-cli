@@ -75,7 +75,7 @@ namespace Joba.IBM.RPA
 
         private void Save()
         {
-            using var stream = File.OpenWrite(Info.FullName);
+            using var stream = new FileStream(Info.FullName, FileMode.Create);
             var proto = new WalFileProto
             {
                 Content = Content,

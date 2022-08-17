@@ -2,7 +2,8 @@
 {
     class EnvironmentCommand : Command
     {
-        public EnvironmentCommand() : base("env", "Configures an environment")
+        public static readonly string CommandName = "env";
+        public EnvironmentCommand() : base(CommandName, "Configures an environment")
         {
             var alias = new Argument<string>("alias", "The environment name");
             var region = new Option<string>("--region", "The region you want to connect");
@@ -28,17 +29,19 @@
             using var regionSelector = new RegionSelector();
             var region = await regionSelector.SelectAsync(options.RegionName, cancellation);
 
-            using var client = region.CreateClient();
+            using var client = RpaClientFactory.CreateClient(region);
             var accountSelector = new AccountSelector(client.Account);
-            var account = await accountSelector.SelectAsync(options.UserName, options.TenantCode, cancellation);
-            var session = await account.AuthenticateAsync(client.Account, cancellation);
+            var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, cancellation);
+            var session = await credentials.AuthenticateAsync(client.Account, cancellation);
 
-            project.ConfigureEnvironmentAndSwitch(options.Alias, region, account, session);
+            var environment = project.ConfigureEnvironmentAndSwitch(options.Alias, region, session);
             await project.SaveAsync(cancellation);
+            await environment.SaveAsync(cancellation);
 
-            ExtendedConsole.WriteLine($"Hi {session.PersonName:blue}, the environment {project.CurrentEnvironment.Alias:blue} has been configured:");
-            ExtendedConsole.WriteLine($"Region {region.Name:blue}, Tenant {account.TenantCode:blue} - {session.TenantName:blue}");
-            ExtendedConsole.WriteLine($"Use the {Constants.CliName:blue} {Name:blue} to configure more environments");
+            var envRenderer = new EnvironmentRenderer();
+            ExtendedConsole.WriteLine($"Hi {session.PersonName:blue}, the following environment has been configured:");
+            envRenderer.RenderLine(environment);
+            ExtendedConsole.WriteLine($"Use {RpaCommand.CommandName:blue} {Name:blue} to configure more environments");
         }
 
 #pragma warning disable CS0108 // Member hides inherited member; missing new keyword
@@ -68,6 +71,23 @@
                     bindingContext.ParseResult.GetValueForOption(userNameOption),
                     bindingContext.ParseResult.GetValueForOption(tenantCodeOption));
             }
+        }
+    }
+
+    class EnvironmentRenderer
+    {
+        public void Render(Environment environment) => Render(environment, true, 0);
+
+        public void RenderLine(Environment environment) => Render(environment, true, 0);
+
+        public void RenderLineIndented(Environment environment, int padding) => Render(environment, true, padding);
+
+        private void Render(Environment environment, bool newLine, int padding)
+        {
+            var spaces = new string(' ', padding);
+            ExtendedConsole.Write($"{spaces}{environment.Alias:blue} ({environment.Remote.TenantName}), [{environment.Remote.Name:blue}]({environment.Remote.Address})");
+            if (newLine)
+                Console.WriteLine();
         }
     }
 }

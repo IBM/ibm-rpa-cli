@@ -8,25 +8,29 @@
       "commandName": "Project",
       "commandLineArgs": "project Assistant"
     },
-    "rpa status": {
+    "rpa project assistant --env": {
       "commandName": "Project",
-      "commandLineArgs": "status"
+      "commandLineArgs": "project Assistant --env dev"
     },
-    "rpa status assistant": {
+    "rpa env prod": {
       "commandName": "Project",
-      "commandLineArgs": "status Assistant"
+      "commandLineArgs": "env prod"
     },
-    "rpa switch prod": {
+    "rpa switch envdonotexist": {
       "commandName": "Project",
-      "commandLineArgs": "switch prod"
+      "commandLineArgs": "switch envdonotexist"
+    },
+    "rpa switch dev": {
+      "commandName": "Project",
+      "commandLineArgs": "switch dev"
     },
     "rpa pull": {
       "commandName": "Project",
       "commandLineArgs": "pull"
     },
-    "rpa pull assistant": {
+    "rpa status": {
       "commandName": "Project",
-      "commandLineArgs": "pull Assistant"
+      "commandLineArgs": "status"
     }
   }
 }

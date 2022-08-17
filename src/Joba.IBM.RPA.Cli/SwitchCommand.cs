@@ -4,7 +4,7 @@
     {
         public SwitchCommand() : base("switch", "Switches between environments")
         {
-            var name = new Argument<string>("name", "The environment name").FromAmong(Project.SupportedEnvironments);
+            var name = new Argument<string>("name", "The environment name");
 
             AddArgument(name);
             this.SetHandler(HandleAsync, name,
@@ -15,10 +15,14 @@
         private async Task HandleAsync(string environmentName, Project project, InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            project.SwitchTo(environmentName);
-            await project.SaveAsync(cancellation);
-
-            ExtendedConsole.WriteLine($"Switched to {environmentName:blue}");
+            var switched = project.SwitchTo(environmentName);
+            if (switched)
+            {
+                await project.SaveAsync(cancellation);
+                ExtendedConsole.WriteLine($"Switched to {environmentName:blue}");
+            }
+            else
+                ExtendedConsole.WriteLine($"Already on {environmentName:blue}");
         }
     }
 }
