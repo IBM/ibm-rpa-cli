@@ -6,6 +6,7 @@
         Task<ServerConfig> GetConfigurationAsync(CancellationToken cancellation);
         IAccountClient Account { get; }
         IScriptClient Script { get; }
+        IParameterClient Parameter { get; }
     }
 
     public interface IAccountClient
@@ -25,4 +26,11 @@
     {
         Task<string> GetContentAsync(Guid scriptVersionId, CancellationToken cancellation);
     }
+
+    public interface IParameterClient
+    {
+        Task<IEnumerable<Parameter>> SearchAsync(string parameterName, int limit, CancellationToken cancellation);
+    }
+
+    public record struct Parameter(string Id, string Value);
 }

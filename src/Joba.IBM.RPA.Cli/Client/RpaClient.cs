@@ -21,12 +21,14 @@ namespace Joba.IBM.RPA.Cli
             Account = new AccountClient(client);
             ScriptVersion = new ScriptVersionClient(client);
             Script = new ScriptClient(client, ScriptVersion);
+            Parameter = new ParameterClient(client);
         }
 
         public Uri Address => client.BaseAddress!;
         public IAccountClient Account { get; }
         public IScriptClient Script { get; }
         public IScriptVersionClient ScriptVersion { get; }
+        public IParameterClient Parameter { get; }
 
         public async Task<ServerConfig> GetConfigurationAsync(CancellationToken cancellation) =>
             await client.GetFromJsonAsync<ServerConfig>($"{CultureInfo.CurrentCulture.Name}/configuration", SerializerOptions, cancellation);
@@ -163,6 +165,20 @@ namespace Joba.IBM.RPA.Cli
             public ScriptVersion Build(string content) => string.IsNullOrEmpty(content) ?
                 throw new Exception($"Could not build {nameof(ScriptVersion)} because {nameof(content)} is null or empty") :
                 new(Id, ScriptId, Version, System.Version.Parse(ProductVersion), content);
+        }
+
+        class ParameterClient : IParameterClient
+        {
+            private readonly HttpClient client;
+
+            public ParameterClient(HttpClient client) => this.client = client;
+
+            public async Task<IEnumerable<Parameter>> SearchAsync(string parameterName, int limit, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/parameter?offset=0&limit=50&search={parameterName}&orderBy=id&asc=true";
+                var response = await client.GetFromJsonAsync<PagedResponse<Parameter>>(url, SerializerOptions, cancellation);
+                return response.Results;
+            }
         }
     }
 }

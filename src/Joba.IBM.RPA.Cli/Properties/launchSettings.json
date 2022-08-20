@@ -4,6 +4,10 @@
       "commandName": "Project",
       "commandLineArgs": ""
     },
+    "rpa --help": {
+      "commandName": "Project",
+      "commandLineArgs": "env --help"
+    },
     "rpa project assistant": {
       "commandName": "Project",
       "commandLineArgs": "project Assistant"
@@ -27,6 +31,10 @@
     "rpa pull": {
       "commandName": "Project",
       "commandLineArgs": "pull"
+    },
+    "rpa pull wal": {
+      "commandName": "Project",
+      "commandLineArgs": "pull wal"
     },
     "rpa status": {
       "commandName": "Project",

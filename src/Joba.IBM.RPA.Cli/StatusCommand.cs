@@ -4,7 +4,7 @@
     {
         public StatusCommand() : base("status", "Inspects the status of the project and files in the current environment")
         {
-            var fileName = new Argument<string>("fileName", () => string.Empty, "The specific wal file name");
+            var fileName = new Argument<string>("fileName", "The specific wal file name") { Arity = ArgumentArity.ZeroOrOne };
 
             AddArgument(fileName);
             this.SetHandler(Handle, fileName,
@@ -16,7 +16,7 @@
         private void Handle(string fileName, Project project, Environment? environment, InvocationContext context) =>
            Handle(fileName, project, environment);
 
-        public void Handle(Project project, Environment environment) => Handle(string.Empty, project, environment);
+        public static void Handle(Project project, Environment environment) => Handle(string.Empty, project, environment);
 
         private static void Handle(string fileName, Project project, Environment? environment)
         {

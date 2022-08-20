@@ -8,33 +8,14 @@ namespace Joba.IBM.RPA.Cli
         public static readonly string CommandName = "rpa";
         public RpaCommand() : base("Provides features to manage RPA through the command line")
         {
-            //TODO: git merge support: https://git-scm.com/docs/git-mergetool
-            //git diff support: https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes#Binary-Files
-            var gitFile = new Argument<FileInfo?>("filePath", () => null,
-                "The file that 'git' sends as parameter, so rpa can convert to text, in order to git compare changes.");
-
-            AddArgument(gitFile); 
             AddCommand(new ProjectCommand());
             AddCommand(new EnvironmentCommand());
             AddCommand(new StatusCommand());
             AddCommand(new PullCommand());
             AddCommand(new SwitchCommand());
+            AddCommand(new GitCommand());
 
-            this.SetHandler(Handle, gitFile, Bind.FromServiceProvider<InvocationContext>());
-        }
-
-        private void Handle(FileInfo? gitFile, InvocationContext context)
-        {
-            if (gitFile != null)
-                WriteFileContentToOutput(gitFile);
-            else
-                ShowHelp(context);
-        }
-
-        private static void WriteFileContentToOutput(FileInfo gitFile)
-        {
-            var wal = WalFile.ReadAllText(gitFile);
-            Console.Write(wal);
+            this.SetHandler(ShowHelp, Bind.FromServiceProvider<InvocationContext>());
         }
 
         private static void ShowHelp(InvocationContext context)
