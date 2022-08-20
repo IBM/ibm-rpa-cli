@@ -179,6 +179,15 @@ namespace Joba.IBM.RPA.Cli
                 var response = await client.GetFromJsonAsync<PagedResponse<Parameter>>(url, SerializerOptions, cancellation);
                 return response.Results;
             }
+
+            public async Task<Parameter?> GetAsync(string parameterName, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/parameter/value";
+                var body = new { Id = parameterName };
+                var response = await client.PostAsJsonAsync(url, body, cancellation);
+                await response.ThrowWhenUnsuccessful(cancellation);
+                return await response.Content.ReadFromJsonAsync<Parameter>(SerializerOptions, cancellation);
+            }
         }
     }
 }

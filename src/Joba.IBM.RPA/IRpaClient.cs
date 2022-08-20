@@ -30,6 +30,7 @@
     public interface IParameterClient
     {
         Task<IEnumerable<Parameter>> SearchAsync(string parameterName, int limit, CancellationToken cancellation);
+        Task<Parameter?> GetAsync(string parameterName, CancellationToken cancellation);
     }
 
     public record struct Parameter(string Id, string Value);

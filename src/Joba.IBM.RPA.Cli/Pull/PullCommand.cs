@@ -1,7 +1,4 @@
-﻿using System;
-using System.Reflection;
-
-namespace Joba.IBM.RPA.Cli
+﻿namespace Joba.IBM.RPA.Cli
 {
     class PullCommand : Command
     {
@@ -127,7 +124,7 @@ namespace Joba.IBM.RPA.Cli
                 }
                 else
                 {
-
+                    var parameter = await client.Parameter.GetAsync(parameterName, cancellation);
                 }
             }
         }
