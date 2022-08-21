@@ -292,6 +292,7 @@ namespace Joba.IBM.RPA
 
     public interface IEnvironmentDependencies
     {
+        IEnumerable<Parameter> Parameters { get; }
         void AddOrUpdate(params Parameter[] parameters);
         Parameter? GetParameter(string name);
     }
@@ -299,6 +300,8 @@ namespace Joba.IBM.RPA
     internal class Dependencies : IEnvironmentDependencies
     {
         public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
+
+        IEnumerable<Parameter> IEnvironmentDependencies.Parameters => Parameters.Select(p => new Parameter(p.Key, p.Value)).ToArray();
 
         void IEnvironmentDependencies.AddOrUpdate(Parameter[] parameters)
         {

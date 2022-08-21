@@ -1,7 +1,4 @@
-﻿using System;
-using System.Xml.Linq;
-
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     public class ParameterPullService
     {

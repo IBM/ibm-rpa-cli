@@ -74,9 +74,9 @@ namespace Joba.IBM.RPA
 
         internal class ProjectDependencies : IProjectDependencies
         {
-            private readonly List<string> parameters = new List<string>();
+            private List<string> parameters = new List<string>();
 
-            public IEnumerable<string> Parameters => parameters;
+            public IEnumerable<string> Parameters { get => parameters; set => parameters = new List<string>(value); }
 
             void IProjectDependencies.AddParameter(string parameter)
             {
@@ -159,6 +159,7 @@ namespace Joba.IBM.RPA
 
     public interface IProjectDependencies
     {
+        IEnumerable<string> Parameters { get; }
         void SetParameters(string[] parameters);
         void AddParameter(string parameter);
     }
