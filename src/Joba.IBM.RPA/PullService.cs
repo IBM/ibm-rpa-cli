@@ -1,5 +1,46 @@
 ﻿namespace Joba.IBM.RPA
 {
+    public class PullService
+    {
+        private readonly Project project;
+        private readonly Environment environment;
+        private readonly IEnumerable<IPullMany> services;
+
+        public PullService(Project project, Environment environment, params IPullMany[] services)
+        {
+            this.project = project;
+            this.environment = environment;
+            this.services = services;
+        }
+
+        public event EventHandler<ContinuePullOperationEventArgs>? ShouldContinueOperation;
+        public event EventHandler<PullingEventArgs>? Pulling;
+
+        public async Task PullAsync(CancellationToken cancellation)
+        {
+            var args = new ContinuePullOperationEventArgs { Project = project, Environment = environment };
+            ShouldContinueOperation?.Invoke(this, args);
+            if (!args.Continue.HasValue)
+                throw new OperationCanceledException("User did not provide an answer");
+            if (args.Continue == false)
+                throw new OperationCanceledException("User cancelled the operation");
+
+            foreach (var service in services)
+            {
+                service.ShouldContinueOperation += OnShouldContinueOperation;
+                service.Pulling += OnPulling;
+                await service.PullAsync(cancellation);
+            }
+        }
+
+        private void OnShouldContinueOperation(object? sender, ContinuePullOperationEventArgs e) => e.Continue = true;
+
+        private void OnPulling(object? sender, PullingEventArgs e)
+        {
+            Pulling?.Invoke(this, e);
+        }
+    }
+
     public interface IPullOne<T>
     {
         event EventHandler<ContinuePullOperationEventArgs<T>>? ShouldContinueOperation;
@@ -7,11 +48,11 @@
         Task PullAsync(string name, CancellationToken cancellation);
     }
 
-    public interface IPullMany<T>
+    public interface IPullMany
     {
         event EventHandler<ContinuePullOperationEventArgs>? ShouldContinueOperation;
         event EventHandler<PullingEventArgs>? Pulling;
-        event EventHandler<PulledAllEventArgs<T>>? Pulled;
+        event EventHandler<PulledAllEventArgs>? Pulled;
         Task PullAsync(CancellationToken cancellation);
     }
 
@@ -36,11 +77,11 @@
         public int? Current { get; init; }
     }
 
-    public class PulledAllEventArgs<T> : EventArgs
+    public class PulledAllEventArgs : EventArgs
     {
         public required Project Project { get; init; }
         public required Environment Environment { get; init; }
-        public required IEnumerable<T> Resources { get; init; }
+        public required int Total { get; init; }
     }
 
     public class PulledOneEventArgs<T> : EventArgs

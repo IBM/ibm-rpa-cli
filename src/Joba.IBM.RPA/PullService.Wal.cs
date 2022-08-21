@@ -9,9 +9,9 @@
         }
 
         public IPullOne<WalFile> One { get; }
-        public IPullMany<WalFile> All { get; }
+        public IPullMany All { get; }
 
-        class PullMany : IPullMany<WalFile>
+        class PullMany : IPullMany
         {
             private readonly Project project;
             private readonly Environment environment;
@@ -26,7 +26,7 @@
 
             public event EventHandler<ContinuePullOperationEventArgs>? ShouldContinueOperation;
             public event EventHandler<PullingEventArgs>? Pulling;
-            public event EventHandler<PulledAllEventArgs<WalFile>>? Pulled;
+            public event EventHandler<PulledAllEventArgs>? Pulled;
 
             public async Task PullAsync(CancellationToken cancellation)
             {
@@ -53,7 +53,7 @@
                     wals.Add(wal);
                 }
 
-                Pulled?.Invoke(this, new PulledAllEventArgs<WalFile> { Resources = wals, Project = project, Environment = environment });
+                Pulled?.Invoke(this, new PulledAllEventArgs { Total = wals.Count, Project = project, Environment = environment });
             }
         }
 

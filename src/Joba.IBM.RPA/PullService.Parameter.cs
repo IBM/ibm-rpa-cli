@@ -9,7 +9,7 @@
         }
 
         public IPullOne<Parameter> One { get; }
-        public IPullMany<Parameter> All { get; }
+        public IPullMany All { get; }
 
         class PullOne : IPullOne<Parameter>
         {
@@ -69,7 +69,7 @@
             }
         }
 
-        class PullMany : IPullMany<Parameter>
+        class PullMany : IPullMany
         {
             private readonly Project project;
             private readonly Environment environment;
@@ -84,7 +84,7 @@
 
             public event EventHandler<ContinuePullOperationEventArgs>? ShouldContinueOperation;
             public event EventHandler<PullingEventArgs>? Pulling;
-            public event EventHandler<PulledAllEventArgs<Parameter>>? Pulled;
+            public event EventHandler<PulledAllEventArgs>? Pulled;
 
             public async Task PullAsync(CancellationToken cancellation)
             {
@@ -101,7 +101,7 @@
                 project.Dependencies.SetParameters(parameters.Select(p => p.Name).ToArray());
                 environment.Dependencies.AddOrUpdate(parameters);
 
-                Pulled?.Invoke(this, new PulledAllEventArgs<Parameter> { Resources = parameters, Project = project, Environment = environment });
+                Pulled?.Invoke(this, new PulledAllEventArgs { Total = parameters.Length, Project = project, Environment = environment });
             }
         }
     }
