@@ -5,6 +5,7 @@
         public PullCommand() : base("pull", "Pulls all the project files")
         {
             AddCommand(new PullWalCommand());
+            AddCommand(new PullParameterCommand());
 
             this.SetHandler(HandleAsync,
                 Bind.FromServiceProvider<Project>(),
@@ -24,7 +25,7 @@
 
             public PullWalCommand() : base("wal", "Pulls wal files")
             {
-                var fileName = new Argument<string>("fileName", "The specific wal file name") { Arity = ArgumentArity.ZeroOrOne };
+                var fileName = new Argument<string?>("fileName", "The specific wal file name") { Arity = ArgumentArity.ZeroOrOne };
                 AddArgument(fileName);
 
                 this.SetHandler(HandleAsync, fileName,
@@ -33,7 +34,7 @@
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string fileName, Project project, Environment environment, InvocationContext context)
+            private async Task HandleAsync(string? fileName, Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
                 var client = RpaClientFactory.CreateClient(environment);
@@ -104,7 +105,7 @@
         {
             public PullParameterCommand() : base("parameter", "Pulls parameters")
             {
-                var parameterName = new Argument<string>("name", "The specific parameter name") { Arity = ArgumentArity.ZeroOrOne };
+                var parameterName = new Argument<string?>("name", "The specific parameter name") { Arity = ArgumentArity.ZeroOrOne };
                 AddArgument(parameterName);
 
                 this.SetHandler(HandleAsync, parameterName,
@@ -113,19 +114,26 @@
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string parameterName, Project project, Environment environment, InvocationContext context)
+            private async Task HandleAsync(string? parameterName, Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
                 var client = RpaClientFactory.CreateClient(environment);
 
                 if (string.IsNullOrEmpty(parameterName))
                 {
-                    var parameters = (await client.Parameter.SearchAsync(project.Name, 50, cancellation)).Where(s => s.Id.StartsWith(project.Name)).ToArray();
+                    var parameters = (await client.Parameter.SearchAsync(project.Name, 50, cancellation)).Where(s => s.Name.StartsWith(project.Name)).ToArray();
+                    project.Dependencies.Parameters(parameters.Select(p => p.Name).ToArray());
+                    environment.Dependencies.Parameters(parameters);
                 }
                 else
                 {
                     var parameter = await client.Parameter.GetAsync(parameterName, cancellation);
+                    project.Dependencies.Parameters(parameter.Value.Name);
+                    environment.Dependencies.Parameters(parameter.Value);
                 }
+
+                await project.SaveAsync(cancellation);
+                await environment.SaveAsync(cancellation);
             }
         }
     }

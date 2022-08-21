@@ -2,6 +2,22 @@
 
 namespace Joba.IBM.RPA
 {
+    internal class Dependencies : IEnvironmentDependencies
+    {
+        public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
+
+        void IEnvironmentDependencies.Parameters(Parameter[] parameters)
+        {
+            foreach (var parameter in parameters)
+            {
+                if (Parameters.ContainsKey(parameter.Name))
+                    Parameters[parameter.Name] = parameter.Value;
+                else
+                    Parameters.Add(parameter.Name, parameter.Value);
+            }
+        }
+    }
+
     public class Environment
     {
         private readonly DirectoryInfo envDir;
@@ -9,24 +25,32 @@ namespace Joba.IBM.RPA
         private readonly EnvironmentSettings environmentSettings;
         private readonly UserSettingsFile userFile;
         private readonly UserSettings userSettings;
+        private readonly DependenciesFile dependenciesFile;
+        private Dependencies? dependencies;
 
-        internal Environment(DirectoryInfo envDir, EnvironmentFile environmentFile, RemoteSettings remoteSettings,
-            UserSettingsFile userFile, UserSettings userSettings)
-            : this(envDir, environmentFile, new EnvironmentSettings { Remote = remoteSettings }, userFile, userSettings) { }
+        internal Environment(bool isDefault, DirectoryInfo envDir, EnvironmentFile environmentFile, RemoteSettings remoteSettings,
+            UserSettingsFile userFile, UserSettings userSettings, DependenciesFile dependenciesFile, Dependencies dependencies)
+            : this(envDir, environmentFile, new EnvironmentSettings { IsDefault = isDefault, Remote = remoteSettings }, userFile, userSettings,
+                  dependenciesFile, dependencies)
+        { }
 
         internal Environment(DirectoryInfo envDir, EnvironmentFile environmentFile, EnvironmentSettings environmentSettings,
-            UserSettingsFile userFile, UserSettings? userSettings = null)
+            UserSettingsFile userFile, UserSettings? userSettings, DependenciesFile dependenciesFile, Dependencies? dependencies)
         {
             this.envDir = envDir;
             this.environmentFile = environmentFile;
             this.userFile = userFile;
             this.userSettings = userSettings ?? new UserSettings();
             this.environmentSettings = environmentSettings;
+            this.dependenciesFile = dependenciesFile;
+            this.dependencies = dependencies;
         }
 
         public string Alias => environmentFile.Alias;
         public DirectoryInfo Directory => envDir;
         public RemoteSettings Remote => environmentSettings.Remote;
+        public bool IsDefault => environmentSettings.IsDefault;
+        public IEnvironmentDependencies Dependencies => dependencies ??= new Dependencies();
 
         public Session GetSession() => new Session
         {
@@ -49,6 +73,8 @@ namespace Joba.IBM.RPA
 
             await environmentFile.SaveAsync(environmentSettings, cancellation);
             await userFile.SaveAsync(userSettings, cancellation);
+            if (dependencies != null)
+                await dependenciesFile.SaveAsync(dependencies, cancellation);
         }
 
         public WalFile? GetLocalWal(string fileName)
@@ -97,7 +123,7 @@ namespace Joba.IBM.RPA
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
         };
-        public static readonly string Extension = ".env";
+        public const string Extension = ".env";
         private readonly FileInfo file;
 
         public EnvironmentFile(DirectoryInfo rpaDirectory, string projectName, string alias)
@@ -124,12 +150,12 @@ namespace Joba.IBM.RPA
         public static async Task<(EnvironmentFile, EnvironmentSettings)> LoadAsync(
             DirectoryInfo rpaDir, string projectName, string alias, CancellationToken cancellation)
         {
-            var envFile = new EnvironmentFile(rpaDir, projectName, alias);
-            using var stream = File.OpenRead(envFile.FullPath);
+            var file = new EnvironmentFile(rpaDir, projectName, alias);
+            using var stream = File.OpenRead(file.FullPath);
             var settings = await JsonSerializer.DeserializeAsync<EnvironmentSettings>(stream, SerializerOptions, cancellation)
-                ?? throw new Exception($"Could not load environment '{alias}' from '{envFile}'");
+                ?? throw new Exception($"Could not load environment '{alias}' from '{file}'");
 
-            return (envFile, settings);
+            return (file, settings);
         }
 
         public override string ToString() => file.FullName;
@@ -151,7 +177,7 @@ namespace Joba.IBM.RPA
             return new RemoteSettings
             {
                 Name = region.Name,
-                Address = region.ApiUrl,
+                Address = region.ApiAddress,
                 PersonName = session.PersonName,
                 TenantCode = session.TenantCode,
                 TenantName = session.TenantName,
@@ -162,6 +188,121 @@ namespace Joba.IBM.RPA
 
     internal class EnvironmentSettings
     {
+        public required bool IsDefault { get; init; }
         public required RemoteSettings Remote { get; init; }
+    }
+
+    internal class UserSettings
+    {
+        public string? Token { get; set; }
+    }
+
+    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
+    struct UserSettingsFile
+    {
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
+        };
+        public const string FileName = "settings.json";
+        private readonly FileInfo file;
+
+        public UserSettingsFile(string projectName, string alias)
+            : this(new FileInfo(Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                "rpa", projectName, alias, FileName)))
+        { }
+
+        private UserSettingsFile(FileInfo file)
+        {
+            this.file = file;
+        }
+
+        public string FullPath => file.FullName;
+        public bool Exists => file.Exists;
+        public string ProjectName => file.Directory?.Parent?.Name ?? throw new Exception($"The grandparent directory of '{file.FullName}' should exist");
+        public string Alias => file.Directory?.Name ?? throw new Exception($"The parent directory of '{file.FullName}' should exist");
+
+        public async Task SaveAsync(UserSettings userSettings, CancellationToken cancellation)
+        {
+            if (!file.Directory!.Exists)
+                file.Directory.Create();
+            using var stream = new FileStream(FullPath, FileMode.Create);
+            await JsonSerializer.SerializeAsync(stream, userSettings, SerializerOptions, cancellation);
+        }
+
+        public static async Task<(UserSettingsFile, UserSettings?)> LoadAsync(string projectName, string alias, CancellationToken cancellation)
+        {
+            var file = new UserSettingsFile(projectName, alias);
+            if (file.Exists)
+            {
+                using var stream = File.OpenRead(file.FullPath);
+                var settings = await JsonSerializer.DeserializeAsync<UserSettings>(stream, SerializerOptions, cancellation)
+                    ?? throw new Exception($"Could not user settings for the project '{projectName}' from '{file}'");
+
+                return (file, settings);
+            }
+
+            return (file, null);
+        }
+
+        public override string ToString() => file.FullName;
+
+        private string GetDebuggerDisplay() => $"[{ProjectName}]({Alias}) {ToString()}";
+    }
+
+    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
+    struct DependenciesFile
+    {
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
+        };
+        public const string Extension = ".json";
+        private readonly FileInfo file;
+
+        public DependenciesFile(DirectoryInfo environmentDir, string projectName, string alias)
+            : this(new FileInfo(Path.Combine(environmentDir.FullName, $"{projectName}.{alias}{Extension}")), projectName, alias) { }
+
+        private DependenciesFile(FileInfo file, string projectName, string alias)
+        {
+            this.file = file;
+            ProjectName = projectName;
+            Alias = alias;
+        }
+
+        public string FullPath => file.FullName;
+        public bool Exists => file.Exists;
+        public string ProjectName { get; }
+        public string Alias { get; }
+
+        public async Task SaveAsync(Dependencies dependencies, CancellationToken cancellation)
+        {
+            using var stream = new FileStream(FullPath, FileMode.Create);
+            await JsonSerializer.SerializeAsync(stream, dependencies, SerializerOptions, cancellation);
+        }
+
+        public static async Task<(DependenciesFile, Dependencies?)> LoadAsync(
+            DirectoryInfo environmentDir, string projectName, string alias, CancellationToken cancellation)
+        {
+            var file = new DependenciesFile(environmentDir, projectName, alias);
+            if (!file.Exists)
+                return (file, null);
+
+            using var stream = File.OpenRead(file.FullPath);
+            var dependencies = await JsonSerializer.DeserializeAsync<Dependencies>(stream, SerializerOptions, cancellation)
+                ?? throw new Exception($"Could not load environment '{alias}' project ('{projectName}') dependencies from '{file}'");
+
+            return (file, dependencies);
+        }
+
+        public override string ToString() => file.FullName;
+
+        private string GetDebuggerDisplay() => $"[{ProjectName}] {ToString()}";
     }
 }

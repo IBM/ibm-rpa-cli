@@ -12,7 +12,10 @@ namespace Joba.IBM.RPA
 
             var envFile = new EnvironmentFile(projectFile.RpaDirectory, projectFile.ProjectName, alias);
             var remote = RemoteSettings.Create(region, session);
-            return new Environment(envDir, envFile, remote, userFile, userSettings);
+            var dependenciesFile = new DependenciesFile(envDir, projectFile.ProjectName, alias);
+            var isDefault = projectFile.RpaDirectory.EnumerateFiles($"*{EnvironmentFile.Extension}", SearchOption.TopDirectoryOnly).Any() == false;
+            
+            return new Environment(isDefault, envDir, envFile, remote, userFile, userSettings, dependenciesFile, null);
         }
 
         public static async Task<Environment?> LoadAsync(
@@ -22,10 +25,12 @@ namespace Joba.IBM.RPA
             if (string.IsNullOrEmpty(alias))
                 return null;
 
+            var envDir = projectSettings.GetDirectory(alias);
             var (envFile, envSettings) = await EnvironmentFile.LoadAsync(rpaDir, projectFile.ProjectName, alias, cancellation);
             var (userFile, userSettings) = await UserSettingsFile.LoadAsync(projectFile.ProjectName, alias, cancellation);
-            var envDir = projectSettings.GetDirectory(alias);
-            return new Environment(envDir, envFile, envSettings, userFile, userSettings);
+            var (dependenciesFile, dependencies) = await DependenciesFile.LoadAsync(envDir, projectFile.ProjectName, alias, cancellation);
+
+            return new Environment(envDir, envFile, envSettings, userFile, userSettings, dependenciesFile, dependencies);
         }
     }
 }

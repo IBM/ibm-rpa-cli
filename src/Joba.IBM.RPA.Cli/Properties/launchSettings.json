@@ -36,6 +36,10 @@
       "commandName": "Project",
       "commandLineArgs": "pull wal"
     },
+    "rpa pull parameter": {
+      "commandName": "Project",
+      "commandLineArgs": "pull parameter"
+    },
     "rpa status": {
       "commandName": "Project",
       "commandLineArgs": "status"

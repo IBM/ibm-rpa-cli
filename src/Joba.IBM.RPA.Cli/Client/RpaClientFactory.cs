@@ -4,7 +4,7 @@ namespace Joba.IBM.RPA.Cli
 {
     public static class RpaClientFactory
     {
-        public static IRpaClient CreateClient(Region region) => CreateClient(region.ApiUrl);
+        public static IRpaClient CreateClient(Region region) => CreateClient(region.ApiAddress);
         public static IRpaClient CreateClient(Uri address) => new RpaClient(HttpRpaFactory.Create(address));
 
         public static IRpaClient CreateClient(Environment environment)

@@ -3,6 +3,16 @@ using System.Diagnostics;
 
 namespace Joba.IBM.RPA
 {
+    public interface IProjectDependencies
+    {
+        void Parameters(params string[] parameters);
+    }
+
+    public interface IEnvironmentDependencies
+    {
+        void Parameters(params Parameter[] parameters);
+    }
+
     public class Project
     {
         private readonly DirectoryInfo workingDir;
@@ -21,6 +31,7 @@ namespace Joba.IBM.RPA
         }
 
         public string Name => projectFile.ProjectName;
+        public IProjectDependencies Dependencies => projectSettings.Dependencies;
 
         public async Task SaveAsync(CancellationToken cancellation)
         {
@@ -62,6 +73,7 @@ namespace Joba.IBM.RPA
         public string? CurrentEnvironment { get; set; } = string.Empty;
         [JsonPropertyName("environments")]
         public Dictionary<string, string> AliasMapping { get; init; } = new Dictionary<string, string>();
+        public ProjectDependencies Dependencies { get; init; } = new ProjectDependencies();
 
         public void MapAlias(string alias, string directoryPath) => AliasMapping.Add(alias, directoryPath);
         public bool EnvironmentExists(string alias) => AliasMapping.ContainsKey(alias);
@@ -72,67 +84,16 @@ namespace Joba.IBM.RPA
 
             return new DirectoryInfo(AliasMapping[alias]);
         }
-    }
 
-    internal class UserSettings
-    {
-        public string? Token { get; set; }
-    }
-
-    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-    struct UserSettingsFile
-    {
-        private static readonly JsonSerializerOptions SerializerOptions = new()
+        internal class ProjectDependencies : IProjectDependencies
         {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
-        };
-        public static readonly string FileName = "settings.json";
-        private readonly FileInfo file;
+            public string[]? Parameters { get; set; }
 
-        public UserSettingsFile(string projectName, string alias)
-            : this(new FileInfo(Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-                "rpa", projectName, alias, FileName)))
-        { }
-
-        private UserSettingsFile(FileInfo file)
-        {
-            this.file = file;
-        }
-
-        public string FullPath => file.FullName;
-        public bool Exists => file.Exists;
-        public string ProjectName => file.Directory?.Parent?.Name ?? throw new Exception($"The grandparent directory of '{file.FullName}' should exist");
-        public string Alias => file.Directory?.Name ?? throw new Exception($"The parent directory of '{file.FullName}' should exist");
-
-        public async Task SaveAsync(UserSettings userSettings, CancellationToken cancellation)
-        {
-            if (!file.Directory!.Exists)
-                file.Directory.Create();
-            using var stream = new FileStream(FullPath, FileMode.Create);
-            await JsonSerializer.SerializeAsync(stream, userSettings, SerializerOptions, cancellation);
-        }
-
-        public static async Task<(UserSettingsFile, UserSettings?)> LoadAsync(string projectName, string alias, CancellationToken cancellation)
-        {
-            var file = new UserSettingsFile(projectName, alias);
-            if (file.Exists)
+            void IProjectDependencies.Parameters(params string[] parameters)
             {
-                using var stream = File.OpenRead(file.FullPath);
-                var settings = await JsonSerializer.DeserializeAsync<UserSettings>(stream, SerializerOptions, cancellation)
-                    ?? throw new Exception($"Could not user settings for the project '{projectName}' from '{file}'");
-
-                return (file, settings);
+                Parameters = parameters;
             }
-
-            return (file, null);
         }
-
-        public override string ToString() => file.FullName;
-
-        private string GetDebuggerDisplay() => $"[{ProjectName}]({Alias}) {ToString()}";
     }
 
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
@@ -145,7 +106,7 @@ namespace Joba.IBM.RPA
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
         };
-        public static readonly string Extension = ".prpa";
+        public const string Extension = ".prpa";
         private readonly FileInfo file;
 
         public ProjectFile(DirectoryInfo rpaDir, string projectName)

@@ -33,5 +33,5 @@
         Task<Parameter?> GetAsync(string parameterName, CancellationToken cancellation);
     }
 
-    public record struct Parameter(string Id, string Value);
+    public record struct Parameter([property: JsonPropertyName("Id")] string Name, string Value);
 }

@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     public static class ProjectFactory
     {
