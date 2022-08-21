@@ -15,19 +15,16 @@ namespace Joba.IBM.RPA
 
     public class Project
     {
-        private readonly DirectoryInfo workingDir;
         private readonly ProjectFile projectFile;
         private readonly ProjectSettings projectSettings;
 
-        internal Project(DirectoryInfo rpaDir, string name)
-            : this(new ProjectFile(rpaDir, name), new ProjectSettings()) { }
+        internal Project(ProjectFile projectFile)
+            : this(projectFile, new ProjectSettings()) { }
 
         internal Project(ProjectFile projectFile, ProjectSettings projectSettings)
         {
             this.projectFile = projectFile;
             this.projectSettings = projectSettings;
-            workingDir = projectFile.RpaDirectory.Parent ??
-                throw new InvalidOperationException($"The '{nameof(projectFile.RpaDirectory)}' directory should have a parent (the working directory)");
         }
 
         public string Name => projectFile.ProjectName;
@@ -40,8 +37,8 @@ namespace Joba.IBM.RPA
 
         public Environment ConfigureEnvironmentAndSwitch(string alias, Region region, Session session)
         {
-            var environment = EnvironmentFactory.Create(workingDir, projectFile, alias, region, session);
-            projectSettings.MapAlias(alias, Path.GetRelativePath(workingDir.FullName, environment.Directory.FullName));
+            var environment = EnvironmentFactory.Create(projectFile, alias, region, session);
+            projectSettings.MapAlias(alias, Path.GetRelativePath(projectFile.WorkingDirectory.FullName, environment.Directory.FullName));
             SwitchTo(environment.Alias);
 
             return environment;
@@ -106,20 +103,23 @@ namespace Joba.IBM.RPA
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
         };
-        public const string Extension = ".prpa";
+        public const string Extension = ".rpa.json";
         private readonly FileInfo file;
+        private readonly DirectoryInfo rpaDir;
 
-        public ProjectFile(DirectoryInfo rpaDir, string projectName)
-            : this(new FileInfo(Path.Combine(rpaDir.FullName, $"{projectName}{Extension}"))) { }
+        public ProjectFile(DirectoryInfo workingDir, string projectName)
+            : this(new FileInfo(Path.Combine(workingDir.FullName, $"{projectName}{Extension}"))) { }
 
         private ProjectFile(FileInfo file)
         {
             this.file = file;
+            rpaDir = new DirectoryInfo(Path.Combine(file.Directory!.FullName, ".rpa"));
         }
 
         public string FullPath => file.FullName;
-        public string ProjectName => Path.GetFileNameWithoutExtension(file.Name);
-        public DirectoryInfo RpaDirectory => file.Directory ?? throw new Exception($"The file directory of '{file}' should exist");
+        public string ProjectName => file.Name.Replace(Extension, null);
+        public DirectoryInfo RpaDirectory => rpaDir;
+        public DirectoryInfo WorkingDirectory => file.Directory ?? throw new Exception($"The file directory of '{file}' should exist");
 
         public async Task SaveAsync(ProjectSettings projectSettings, CancellationToken cancellation)
         {
@@ -127,9 +127,12 @@ namespace Joba.IBM.RPA
             await JsonSerializer.SerializeAsync(stream, projectSettings, SerializerOptions, cancellation);
         }
 
-        public static async Task<(ProjectFile, ProjectSettings)> LoadAsync(DirectoryInfo rpaDir, CancellationToken cancellation)
+        public static async Task<(ProjectFile, ProjectSettings)> LoadAsync(DirectoryInfo workingDir, CancellationToken cancellation)
         {
-            var file = Find(rpaDir);
+            var file = Find(workingDir);
+            if (!file.RpaDirectory.Exists)
+                throw new Exception($"Could not load project because there is no '.rpa' directory found within '{file.WorkingDirectory}'");
+
             using var stream = File.OpenRead(file.FullPath);
             var settings = await JsonSerializer.DeserializeAsync<ProjectSettings>(stream, SerializerOptions, cancellation)
                 ?? throw new Exception($"Could not load project '{file.ProjectName}' from '{file}'");
@@ -137,15 +140,15 @@ namespace Joba.IBM.RPA
             return (file, settings);
         }
 
-        private static ProjectFile Find(DirectoryInfo rpaDir)
+        private static ProjectFile Find(DirectoryInfo workingDir)
         {
-            var files = rpaDir.GetFiles($"*{Extension}", SearchOption.TopDirectoryOnly);
+            var files = workingDir.GetFiles($"*{Extension}", SearchOption.TopDirectoryOnly);
             if (files.Length > 1)
-                throw new Exception($"Cannot load the project because the '{rpaDir.FullName}' directory should only contain one '{Extension}' file. " +
+                throw new Exception($"Cannot load the project because the '{workingDir.FullName}' directory should only contain one '{Extension}' file. " +
                     $"Files found: {string.Join(", ", files.Select(f => f.Name))}");
 
             if (files.Length == 0)
-                throw new Exception($"Cannot load the project because no '{Extension}' file was found in the '{rpaDir.FullName}' directory");
+                throw new Exception($"Cannot load the project because no '{Extension}' file was found in the '{workingDir.FullName}' directory");
 
             return new ProjectFile(files[0]);
         }

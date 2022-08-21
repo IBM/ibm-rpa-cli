@@ -3,10 +3,9 @@ namespace Joba.IBM.RPA
 {
     internal static class EnvironmentFactory
     {
-        public static Environment Create(DirectoryInfo workingDir, ProjectFile projectFile,
-            string alias, Region region, Session session)
+        public static Environment Create(ProjectFile projectFile, string alias, Region region, Session session)
         {
-            var envDir = new DirectoryInfo(Path.Combine(workingDir.FullName, session.TenantName));
+            var envDir = new DirectoryInfo(Path.Combine(projectFile.WorkingDirectory.FullName, session.TenantName));
             var userFile = new UserSettingsFile(projectFile.ProjectName, alias);
             var userSettings = new UserSettings { Token = session.AccessToken };
 
@@ -14,7 +13,7 @@ namespace Joba.IBM.RPA
             var remote = RemoteSettings.Create(region, session);
             var dependenciesFile = new DependenciesFile(envDir, projectFile.ProjectName, alias);
             var isDefault = projectFile.RpaDirectory.EnumerateFiles($"*{EnvironmentFile.Extension}", SearchOption.TopDirectoryOnly).Any() == false;
-            
+
             return new Environment(isDefault, envDir, envFile, remote, userFile, userSettings, dependenciesFile, null);
         }
 

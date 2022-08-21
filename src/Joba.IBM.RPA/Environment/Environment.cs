@@ -123,7 +123,7 @@ namespace Joba.IBM.RPA
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
         };
-        public const string Extension = ".env";
+        public const string Extension = ".json";
         private readonly FileInfo file;
 
         public EnvironmentFile(DirectoryInfo rpaDirectory, string projectName, string alias)
