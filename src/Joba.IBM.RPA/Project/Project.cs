@@ -3,16 +3,6 @@ using System.Diagnostics;
 
 namespace Joba.IBM.RPA
 {
-    public interface IProjectDependencies
-    {
-        void Parameters(params string[] parameters);
-    }
-
-    public interface IEnvironmentDependencies
-    {
-        void Parameters(params Parameter[] parameters);
-    }
-
     public class Project
     {
         private readonly ProjectFile projectFile;
@@ -84,11 +74,20 @@ namespace Joba.IBM.RPA
 
         internal class ProjectDependencies : IProjectDependencies
         {
-            public string[]? Parameters { get; set; }
+            private readonly List<string> parameters = new List<string>();
 
-            void IProjectDependencies.Parameters(params string[] parameters)
+            public IEnumerable<string> Parameters => parameters;
+
+            void IProjectDependencies.AddParameter(string parameter)
             {
-                Parameters = parameters;
+                parameters.Add(parameter);
+                parameters.Sort();
+            }
+
+            void IProjectDependencies.SetParameters(string[] parameters)
+            {
+                this.parameters.Clear();
+                this.parameters.AddRange(parameters.OrderBy(p => p));
             }
         }
     }
@@ -156,5 +155,11 @@ namespace Joba.IBM.RPA
         public override string ToString() => file.FullName;
 
         private string GetDebuggerDisplay() => $"[{ProjectName}] {ToString()}";
+    }
+
+    public interface IProjectDependencies
+    {
+        void SetParameters(string[] parameters);
+        void AddParameter(string parameter);
     }
 }

@@ -13,7 +13,8 @@ namespace Joba.IBM.RPA
             Id = proto.Id;
             VersionId = proto.VersionId;
             Version = proto.Version;
-            ProductVersion = new Version(proto.ProductVersion);
+            if (proto.ProductVersion != null)
+                ProductVersion = new Version(proto.ProductVersion);
         }
 
         internal WalFile(FileInfo file, ScriptVersion version)
@@ -22,7 +23,7 @@ namespace Joba.IBM.RPA
             UpdateWith(version);
         }
 
-        public FileInfo Info { get; init; }
+        public FileInfo Info { get; }
         public bool IsFromServer => Id.HasValue;
         private string Content { get; set; }
         private Guid? Id { get; set; }
@@ -87,6 +88,12 @@ namespace Joba.IBM.RPA
             Serializer.Serialize(stream, proto);
         }
 
+        internal WalFile Clone()
+        {
+            var proto = new WalFileProto { Content = Content, Id = Id, ProductVersion = ProductVersion?.ToString(), Version = Version, VersionId = VersionId };
+            return new WalFile(Info, proto);
+        }
+
         internal static WalFile Read(FileInfo file)
         {
             using var stream = File.OpenRead(file.FullName);
@@ -114,7 +121,7 @@ namespace Joba.IBM.RPA
             public Guid? Id { get; set; }
 
             [ProtoMember(2)]
-            public string Content { get; set; }
+            public required string Content { get; set; }
 
             [ProtoMember(3)]
             public int? Version { get; set; }
@@ -123,7 +130,7 @@ namespace Joba.IBM.RPA
             public Guid? VersionId { get; set; }
 
             [ProtoMember(5)]
-            public string ProductVersion { get; set; }
+            public string? ProductVersion { get; set; }
         }
     }
 }

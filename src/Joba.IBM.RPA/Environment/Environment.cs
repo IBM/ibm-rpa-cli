@@ -2,22 +2,6 @@
 
 namespace Joba.IBM.RPA
 {
-    internal class Dependencies : IEnvironmentDependencies
-    {
-        public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
-
-        void IEnvironmentDependencies.Parameters(Parameter[] parameters)
-        {
-            foreach (var parameter in parameters)
-            {
-                if (Parameters.ContainsKey(parameter.Name))
-                    Parameters[parameter.Name] = parameter.Value;
-                else
-                    Parameters.Add(parameter.Name, parameter.Value);
-            }
-        }
-    }
-
     public class Environment
     {
         private readonly DirectoryInfo envDir;
@@ -304,5 +288,30 @@ namespace Joba.IBM.RPA
         public override string ToString() => file.FullName;
 
         private string GetDebuggerDisplay() => $"[{ProjectName}] {ToString()}";
+    }
+
+    public interface IEnvironmentDependencies
+    {
+        void AddOrUpdate(params Parameter[] parameters);
+        Parameter? GetParameter(string name);
+    }
+
+    internal class Dependencies : IEnvironmentDependencies
+    {
+        public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
+
+        void IEnvironmentDependencies.AddOrUpdate(Parameter[] parameters)
+        {
+            foreach (var parameter in parameters)
+            {
+                if (Parameters.ContainsKey(parameter.Name))
+                    Parameters[parameter.Name] = parameter.Value;
+                else
+                    Parameters.Add(parameter.Name, parameter.Value);
+            }
+        }
+
+        Parameter? IEnvironmentDependencies.GetParameter(string name) =>
+            Parameters.TryGetValue(name, out var value) ? new Parameter(name, value) : null;
     }
 }

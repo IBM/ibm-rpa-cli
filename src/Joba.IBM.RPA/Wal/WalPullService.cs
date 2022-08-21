@@ -4,33 +4,33 @@
     {
         public WalPullService(IRpaClient client, Project project, Environment environment)
         {
-            One = new OneWal(client, project, environment);
-            All = new AllWal(client, project, environment);
+            One = new PullOne(client, project, environment);
+            All = new PullMany(client, project, environment);
         }
 
-        public OneWal One { get; }
-        public AllWal All { get; }
+        public IPullOne<WalFile> One { get; }
+        public IPullMany<WalFile> All { get; }
 
-        public class AllWal
+        class PullMany : IPullMany<WalFile>
         {
             private readonly Project project;
             private readonly Environment environment;
             private readonly IRpaClient client;
 
-            public AllWal(IRpaClient client, Project project, Environment environment)
+            internal PullMany(IRpaClient client, Project project, Environment environment)
             {
                 this.client = client;
                 this.project = project;
                 this.environment = environment;
             }
 
-            public event EventHandler<ContinueOperationEventArgs>? ShouldContinueOperation;
+            public event EventHandler<ContinuePullOperationEventArgs>? ShouldContinueOperation;
             public event EventHandler<PullingEventArgs>? Pulling;
-            public event EventHandler<PulledAllEventArgs>? Pulled;
+            public event EventHandler<PulledAllEventArgs<WalFile>>? Pulled;
 
             public async Task PullAsync(CancellationToken cancellation)
             {
-                var args = new ContinueOperationEventArgs { Project = project, Environment = environment };
+                var args = new ContinuePullOperationEventArgs { Project = project, Environment = environment };
                 ShouldContinueOperation?.Invoke(this, args);
                 if (!args.Continue.HasValue)
                     throw new OperationCanceledException("User did not provide an answer");
@@ -42,7 +42,7 @@
                 for (var index = 0; index < scripts.Length; index++)
                 {
                     var script = scripts[index];
-                    Pulling?.Invoke(this, new PullingEventArgs { Current = index + 1, Total = scripts.Length, Script = script, Project = project, Environment = environment });
+                    Pulling?.Invoke(this, new PullingEventArgs { Current = index + 1, Total = scripts.Length, ResourceName = script.Name, Project = project, Environment = environment });
 
                     var wal = environment.GetLocalWal(script.Name);
                     if (wal == null)
@@ -53,94 +53,67 @@
                     wals.Add(wal);
                 }
 
-                Pulled?.Invoke(this, new PulledAllEventArgs { Files = wals, Project = project, Environment = environment });
+                Pulled?.Invoke(this, new PulledAllEventArgs<WalFile> { Resources = wals, Project = project, Environment = environment });
             }
         }
 
-        public class OneWal
+        class PullOne : IPullOne<WalFile>
         {
             private readonly Project project;
             private readonly Environment environment;
             private readonly IRpaClient client;
 
-            public OneWal(IRpaClient client, Project project, Environment environment)
+            internal PullOne(IRpaClient client, Project project, Environment environment)
             {
                 this.client = client;
                 this.project = project;
                 this.environment = environment;
             }
 
-            public event EventHandler<ContinueOperationEventArgs>? ShouldContinueOperation;
-            public event EventHandler<PulledOneEventArgs>? Pulled;
+            public event EventHandler<ContinuePullOperationEventArgs<WalFile>>? ShouldContinueOperation;
+            public event EventHandler<PulledOneEventArgs<WalFile>>? Pulled;
 
-            public async Task PullAsync(string fileName, CancellationToken cancellation)
+            public async Task PullAsync(string name, CancellationToken cancellation)
             {
-                var wal = environment.GetLocalWal(fileName);
+                var wal = environment.GetLocalWal(name);
                 if (wal == null)
                 {
-                    wal = await environment.CreateWalAsync(client.Script, fileName, cancellation);
-                    Pulled?.Invoke(this, new PulledOneEventArgs { File = wal, NewFile = true, NewVersion = wal.Version!.Value, Project = project, Environment = environment });
+                    wal = await environment.CreateWalAsync(client.Script, name, cancellation);
+                    Pulled?.Invoke(this, PulledOneEventArgs<WalFile>.Created(environment, project, wal));
                 }
                 else if (!wal.IsFromServer)
                 {
-                    var args = new ContinueOperationEventArgs { File = wal, Project = project, Environment = environment };
+                    var args = new ContinuePullOperationEventArgs<WalFile> { Resource = wal, Project = project, Environment = environment };
                     ShouldContinueOperation?.Invoke(this, args);
                     if (!args.Continue.HasValue)
                         throw new OperationCanceledException("User did not provide an answer");
                     if (args.Continue.Value == false)
                         throw new OperationCanceledException("User cancelled the operation");
 
-                    await wal.OverwriteToLatestAsync(client.Script, fileName, cancellation);
-                    Pulled?.Invoke(this, new PulledOneEventArgs { File = wal, NewVersion = wal.Version!.Value, Project = project, Environment = environment });
+                    var previous = wal.Clone();
+                    await wal.OverwriteToLatestAsync(client.Script, name, cancellation);
+                    Pulled?.Invoke(this, PulledOneEventArgs<WalFile>.Updated(environment, project, wal, previous));
                 }
                 else
                 {
-                    var args = new ContinueOperationEventArgs { File = wal, Project = project, Environment = environment };
+                    var args = new ContinuePullOperationEventArgs<WalFile> { Resource = wal, Project = project, Environment = environment };
                     ShouldContinueOperation?.Invoke(this, args);
                     if (!args.Continue.HasValue)
                         throw new OperationCanceledException("User did not provide an answer");
                     if (args.Continue.Value == false)
                         throw new OperationCanceledException("User cancelled the operation");
 
-                    var previousVersion = wal.Version;
+                    var previous = wal.Clone();
                     await wal.UpdateToLatestAsync(client.Script, cancellation);
-                    Pulled?.Invoke(this, new PulledOneEventArgs { File = wal, PreviousVersion = previousVersion, NewVersion = wal.Version!.Value, Project = project, Environment = environment });
+
+                    PulledOneEventArgs<WalFile>? pulledArgs;
+                    if (previous.Version == wal.Version)
+                        pulledArgs = PulledOneEventArgs<WalFile>.NoChange(environment, project, wal);
+                    else
+                        pulledArgs = PulledOneEventArgs<WalFile>.Updated(environment, project, wal, previous);
+                    Pulled?.Invoke(this, pulledArgs);
                 }
             }
         }
-    }
-
-    public class ContinueOperationEventArgs : EventArgs
-    {
-        public required Project Project { get; init; }
-        public required Environment Environment { get; init; }
-        public WalFile? File { get; init; }
-        public bool? Continue { get; set; }
-    }
-
-    public class PullingEventArgs : EventArgs
-    {
-        public required Project Project { get; init; }
-        public required Environment Environment { get; init; }
-        public required Script Script { get; init; }
-        public required int Total { get; init; }
-        public required int Current { get; init; }
-    }
-
-    public class PulledAllEventArgs : EventArgs
-    {
-        public required Project Project { get; init; }
-        public required Environment Environment { get; init; }
-        public required IEnumerable<WalFile> Files { get; init; }
-    }
-
-    public class PulledOneEventArgs : EventArgs
-    {
-        public required Project Project { get; init; }
-        public required Environment Environment { get; init; }
-        public required WalFile File { get; init; }
-        public required int NewVersion { get; init; }
-        public int? PreviousVersion { get; init; }
-        public bool NewFile { get; init; }
     }
 }
