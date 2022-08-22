@@ -45,7 +45,7 @@
                 await project.SaveAsync(cancellation);
                 await environment.SaveAsync(cancellation);
 
-                var envRenderer = new EnvironmentRenderer();
+                var envRenderer = new ShallowEnvironmentRenderer();
                 ExtendedConsole.WriteLine($"Hi {session.PersonName:blue}, the following environment has been configured:");
                 envRenderer.RenderLine(environment);
                 ExtendedConsole.WriteLine($"Use {RpaCommand.CommandName:blue} {Name:blue} to configure more environments");
@@ -82,7 +82,7 @@
         }
     }
 
-    class EnvironmentRenderer
+    class ShallowEnvironmentRenderer
     {
         public void Render(Environment environment) => Render(environment, true, 0);
 

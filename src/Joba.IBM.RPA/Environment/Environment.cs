@@ -100,13 +100,6 @@ namespace Joba.IBM.RPA
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     struct EnvironmentFile
     {
-        private static readonly JsonSerializerOptions SerializerOptions = new()
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
-        };
         public const string Extension = ".json";
         private readonly FileInfo file;
 
@@ -128,7 +121,7 @@ namespace Joba.IBM.RPA
         public async Task SaveAsync(EnvironmentSettings settings, CancellationToken cancellation)
         {
             using var stream = new FileStream(FullPath, FileMode.Create);
-            await JsonSerializer.SerializeAsync(stream, settings, SerializerOptions, cancellation);
+            await JsonSerializer.SerializeAsync(stream, settings, Options.SerializerOptions, cancellation);
         }
 
         public static async Task<(EnvironmentFile, EnvironmentSettings)> LoadAsync(
@@ -136,7 +129,7 @@ namespace Joba.IBM.RPA
         {
             var file = new EnvironmentFile(rpaDir, projectName, alias);
             using var stream = File.OpenRead(file.FullPath);
-            var settings = await JsonSerializer.DeserializeAsync<EnvironmentSettings>(stream, SerializerOptions, cancellation)
+            var settings = await JsonSerializer.DeserializeAsync<EnvironmentSettings>(stream, Options.SerializerOptions, cancellation)
                 ?? throw new Exception($"Could not load environment '{alias}' from '{file}'");
 
             return (file, settings);
@@ -184,13 +177,6 @@ namespace Joba.IBM.RPA
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     struct UserSettingsFile
     {
-        private static readonly JsonSerializerOptions SerializerOptions = new()
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
-        };
         public const string FileName = "settings.json";
         private readonly FileInfo file;
 
@@ -214,7 +200,7 @@ namespace Joba.IBM.RPA
             if (!file.Directory!.Exists)
                 file.Directory.Create();
             using var stream = new FileStream(FullPath, FileMode.Create);
-            await JsonSerializer.SerializeAsync(stream, userSettings, SerializerOptions, cancellation);
+            await JsonSerializer.SerializeAsync(stream, userSettings, Options.SerializerOptions, cancellation);
         }
 
         public static async Task<(UserSettingsFile, UserSettings?)> LoadAsync(string projectName, string alias, CancellationToken cancellation)
@@ -223,7 +209,7 @@ namespace Joba.IBM.RPA
             if (file.Exists)
             {
                 using var stream = File.OpenRead(file.FullPath);
-                var settings = await JsonSerializer.DeserializeAsync<UserSettings>(stream, SerializerOptions, cancellation)
+                var settings = await JsonSerializer.DeserializeAsync<UserSettings>(stream, Options.SerializerOptions, cancellation)
                     ?? throw new Exception($"Could not user settings for the project '{projectName}' from '{file}'");
 
                 return (file, settings);

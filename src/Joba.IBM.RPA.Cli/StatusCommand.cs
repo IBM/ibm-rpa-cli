@@ -27,12 +27,12 @@ namespace Joba.IBM.RPA.Cli
             {
                 var padding = 2;
                 var nextPadding = padding + 2;
-                var envRenderer = new EnvironmentRenderer();
+                var shallowRenderer = new ShallowEnvironmentRenderer();
                 var walRenderer = new WalFileRenderer();
-                var depRenderer = new DependenciesRenderer(project, nextPadding);
+                var envRenderer = new EnvironmentRenderer(walRenderer, project, nextPadding);
 
                 ExtendedConsole.WriteLine($"Project {project.Name:blue}, on environment");
-                envRenderer.RenderLineIndented(environment, padding);
+                shallowRenderer.RenderLineIndented(environment, padding);
 
                 if (!string.IsNullOrEmpty(fileName))
                 {
@@ -43,13 +43,7 @@ namespace Joba.IBM.RPA.Cli
                     walRenderer.Render(wal);
                 }
                 else
-                {
-                    ExtendedConsole.WriteLineIndented($"Wal files:", nextPadding);
-                    foreach (var wal in environment.GetLocalWals())
-                        walRenderer.Render(wal);
-
-                    depRenderer.Render(environment.Dependencies);
-                }
+                    envRenderer.Render(environment);
             }
         }
     }
@@ -65,23 +59,30 @@ namespace Joba.IBM.RPA.Cli
         }
     }
 
-    class DependenciesRenderer
+    class EnvironmentRenderer
     {
+        private readonly WalFileRenderer walRenderer;
         private readonly Project project;
         private readonly int padding;
 
-        public DependenciesRenderer(Project project, int padding)
+        public EnvironmentRenderer(WalFileRenderer walRenderer, Project project, int padding)
         {
+            this.walRenderer = walRenderer;
             this.project = project;
             this.padding = padding;
         }
 
-        public void Render(IEnvironmentDependencies dependencies)
+        public void Render(Environment environment)
         {
-            if (dependencies.Parameters.Any())
+            //TODO: render from 'project.Files'
+            ExtendedConsole.WriteLineIndented($"Wal files:", padding);
+            foreach (var wal in environment.GetLocalWals())
+                walRenderer.Render(wal);
+
+            if (environment.Dependencies.Parameters.Any())
             {
                 ExtendedConsole.WriteLineIndented($"Parameters:", padding);
-                foreach (var parameter in dependencies.Parameters.OrderBy(p => p.Name))
+                foreach (var parameter in environment.Dependencies.Parameters.OrderBy(p => p.Name))
                 {
                     var hasParameter = project.Dependencies.Parameters.Contains(parameter.Name);
                     var color = hasParameter ? Console.ForegroundColor : ConsoleColor.Red;

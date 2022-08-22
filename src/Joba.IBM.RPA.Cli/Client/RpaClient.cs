@@ -180,6 +180,17 @@ namespace Joba.IBM.RPA.Cli
                 return response.Results;
             }
 
+            public async Task<IEnumerable<Parameter>> GetAsync(string[] parameters, CancellationToken cancellation)
+            {
+                if (parameters == null || parameters.Length == 0)
+                    throw new ArgumentException("Parameters cannot be an empty array", nameof(parameters));
+
+                var ids = string.Join(", ", parameters);
+                var url = $"{CultureInfo.CurrentCulture.Name}/parameter/values?ids={Uri.EscapeDataString(ids)}";
+                var response = await client.GetFromJsonAsync<IEnumerable<Parameter>>(url, SerializerOptions, cancellation);
+                return response ?? throw new Exception("Could not convert the response");
+            }
+
             public async Task<Parameter?> GetAsync(string parameterName, CancellationToken cancellation)
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/parameter/value";

@@ -13,6 +13,7 @@ namespace Joba.IBM.RPA.Cli
             AddCommand(new StatusCommand());
             AddCommand(new PullCommand());
             AddCommand(new SwitchCommand());
+            AddCommand(new PackageCommand());
             AddCommand(new GitCommand());
 
             this.SetHandler(ShowHelp, Bind.FromServiceProvider<InvocationContext>());

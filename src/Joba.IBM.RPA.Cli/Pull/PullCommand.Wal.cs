@@ -5,7 +5,7 @@
         [RequiresEnvironment]
         class PullWalCommand : Command
         {
-            private readonly EnvironmentRenderer environmentRenderer = new();
+            private readonly ShallowEnvironmentRenderer environmentRenderer = new();
 
             public PullWalCommand() : base("wal", "Pulls wal files")
             {
@@ -32,10 +32,10 @@
                 }
                 else
                 {
-                    pullService.All.ShouldContinueOperation += OnShouldPullingAllFiles;
-                    pullService.All.Pulling += OnPulling;
-                    pullService.All.Pulled += OnPulled;
-                    await pullService.All.PullAsync(cancellation);
+                    pullService.Many.ShouldContinueOperation += OnShouldPullingAllFiles;
+                    pullService.Many.Pulling += OnPulling;
+                    pullService.Many.Pulled += OnPulled;
+                    await pullService.Many.PullAsync(cancellation);
                     StatusCommand.Handle(project, environment);
                 }
 
@@ -76,7 +76,7 @@
             private void OnShouldPullingAllFiles(object? sender, ContinuePullOperationEventArgs e)
             {
                 e.Continue = ExtendedConsole.YesOrNo(
-                    $"This operation will pull the latest server versions of wal files which names start with {e.Project.Name:blue}. " +
+                    $"This operation will pull the latest server file versions of {e.Project.Name:blue} project. " +
                     $"If there are local copies in the {e.Environment.Alias:blue} ({e.Environment.Directory}) directory, they will be overwritten. This is irreversible. " +
                     $"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
             }

@@ -5,7 +5,7 @@
         [RequiresEnvironment]
         class PullParameterCommand : Command
         {
-            private readonly EnvironmentRenderer environmentRenderer = new();
+            private readonly ShallowEnvironmentRenderer environmentRenderer = new();
 
             public PullParameterCommand() : base("parameter", "Pulls parameters")
             {
@@ -32,10 +32,10 @@
                 }
                 else
                 {
-                    pullService.All.ShouldContinueOperation += OnShouldPullingAllFiles;
-                    pullService.All.Pulling += OnPulling;
-                    pullService.All.Pulled += OnPulled;
-                    await pullService.All.PullAsync(cancellation);
+                    pullService.Many.ShouldContinueOperation += OnShouldPullingAllFiles;
+                    pullService.Many.Pulling += OnPulling;
+                    pullService.Many.Pulled += OnPulled;
+                    await pullService.Many.PullAsync(cancellation);
                     StatusCommand.Handle(project, environment);
                 }
 
@@ -74,7 +74,7 @@
             private void OnShouldPullingAllFiles(object? sender, ContinuePullOperationEventArgs e)
             {
                 e.Continue = ExtendedConsole.YesOrNo(
-                    $"This operation will pull the server parameters which names start with {e.Project.Name:blue}. " +
+                    $"This operation will pull the server parameters configured as dependencies of {e.Project.Name:blue} project. " +
                     $"This will overwrite the current local parameters' values, except the ones that do not exist on the server. This is irreversible. " +
                     $"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
             }

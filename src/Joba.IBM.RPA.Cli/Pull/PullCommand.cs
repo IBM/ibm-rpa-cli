@@ -18,7 +18,7 @@
         {
             var cancellation = context.GetCancellationToken();
             var client = RpaClientFactory.CreateClient(environment);
-            var pullService = new PullService(project, environment, new WalPullService(client, project, environment).All, new ParameterPullService(client, project, environment).All);
+            var pullService = new PullService(project, environment, new WalPullService(client, project, environment).Many, new ParameterPullService(client, project, environment).Many);
 
             pullService.ShouldContinueOperation += OnShouldPullingFiles;
             pullService.Pulling += OnPulling;

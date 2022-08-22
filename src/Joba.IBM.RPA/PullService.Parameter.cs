@@ -1,15 +1,17 @@
-﻿namespace Joba.IBM.RPA
+﻿using System.Collections.Concurrent;
+
+namespace Joba.IBM.RPA
 {
     public class ParameterPullService
     {
         public ParameterPullService(IRpaClient client, Project project, Environment environment)
         {
             One = new PullOne(client, project, environment);
-            All = new PullMany(client, project, environment);
+            Many = new PullMany(client, project, environment);
         }
 
         public IPullOne<Parameter> One { get; }
-        public IPullMany All { get; }
+        public IPullMany Many { get; }
 
         class PullOne : IPullOne<Parameter>
         {
@@ -33,7 +35,7 @@
                 if (local == null)
                 {
                     var parameter = await GetAndThrowIfDoesNotExistAsync(name, cancellation);
-                    project.Dependencies.AddParameter(parameter.Name);
+                    project.Dependencies.Parameters.Add(new NamePattern(parameter.Name));
                     environment.Dependencies.AddOrUpdate(parameter);
                     Pulled?.Invoke(this, PulledOneEventArgs<Parameter>.Created(environment, project, parameter));
                 }
@@ -47,7 +49,7 @@
                         throw new OperationCanceledException("User cancelled the operation");
 
                     var parameter = await GetAndThrowIfDoesNotExistAsync(name, cancellation);
-                    project.Dependencies.AddParameter(parameter.Name);
+                    project.Dependencies.Parameters.Add(new NamePattern(parameter.Name));
                     environment.Dependencies.AddOrUpdate(parameter);
 
                     PulledOneEventArgs<Parameter>? pulledArgs;
@@ -97,11 +99,33 @@
 
                 Pulling?.Invoke(this, new PullingEventArgs { Project = project, Environment = environment });
 
-                var parameters = (await client.Parameter.SearchAsync(project.Name, 50, cancellation)).Where(s => s.Name.StartsWith(project.Name)).ToArray();
-                project.Dependencies.SetParameters(parameters.Select(p => p.Name).ToArray());
+                var fromWildcard = await PullWildcardAsync(cancellation);
+                var fromFixed = await PullFixedAsync(cancellation);
+                var parameters = fromWildcard.Concat(fromFixed).ToArray();
                 environment.Dependencies.AddOrUpdate(parameters);
 
                 Pulled?.Invoke(this, new PulledAllEventArgs { Total = parameters.Length, Project = project, Environment = environment });
+            }
+
+            private async Task<IEnumerable<Parameter>> PullWildcardAsync(CancellationToken cancellation)
+            {
+                var wildcardParameters = project.Dependencies.Parameters.GetWildcards();
+                var tasks = wildcardParameters
+                    .Select(p => client.Parameter.SearchAsync(p.Name, 50, cancellation)
+                        .ContinueWith(c => c.Result.Where(s => p.Matches(s.Name)), TaskContinuationOptions.OnlyOnRanToCompletion))
+                    .ToList();
+
+                var parameters = await Task.WhenAll(tasks);
+                return parameters.SelectMany(p => p).ToList();
+            }
+
+            private async Task<IEnumerable<Parameter>> PullFixedAsync(CancellationToken cancellation)
+            {
+                var fixedParameters = project.Dependencies.Parameters.GetFixed();
+                if (fixedParameters.Any())
+                    return await client.Parameter.GetAsync(fixedParameters.ToArray(), cancellation);
+
+                return Enumerable.Empty<Parameter>();
             }
         }
     }

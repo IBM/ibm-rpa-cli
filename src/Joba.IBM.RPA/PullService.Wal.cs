@@ -5,11 +5,11 @@
         public WalPullService(IRpaClient client, Project project, Environment environment)
         {
             One = new PullOne(client, project, environment);
-            All = new PullMany(client, project, environment);
+            Many = new PullMany(client, project, environment);
         }
 
         public IPullOne<WalFile> One { get; }
-        public IPullMany All { get; }
+        public IPullMany Many { get; }
 
         class PullMany : IPullMany
         {
@@ -113,6 +113,8 @@
                         pulledArgs = PulledOneEventArgs<WalFile>.Updated(environment, project, wal, previous);
                     Pulled?.Invoke(this, pulledArgs);
                 }
+
+                //project.Files.TryAdd(name);
             }
         }
     }

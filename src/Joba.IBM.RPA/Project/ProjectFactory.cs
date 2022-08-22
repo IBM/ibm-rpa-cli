@@ -2,7 +2,7 @@
 {
     public static class ProjectFactory
     {
-        public static Project CreateFromCurrentDirectory(string name)
+        public static Project CreateFromCurrentDirectory(string name, NamePattern pattern)
         {
             var workingDir = new DirectoryInfo(System.Environment.CurrentDirectory);
             var projectFile = new ProjectFile(workingDir, name);
@@ -10,7 +10,7 @@
                 throw new Exception($"A project is already configured in the '{workingDir.FullName}' directory");
 
             projectFile.RpaDirectory.CreateHidden();
-            return new Project(projectFile);
+            return new Project(projectFile, pattern);
         }
 
         public static async Task<Project> LoadFromCurrentDirectoryAsync(CancellationToken cancellation)

@@ -31,6 +31,7 @@
     {
         Task<IEnumerable<Parameter>> SearchAsync(string parameterName, int limit, CancellationToken cancellation);
         Task<Parameter?> GetAsync(string parameterName, CancellationToken cancellation);
+        Task<IEnumerable<Parameter>> GetAsync(string[] parameters, CancellationToken cancellation);
     }
 
     public record struct Parameter([property: JsonPropertyName("Id")] string Name, string Value);
