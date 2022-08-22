@@ -9,14 +9,13 @@ namespace Joba.IBM.RPA.Cli
             var fileName = new Argument<string?>("fileName", "The specific wal file name") { Arity = ArgumentArity.ZeroOrOne };
 
             AddArgument(fileName);
-            this.SetHandler(Handle, fileName,
+            this.SetHandler(HandleAsync, fileName,
                 Bind.FromServiceProvider<Project>(),
-                Bind.FromServiceProvider<Environment?>(),
                 Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private void Handle(string? fileName, Project project, Environment? environment, InvocationContext context) =>
-           Handle(fileName, project, environment);
+        private async Task HandleAsync(string? fileName, Project project, InvocationContext context) =>
+           Handle(fileName, project, await project.GetCurrentEnvironmentAsync(context.GetCancellationToken()));
 
         public static void Handle(Project project, Environment environment) => Handle(null, project, environment);
 

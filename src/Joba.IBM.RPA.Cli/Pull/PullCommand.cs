@@ -1,5 +1,6 @@
 ﻿namespace Joba.IBM.RPA.Cli
 {
+    [RequiresEnvironment]
     partial class PullCommand : Command
     {
         public PullCommand() : base("pull", "Pulls all the project files")

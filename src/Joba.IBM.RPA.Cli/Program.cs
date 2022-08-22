@@ -2,6 +2,7 @@
 using System.CommandLine.Help;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using System.Reflection;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -83,6 +84,10 @@ namespace Joba.IBM.RPA.Cli
             var cancellation = context.GetCancellationToken();
             var project = await ProjectFactory.LoadFromCurrentDirectoryAsync(cancellation);
             var environment = await project.GetCurrentEnvironmentAsync(cancellation);
+
+            if (context.ParseResult.CommandResult.Command.GetType().GetCustomAttribute<RequiresEnvironmentAttribute>() != null
+                && environment == null)
+                throw EnvironmentException.NoEnvironment(string.Join(" ", context.ParseResult.Tokens.Select(f => f.Value)));
 
             context.BindingContext.AddService(s => project);
             if (environment != null)

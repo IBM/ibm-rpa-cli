@@ -16,13 +16,9 @@
       "commandName": "Project",
       "commandLineArgs": "project Assistant --env dev"
     },
-    "rpa env prod": {
+    "rpa env dev": {
       "commandName": "Project",
-      "commandLineArgs": "env prod"
-    },
-    "rpa switch envdonotexist": {
-      "commandName": "Project",
-      "commandLineArgs": "switch envdonotexist"
+      "commandLineArgs": "env dev"
     },
     "rpa switch dev": {
       "commandName": "Project",

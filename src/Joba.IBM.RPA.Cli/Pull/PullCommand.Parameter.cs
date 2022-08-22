@@ -2,6 +2,7 @@
 {
     partial class PullCommand
     {
+        [RequiresEnvironment]
         class PullParameterCommand : Command
         {
             private readonly EnvironmentRenderer environmentRenderer = new();
