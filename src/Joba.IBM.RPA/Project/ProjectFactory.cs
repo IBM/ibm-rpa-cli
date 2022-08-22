@@ -8,9 +8,12 @@
             var projectFile = new ProjectFile(workingDir, name);
             if (projectFile.RpaDirectory.Exists)
                 throw new Exception($"A project is already configured in the '{workingDir.FullName}' directory");
-
             projectFile.RpaDirectory.CreateHidden();
-            return new Project(projectFile, pattern);
+            
+            var settings = new ProjectSettings(pattern);
+            settings.Dependencies.Configure(pattern); //by default, add the project 'pattern' to all the dependencies
+
+            return new Project(projectFile, settings);
         }
 
         public static async Task<Project> LoadFromCurrentDirectoryAsync(CancellationToken cancellation)

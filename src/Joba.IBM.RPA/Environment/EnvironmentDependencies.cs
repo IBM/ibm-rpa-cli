@@ -2,7 +2,7 @@
 
 namespace Joba.IBM.RPA
 {
-    internal class Dependencies : IEnvironmentDependencies
+    internal class EnvironmentDependencies : IEnvironmentDependencies
     {
         public Dictionary<string, string> Parameters { get; set; } = new Dictionary<string, string>();
 
@@ -26,17 +26,10 @@ namespace Joba.IBM.RPA
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     struct DependenciesFile
     {
-        private static readonly JsonSerializerOptions SerializerOptions = new()
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver()
-        };
-        public const string Extension = ".json";
+        internal const string Extension = ".json";
         private readonly FileInfo file;
 
-        public DependenciesFile(DirectoryInfo environmentDir, string projectName, string alias)
+        internal DependenciesFile(DirectoryInfo environmentDir, string projectName, string alias)
             : this(new FileInfo(Path.Combine(environmentDir.FullName, $"{projectName}.{alias}{Extension}")), projectName, alias) { }
 
         private DependenciesFile(FileInfo file, string projectName, string alias)
@@ -46,18 +39,18 @@ namespace Joba.IBM.RPA
             Alias = alias;
         }
 
-        public string FullPath => file.FullName;
-        public bool Exists => file.Exists;
-        public string ProjectName { get; }
-        public string Alias { get; }
+        internal string FullPath => file.FullName;
+        internal bool Exists => file.Exists;
+        internal string ProjectName { get; }
+        internal string Alias { get; }
 
-        public async Task SaveAsync(Dependencies dependencies, CancellationToken cancellation)
+        internal async Task SaveAsync(EnvironmentDependencies dependencies, CancellationToken cancellation)
         {
             using var stream = new FileStream(FullPath, FileMode.Create);
-            await JsonSerializer.SerializeAsync(stream, dependencies, SerializerOptions, cancellation);
+            await JsonSerializer.SerializeAsync(stream, dependencies, Options.SerializerOptions, cancellation);
         }
 
-        public static async Task<(DependenciesFile, Dependencies?)> LoadAsync(
+        internal static async Task<(DependenciesFile, EnvironmentDependencies?)> LoadAsync(
             DirectoryInfo environmentDir, string projectName, string alias, CancellationToken cancellation)
         {
             var file = new DependenciesFile(environmentDir, projectName, alias);
@@ -65,7 +58,7 @@ namespace Joba.IBM.RPA
                 return (file, null);
 
             using var stream = File.OpenRead(file.FullPath);
-            var dependencies = await JsonSerializer.DeserializeAsync<Dependencies>(stream, SerializerOptions, cancellation)
+            var dependencies = await JsonSerializer.DeserializeAsync<EnvironmentDependencies>(stream, Options.SerializerOptions, cancellation)
                 ?? throw new Exception($"Could not load environment '{alias}' project ('{projectName}') dependencies from '{file}'");
 
             return (file, dependencies);

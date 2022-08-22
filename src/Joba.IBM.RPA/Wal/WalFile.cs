@@ -24,6 +24,7 @@ namespace Joba.IBM.RPA
         }
 
         public FileInfo Info { get; }
+        public string Name => Path.GetFileNameWithoutExtension(Info.Name);
         public bool IsFromServer => Id.HasValue;
         private string Content { get; set; }
         private Guid? Id { get; set; }

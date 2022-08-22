@@ -5,10 +5,10 @@ namespace Joba.IBM.RPA
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     struct EnvironmentFile
     {
-        public const string Extension = ".json";
+        internal const string Extension = ".json";
         private readonly FileInfo file;
 
-        public EnvironmentFile(DirectoryInfo rpaDirectory, string projectName, string alias)
+        internal EnvironmentFile(DirectoryInfo rpaDirectory, string projectName, string alias)
             : this(new FileInfo(Path.Combine(rpaDirectory.FullName, $"{projectName}.{alias}{Extension}")), projectName, alias) { }
 
         private EnvironmentFile(FileInfo file, string projectName, string alias)
@@ -18,18 +18,18 @@ namespace Joba.IBM.RPA
             Alias = alias;
         }
 
-        public string FullPath => file.FullName;
-        public bool Exists => file.Exists;
-        public string ProjectName { get; }
-        public string Alias { get; }
+        internal string FullPath => file.FullName;
+        internal bool Exists => file.Exists;
+        internal string ProjectName { get; }
+        internal string Alias { get; }
 
-        public async Task SaveAsync(EnvironmentSettings settings, CancellationToken cancellation)
+        internal async Task SaveAsync(EnvironmentSettings settings, CancellationToken cancellation)
         {
             using var stream = new FileStream(FullPath, FileMode.Create);
             await JsonSerializer.SerializeAsync(stream, settings, Options.SerializerOptions, cancellation);
         }
 
-        public static async Task<(EnvironmentFile, EnvironmentSettings)> LoadAsync(
+        internal static async Task<(EnvironmentFile, EnvironmentSettings)> LoadAsync(
             DirectoryInfo rpaDir, string projectName, string alias, CancellationToken cancellation)
         {
             var file = new EnvironmentFile(rpaDir, projectName, alias);
@@ -70,7 +70,7 @@ namespace Joba.IBM.RPA
 
     internal class EnvironmentSettings
     {
-        public required bool IsDefault { get; init; }
-        public required RemoteSettings Remote { get; init; }
+        internal required bool IsDefault { get; init; }
+        internal required RemoteSettings Remote { get; init; }
     }
 }

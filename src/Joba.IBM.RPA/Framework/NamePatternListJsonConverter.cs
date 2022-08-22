@@ -1,8 +1,8 @@
 ﻿namespace Joba.IBM.RPA
 {
-    class ParameterDependenciesJsonConverter : JsonConverter<IParameterDependencies>
+    class NamePatternListJsonConverter : JsonConverter<INames>
     {
-        public override IParameterDependencies? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override INames? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartArray)
                 throw new JsonException();
@@ -11,10 +11,10 @@
             while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                 values.Add(JsonSerializer.Deserialize<NamePattern>(ref reader, options));
 
-            return new ParameterDependencies(values);
+            return new NamePatternList(values);
         }
 
-        public override void Write(Utf8JsonWriter writer, IParameterDependencies value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, INames value, JsonSerializerOptions options)
         {
             JsonSerializer.Serialize(writer, value.AsEnumerable(), options);
         }

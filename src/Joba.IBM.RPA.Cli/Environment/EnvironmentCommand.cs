@@ -81,21 +81,4 @@
             }
         }
     }
-
-    class ShallowEnvironmentRenderer
-    {
-        public void Render(Environment environment) => Render(environment, true, 0);
-
-        public void RenderLine(Environment environment) => Render(environment, true, 0);
-
-        public void RenderLineIndented(Environment environment, int padding) => Render(environment, true, padding);
-
-        private void Render(Environment environment, bool newLine, int padding)
-        {
-            var spaces = new string(' ', padding);
-            ExtendedConsole.Write($"{spaces}{environment.Alias:blue} ({environment.Remote.TenantName}), [{environment.Remote.Name:blue}]({environment.Remote.Address})");
-            if (newLine)
-                Console.WriteLine();
-        }
-    }
 }

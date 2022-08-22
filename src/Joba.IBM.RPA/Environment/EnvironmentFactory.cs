@@ -3,7 +3,7 @@ namespace Joba.IBM.RPA
 {
     internal static class EnvironmentFactory
     {
-        public static Environment Create(ProjectFile projectFile, string alias, Region region, Session session)
+        internal static Environment Create(ProjectFile projectFile, string alias, Region region, Session session)
         {
             var envDir = new DirectoryInfo(Path.Combine(projectFile.WorkingDirectory.FullName, session.TenantName));
             var userFile = new UserSettingsFile(projectFile.ProjectName, alias);
@@ -17,7 +17,7 @@ namespace Joba.IBM.RPA
             return new Environment(isDefault, envDir, envFile, remote, userFile, userSettings, dependenciesFile, null);
         }
 
-        public static async Task<Environment?> LoadAsync(
+        internal static async Task<Environment?> LoadAsync(
             DirectoryInfo rpaDir, ProjectFile projectFile, ProjectSettings projectSettings, CancellationToken cancellation)
         {
             var alias = projectSettings.CurrentEnvironment;

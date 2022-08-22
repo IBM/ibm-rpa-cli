@@ -5,9 +5,6 @@
         private readonly ProjectFile projectFile;
         private readonly ProjectSettings projectSettings;
 
-        internal Project(ProjectFile projectFile, NamePattern pattern)
-            : this(projectFile, new ProjectSettings(pattern)) { }
-
         internal Project(ProjectFile projectFile, ProjectSettings projectSettings)
         {
             this.projectFile = projectFile;
@@ -16,7 +13,7 @@
 
         public string Name => projectFile.ProjectName;
         public IProjectDependencies Dependencies => projectSettings.Dependencies;
-        //public IProjectFiles Files => projectSettings.Files;
+        public INames Files => projectSettings.Files;
 
         public async Task SaveAsync(CancellationToken cancellation) =>
             await projectFile.SaveAsync(projectSettings, cancellation);
@@ -48,10 +45,4 @@
             return false;
         }
     }
-
-    //public interface IProjectFiles
-    //{
-    //    IEnumerable<string> Files { get; }
-    //    bool TryAdd(string name);
-    //}
 }

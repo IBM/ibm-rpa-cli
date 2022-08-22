@@ -39,5 +39,20 @@ namespace Joba.IBM.RPA
             dir.Create();
             dir.Attributes |= FileAttributes.Hidden;
         }
+
+        internal static (List<NamePattern>, List<string>) Split(this IEnumerable<NamePattern> collection)
+        {
+            var withWildcards = new List<NamePattern>();
+            var withoutWildcards = new List<string>();
+            foreach (var parameter in collection)
+            {
+                if (parameter.HasWildcard)
+                    withWildcards.Add(parameter);
+                else
+                    withoutWildcards.Add(parameter.Name);
+            }
+
+            return (withWildcards, withoutWildcards);
+        }
     }
 }

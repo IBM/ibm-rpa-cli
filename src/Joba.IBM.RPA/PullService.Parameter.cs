@@ -37,6 +37,7 @@ namespace Joba.IBM.RPA
                     var parameter = await GetAndThrowIfDoesNotExistAsync(name, cancellation);
                     project.Dependencies.Parameters.Add(new NamePattern(parameter.Name));
                     environment.Dependencies.AddOrUpdate(parameter);
+
                     Pulled?.Invoke(this, PulledOneEventArgs<Parameter>.Created(environment, project, parameter));
                 }
                 else
@@ -109,14 +110,14 @@ namespace Joba.IBM.RPA
 
             private async Task<IEnumerable<Parameter>> PullWildcardAsync(CancellationToken cancellation)
             {
-                var wildcardParameters = project.Dependencies.Parameters.GetWildcards();
-                var tasks = wildcardParameters
+                var wildcard = project.Dependencies.Parameters.GetWildcards();
+                var tasks = wildcard
                     .Select(p => client.Parameter.SearchAsync(p.Name, 50, cancellation)
                         .ContinueWith(c => c.Result.Where(s => p.Matches(s.Name)), TaskContinuationOptions.OnlyOnRanToCompletion))
                     .ToList();
 
-                var parameters = await Task.WhenAll(tasks);
-                return parameters.SelectMany(p => p).ToList();
+                var items = await Task.WhenAll(tasks);
+                return items.SelectMany(p => p).ToList();
             }
 
             private async Task<IEnumerable<Parameter>> PullFixedAsync(CancellationToken cancellation)
