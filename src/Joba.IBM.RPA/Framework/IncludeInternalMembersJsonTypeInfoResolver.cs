@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.Json.Serialization.Metadata;
+using System.Xml.Linq;
 
 namespace Joba.IBM.RPA
 {
@@ -33,12 +34,21 @@ namespace Joba.IBM.RPA
 
             foreach (var property in properties)
             {
-                var name = options.PropertyNamingPolicy?.ConvertName(property.Name) ?? property.Name;
+                var name = GetMemberName(property, options);
                 var jsonProperty = info.CreateJsonPropertyInfo(property.PropertyType, name);
                 jsonProperty.Get = property.GetValue;
                 jsonProperty.Set = property.SetValue;
                 info.Properties.Add(jsonProperty);
             }
+        }
+
+        private static string GetMemberName(MemberInfo memberInfo, JsonSerializerOptions options)
+        {
+            var nameAttribute = memberInfo.GetCustomAttribute<JsonPropertyNameAttribute>(inherit: false);
+            if (nameAttribute != null)
+                return nameAttribute.Name;
+
+            return options.PropertyNamingPolicy?.ConvertName(memberInfo.Name) ?? memberInfo.Name;
         }
     }
 }
