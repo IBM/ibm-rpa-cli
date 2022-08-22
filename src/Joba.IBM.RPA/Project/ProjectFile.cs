@@ -62,19 +62,17 @@ namespace Joba.IBM.RPA
 
     internal class ProjectSettings
     {
-        [JsonConstructor]
-        public ProjectSettings() { }
-
-        public ProjectSettings(NamePattern pattern)
-        {
-            Dependencies.Parameters.Add(pattern);
-        }
-
         internal string? CurrentEnvironment { get; set; } = string.Empty;
         [JsonPropertyName("environments")]
         internal Dictionary<string, string> AliasMapping { get; init; } = new Dictionary<string, string>();
+        internal INames Files { get; init; } = new NamePatternList();
         internal ProjectDependencies Dependencies { get; init; } = new ProjectDependencies();
-        internal NamePatternList Files { get; init; } = new NamePatternList();
+
+        internal void Configure(NamePattern pattern)
+        {
+            Files.Add(pattern);
+            Dependencies.Configure(pattern);
+        }
 
         internal void MapAlias(string alias, string directoryPath) => AliasMapping.Add(alias, directoryPath);
         internal bool EnvironmentExists(string alias) => AliasMapping.ContainsKey(alias);

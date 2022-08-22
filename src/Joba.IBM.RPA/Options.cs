@@ -14,7 +14,7 @@
                 TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver(),
             };
             SerializerOptions.Converters.Add(new NamePatternJsonConverter());
-            SerializerOptions.Converters.Add(new NamePatternListJsonConverter());
+            SerializerOptions.Converters.Add(new NamePatternListJsonConverterFactory());
         }
     }
 }

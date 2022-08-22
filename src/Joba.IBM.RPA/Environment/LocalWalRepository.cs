@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA
+﻿using System;
+
+namespace Joba.IBM.RPA
 {
     class LocalWalRepository : ILocalRepository
     {
@@ -43,22 +45,25 @@
 
         struct Enumerator : IEnumerator<WalFile>
         {
-            private readonly IEnumerator<WalFile> enumerator;
+            private readonly Lazy<IEnumerator<WalFile>> enumerator;
 
             public Enumerator(DirectoryInfo dir)
             {
-                enumerator = dir
+                enumerator = new Lazy<IEnumerator<WalFile>>(() =>
+                {
+                    return dir
                     .EnumerateFiles($"*{WalFile.Extension}", SearchOption.TopDirectoryOnly)
                     .OrderBy(f => f.Name)
                     .Select(WalFile.Read)
                     .GetEnumerator();
+                });
             }
 
-            WalFile IEnumerator<WalFile>.Current => enumerator.Current;
-            object IEnumerator.Current => enumerator.Current;
-            void IDisposable.Dispose() => enumerator.Dispose();
-            bool IEnumerator.MoveNext() => enumerator.MoveNext();
-            void IEnumerator.Reset() => enumerator.Reset();
+            WalFile IEnumerator<WalFile>.Current => enumerator.Value.Current;
+            object IEnumerator.Current => enumerator.Value.Current;
+            void IDisposable.Dispose() => enumerator.Value.Dispose();
+            bool IEnumerator.MoveNext() => enumerator.Value.MoveNext();
+            void IEnumerator.Reset() => enumerator.Value.Reset();
         }
     }
 

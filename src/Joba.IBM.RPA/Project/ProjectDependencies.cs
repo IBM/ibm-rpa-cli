@@ -33,6 +33,8 @@
         {
             if (pattern.HasWildcard)
             {
+                if (withWildcards.Contains(pattern))
+                    throw new Exception($"The pattern name '{pattern}' is already set.");
                 //TODO: improve logic
                 //has:      Assistant*
                 //attempts: Assis*

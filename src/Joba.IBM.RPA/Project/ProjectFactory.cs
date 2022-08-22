@@ -6,12 +6,12 @@
         {
             var workingDir = new DirectoryInfo(System.Environment.CurrentDirectory);
             var projectFile = new ProjectFile(workingDir, name);
-            if (projectFile.RpaDirectory.Exists)
+            if (projectFile.RpaDirectory.Exists && projectFile.RpaDirectory.EnumerateFileSystemInfos().Any())
                 throw new Exception($"A project is already configured in the '{workingDir.FullName}' directory");
             projectFile.RpaDirectory.CreateHidden();
             
-            var settings = new ProjectSettings(pattern);
-            settings.Dependencies.Configure(pattern); //by default, add the project 'pattern' to all the dependencies
+            var settings = new ProjectSettings();
+            settings.Configure(pattern); //Note: by default, add the project 'pattern' to all the dependencies
 
             return new Project(projectFile, settings);
         }
