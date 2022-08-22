@@ -11,7 +11,7 @@
             while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
                 values.Add(JsonSerializer.Deserialize<NamePattern>(ref reader, options));
 
-            return new ProjectSettings.ParameterDependencies(values);
+            return new ParameterDependencies(values);
         }
 
         public override void Write(Utf8JsonWriter writer, IParameterDependencies value, JsonSerializerOptions options)
