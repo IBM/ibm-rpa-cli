@@ -25,8 +25,8 @@ namespace Joba.IBM.RPA
 
         internal async Task SaveAsync(EnvironmentSettings settings, CancellationToken cancellation)
         {
-            using var stream = new FileStream(FullPath, FileMode.Create);
-            await JsonSerializer.SerializeAsync(stream, settings, Options.SerializerOptions, cancellation);
+            using var stream = new FileStream(FullPath, FileMode.Create); //TODO: on all saves, make a copy ~name-of-file, save->replace->delete-copy
+            await JsonSerializer.SerializeAsync(stream, settings, JsonSerializerOptionsFactory.SerializerOptions, cancellation);
         }
 
         internal static async Task<(EnvironmentFile, EnvironmentSettings)> LoadAsync(
@@ -34,7 +34,7 @@ namespace Joba.IBM.RPA
         {
             var file = new EnvironmentFile(rpaDir, projectName, alias);
             using var stream = File.OpenRead(file.FullPath);
-            var settings = await JsonSerializer.DeserializeAsync<EnvironmentSettings>(stream, Options.SerializerOptions, cancellation)
+            var settings = await JsonSerializer.DeserializeAsync<EnvironmentSettings>(stream, JsonSerializerOptionsFactory.SerializerOptions, cancellation)
                 ?? throw new Exception($"Could not load environment '{alias}' from '{file}'");
 
             return (file, settings);

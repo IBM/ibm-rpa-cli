@@ -48,6 +48,7 @@ namespace Joba.IBM.RPA.Cli
                 if (response.StatusCode != HttpStatusCode.Unauthorized)
                     return response;
 
+                //TODO: sessionFactory should be Singleton and have the semaphore there
                 var session = await sessionFactory.Invoke(environment, cancellation);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
                 return await base.SendAsync(request, cancellation);

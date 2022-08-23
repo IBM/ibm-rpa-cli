@@ -1,9 +1,25 @@
-﻿using System.Text;
-
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     public static class Extensions
     {
+        public static PackageMetadata ToPackage(this WalFile wal) => 
+            new (wal.Name, wal.Version ?? throw new InvalidOperationException($"Cannot convert '{wal.Name}' to package because it does not have a version."));
+
+        internal static (List<NamePattern>, List<string>) Split(this IEnumerable<NamePattern> collection)
+        {
+            var withWildcards = new List<NamePattern>();
+            var withoutWildcards = new List<string>();
+            foreach (var parameter in collection)
+            {
+                if (parameter.HasWildcard)
+                    withWildcards.Add(parameter);
+                else
+                    withoutWildcards.Add(parameter.Name);
+            }
+
+            return (withWildcards, withoutWildcards);
+        }
+
         public static async Task ThrowWhenUnsuccessful(this HttpResponseMessage response, CancellationToken cancellation = default)
         {
             if (response.IsSuccessStatusCode)
@@ -26,7 +42,7 @@ namespace Joba.IBM.RPA
             throw new HttpRequestException(builder.ToString(), null, response.StatusCode);
         }
 
-        public static string Trace(this Exception exception, string label = null)
+        public static string Trace(this Exception exception, string? label = null)
         {
             var arg = string.IsNullOrWhiteSpace(label) ? string.Empty : label + ": ";
             var text = $"{arg}{exception}, HResult {exception.HResult}";
@@ -38,21 +54,6 @@ namespace Joba.IBM.RPA
         {
             dir.Create();
             dir.Attributes |= FileAttributes.Hidden;
-        }
-
-        internal static (List<NamePattern>, List<string>) Split(this IEnumerable<NamePattern> collection)
-        {
-            var withWildcards = new List<NamePattern>();
-            var withoutWildcards = new List<string>();
-            foreach (var parameter in collection)
-            {
-                if (parameter.HasWildcard)
-                    withWildcards.Add(parameter);
-                else
-                    withoutWildcards.Add(parameter.Name);
-            }
-
-            return (withWildcards, withoutWildcards);
         }
     }
 }

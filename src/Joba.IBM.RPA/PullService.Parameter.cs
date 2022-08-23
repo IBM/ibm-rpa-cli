@@ -31,18 +31,18 @@ namespace Joba.IBM.RPA
 
             public async Task PullAsync(string name, CancellationToken cancellation)
             {
-                var local = environment.Dependencies.GetParameter(name);
+                var local = environment.Dependencies.Parameters.Get(name);
                 if (local == null)
                 {
                     var parameter = await GetAndThrowIfDoesNotExistAsync(name, cancellation);
                     project.Dependencies.Parameters.Add(new NamePattern(parameter.Name));
-                    environment.Dependencies.AddOrUpdate(parameter);
+                    environment.Dependencies.Parameters.AddOrUpdate(parameter);
 
                     Pulled?.Invoke(this, PulledOneEventArgs<Parameter>.Created(environment, project, parameter));
                 }
                 else
                 {
-                    var args = new ContinuePullOperationEventArgs<Parameter> { Resource = local.Value, Project = project, Environment = environment };
+                    var args = new ContinuePullOperationEventArgs<Parameter> { Resource = local, Project = project, Environment = environment };
                     ShouldContinueOperation?.Invoke(this, args);
                     if (!args.Continue.HasValue)
                         throw new OperationCanceledException("User did not provide an answer");
@@ -51,13 +51,13 @@ namespace Joba.IBM.RPA
 
                     var parameter = await GetAndThrowIfDoesNotExistAsync(name, cancellation);
                     project.Dependencies.Parameters.Add(new NamePattern(parameter.Name));
-                    environment.Dependencies.AddOrUpdate(parameter);
+                    environment.Dependencies.Parameters.AddOrUpdate(parameter);
 
                     PulledOneEventArgs<Parameter>? pulledArgs;
-                    if (local.Value.Value == parameter.Value)
-                        pulledArgs = PulledOneEventArgs<Parameter>.NoChange(environment, project, local.Value);
+                    if (local.Value == parameter.Value)
+                        pulledArgs = PulledOneEventArgs<Parameter>.NoChange(environment, project, local);
                     else
-                        pulledArgs = PulledOneEventArgs<Parameter>.Updated(environment, project, parameter, local.Value);
+                        pulledArgs = PulledOneEventArgs<Parameter>.Updated(environment, project, parameter, local);
                     Pulled?.Invoke(this, pulledArgs);
                 }
             }
@@ -68,7 +68,7 @@ namespace Joba.IBM.RPA
                 if (parameter == null)
                     throw new Exception($"Could not find the parameter '{name}'");
 
-                return parameter.Value;
+                return parameter;
             }
         }
 
@@ -103,7 +103,7 @@ namespace Joba.IBM.RPA
                 var fromWildcard = await PullWildcardAsync(cancellation);
                 var fromFixed = await PullFixedAsync(cancellation);
                 var parameters = fromWildcard.Concat(fromFixed).ToArray();
-                environment.Dependencies.AddOrUpdate(parameters);
+                environment.Dependencies.Parameters.AddOrUpdate(parameters);
 
                 Pulled?.Invoke(this, new PulledAllEventArgs { Total = parameters.Length, Project = project, Environment = environment });
             }

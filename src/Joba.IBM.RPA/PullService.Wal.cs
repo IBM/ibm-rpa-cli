@@ -78,7 +78,7 @@
                 var tasks = files
                     .Select(f => client.Script.SearchAsync(f, 5, cancellation)
                         .ContinueWith(c => c.Result.FirstOrDefault(s => s.Name == f), TaskContinuationOptions.OnlyOnRanToCompletion)
-                        .ContinueWith(s => s.Result ?? throw new Exception($"Could not find script '{f}'")))
+                        .ContinueWith(s => s.Result ?? throw new Exception($"Could not find script '{f}'"), TaskContinuationOptions.OnlyOnRanToCompletion))
                     .ToList();
 
                 return await Task.WhenAll(tasks);
@@ -123,7 +123,7 @@
                     var previous = wal.Clone();
                     await wal.OverwriteToLatestAsync(client.Script, name, cancellation);
                     project.Files.Add(new NamePattern(name));
-                    
+
                     Pulled?.Invoke(this, PulledOneEventArgs<WalFile>.Updated(environment, project, wal, previous));
                 }
                 else

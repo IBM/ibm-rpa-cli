@@ -3,6 +3,7 @@ using System.CommandLine.Help;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -65,9 +66,25 @@ namespace Joba.IBM.RPA.Cli
         private static void OnException(Exception exception, InvocationContext context)
         {
             exception.Trace();
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(exception.Message);
-            Console.ResetColor();
+
+            using (ExtendedConsole.BeginForegroundColor(ConsoleColor.Red))
+            {
+                Console.WriteLine(exception.Message);
+                PackageAlreadyInstalledException(exception);
+                PackageNotFoundException(exception);
+            }
+
+            void PackageAlreadyInstalledException(Exception exception)
+            {
+                if (exception is PackageAlreadyInstalledException ex)
+                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.UpdatePackageCommand.CommandName} {ex.PackageName}' to update it.");
+            }
+
+            void PackageNotFoundException(Exception exception)
+            {
+                if (exception is PackageNotFoundException ex)
+                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.InstallPackageCommand.CommandName} {ex.PackageName}' to install it first.");
+            }
         }
 
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)

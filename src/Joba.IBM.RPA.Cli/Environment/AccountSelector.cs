@@ -2,11 +2,11 @@
 {
     class AccountSelector
     {
-        private readonly IAccountClient client;
+        private readonly IAccountResource resource;
 
-        public AccountSelector(IAccountClient client)
+        public AccountSelector(IAccountResource resource)
         {
-            this.client = client;
+            this.resource = resource;
         }
 
         public async Task<AccountCredentials> SelectAsync(string? userName, int? tenantCode, CancellationToken cancellation)
@@ -28,7 +28,7 @@
 
         private async Task<int> PromptToSelectTenantAsync(string userName, CancellationToken cancellation)
         {
-            var tenants = (await client.FetchTenantsAsync(userName, cancellation)).ToArray();
+            var tenants = (await resource.FetchTenantsAsync(userName, cancellation)).ToArray();
             if (tenants.Length == 0)
                 throw new Exception("Wrong user name or password");
 

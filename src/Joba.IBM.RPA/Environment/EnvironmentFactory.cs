@@ -7,11 +7,11 @@ namespace Joba.IBM.RPA
         {
             var envDir = new DirectoryInfo(Path.Combine(projectFile.WorkingDirectory.FullName, session.TenantName));
             var userFile = new UserSettingsFile(projectFile.ProjectName, alias);
-            var userSettings = new UserSettings { Token = session.AccessToken };
+            var userSettings = new UserSettings { Token = session.AccessToken, TokenExpiration = DateTime.UtcNow.AddSeconds(session.ExpiresIn) };
 
             var envFile = new EnvironmentFile(projectFile.RpaDirectory, projectFile.ProjectName, alias);
             var remote = RemoteSettings.Create(region, session);
-            var dependenciesFile = new DependenciesFile(envDir, projectFile.ProjectName, alias);
+            var dependenciesFile = new EnvironmentDependenciesFile(envDir, projectFile.ProjectName, alias);
             var isDefault = projectFile.RpaDirectory.EnumerateFiles($"*{EnvironmentFile.Extension}", SearchOption.TopDirectoryOnly).Any() == false;
 
             return new Environment(isDefault, envDir, envFile, remote, userFile, userSettings, dependenciesFile, null);
@@ -27,7 +27,7 @@ namespace Joba.IBM.RPA
             var envDir = projectSettings.GetDirectory(alias);
             var (envFile, envSettings) = await EnvironmentFile.LoadAsync(rpaDir, projectFile.ProjectName, alias, cancellation);
             var (userFile, userSettings) = await UserSettingsFile.LoadAsync(projectFile.ProjectName, alias, cancellation);
-            var (dependenciesFile, dependencies) = await DependenciesFile.LoadAsync(envDir, projectFile.ProjectName, alias, cancellation);
+            var (dependenciesFile, dependencies) = await EnvironmentDependenciesFile.LoadAsync(envDir, projectFile.ProjectName, alias, cancellation);
 
             return new Environment(envDir, envFile, envSettings, userFile, userSettings, dependenciesFile, dependencies);
         }

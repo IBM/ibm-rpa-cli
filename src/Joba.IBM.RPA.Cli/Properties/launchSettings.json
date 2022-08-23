@@ -4,6 +4,10 @@
       "commandName": "Project",
       "commandLineArgs": ""
     },
+    "rpa status": {
+      "commandName": "Project",
+      "commandLineArgs": "status"
+    },
     "rpa --help": {
       "commandName": "Project",
       "commandLineArgs": "env --help"
@@ -36,9 +40,37 @@
       "commandName": "Project",
       "commandLineArgs": "pull parameter"
     },
-    "rpa status": {
+    "rpa package install Joba_System": {
       "commandName": "Project",
-      "commandLineArgs": "status"
+      "commandLineArgs": "package install Joba_System"
+    },
+    "rpa package install Joba*": {
+      "commandName": "Project",
+      "commandLineArgs": "package install Joba*"
+    },
+    "rpa package restore": {
+      "commandName": "Project",
+      "commandLineArgs": "package restore"
+    },
+    "rpa package update": {
+      "commandName": "Project",
+      "commandLineArgs": "package update"
+    },
+    "rpa package update Joba_System": {
+      "commandName": "Project",
+      "commandLineArgs": "package update Joba_System"
+    },
+    "rpa package update Joba_System 3": {
+      "commandName": "Project",
+      "commandLineArgs": "package update Joba_System --version 3"
+    },
+    "rpa package uninstall Joba_System": {
+      "commandName": "Project",
+      "commandLineArgs": "package uninstall Joba_System"
+    },
+    "rpa package uninstall": {
+      "commandName": "Project",
+      "commandLineArgs": "package uninstall"
     }
   }
 }

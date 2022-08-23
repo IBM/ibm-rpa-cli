@@ -28,7 +28,7 @@ namespace Joba.IBM.RPA
             if (!file.Directory!.Exists)
                 file.Directory.Create();
             using var stream = new FileStream(FullPath, FileMode.Create);
-            await JsonSerializer.SerializeAsync(stream, userSettings, Options.SerializerOptions, cancellation);
+            await JsonSerializer.SerializeAsync(stream, userSettings, JsonSerializerOptionsFactory.SerializerOptions, cancellation);
         }
 
         internal static async Task<(UserSettingsFile, UserSettings?)> LoadAsync(string projectName, string alias, CancellationToken cancellation)
@@ -37,7 +37,7 @@ namespace Joba.IBM.RPA
             if (file.Exists)
             {
                 using var stream = File.OpenRead(file.FullPath);
-                var settings = await JsonSerializer.DeserializeAsync<UserSettings>(stream, Options.SerializerOptions, cancellation)
+                var settings = await JsonSerializer.DeserializeAsync<UserSettings>(stream, JsonSerializerOptionsFactory.SerializerOptions, cancellation)
                     ?? throw new Exception($"Could not user settings for the project '{projectName}' from '{file}'");
 
                 return (file, settings);
@@ -54,5 +54,6 @@ namespace Joba.IBM.RPA
     internal class UserSettings
     {
         internal string? Token { get; set; }
+        internal DateTime? TokenExpiration { get; set; }
     }
 }

@@ -26,7 +26,7 @@ namespace Joba.IBM.RPA
         internal async Task SaveAsync(ProjectSettings projectSettings, CancellationToken cancellation)
         {
             using var stream = new FileStream(FullPath, FileMode.Create);
-            await JsonSerializer.SerializeAsync(stream, projectSettings, Options.SerializerOptions, cancellation);
+            await JsonSerializer.SerializeAsync(stream, projectSettings, JsonSerializerOptionsFactory.SerializerOptions, cancellation);
         }
 
         internal static async Task<(ProjectFile, ProjectSettings)> LoadAsync(DirectoryInfo workingDir, CancellationToken cancellation)
@@ -36,7 +36,7 @@ namespace Joba.IBM.RPA
                 throw new Exception($"Could not load project because there is no '.rpa' directory found within '{file.WorkingDirectory}'");
 
             using var stream = File.OpenRead(file.FullPath);
-            var settings = await JsonSerializer.DeserializeAsync<ProjectSettings>(stream, Options.SerializerOptions, cancellation)
+            var settings = await JsonSerializer.DeserializeAsync<ProjectSettings>(stream, JsonSerializerOptionsFactory.SerializerOptions, cancellation)
                 ?? throw new Exception($"Could not load project '{file.ProjectName}' from '{file}'");
 
             return (file, settings);
@@ -62,6 +62,10 @@ namespace Joba.IBM.RPA
 
     internal class ProjectSettings
     {
+        public ProjectSettings()
+        {
+
+        }
         internal string? CurrentEnvironment { get; set; } = string.Empty;
         [JsonPropertyName("environments")]
         internal Dictionary<string, string> AliasMapping { get; init; } = new Dictionary<string, string>();

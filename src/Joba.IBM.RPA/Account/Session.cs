@@ -3,7 +3,9 @@
     public struct Session
     {
         [JsonPropertyName("access_token")]
-        public string AccessToken { get; init; }        
+        public string AccessToken { get; init; }
+        [JsonPropertyName("expires_in")]
+        public int ExpiresIn { get; init; }
         [JsonPropertyName("email")]
         public string UserName { get; init; }
         public int TenantCode { get; init; }

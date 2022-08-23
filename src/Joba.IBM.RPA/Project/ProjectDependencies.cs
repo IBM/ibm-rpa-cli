@@ -3,6 +3,7 @@
     internal class ProjectDependencies : IProjectDependencies
     {
         public INames Parameters { get; init; } = new NamePatternList();
+        public ILocalRepository<PackageMetadata> Packages { get; init; } = new PackageReferences();
 
         internal void Configure(NamePattern pattern)
         {
@@ -66,6 +67,7 @@
     public interface IProjectDependencies
     {
         INames Parameters { get; }
+        ILocalRepository<PackageMetadata> Packages { get; }
     }
 
     public interface INames : IEnumerable<NamePattern>

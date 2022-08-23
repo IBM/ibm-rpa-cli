@@ -1,34 +1,41 @@
 ﻿using System.Globalization;
+using System.Net;
 using System.Net.Http.Json;
 
 namespace Joba.IBM.RPA.Cli
 {
     class RpaClient : IRpaClient
     {
-        private static readonly JsonSerializerOptions SerializerOptions = new()
+        internal static readonly JsonSerializerOptions SerializerOptions = CreateJsonSerializerOptions();
+        internal static JsonSerializerOptions CreateJsonSerializerOptions()
         {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-        private readonly HttpClient client;
+            var @default = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            };
+            @default.Converters.Add(new WalVersionJsonConverter());
+            return @default;
+        }
 
+        private readonly HttpClient client;
         public RpaClient(HttpClient client)
         {
             this.client = client;
             if (client.BaseAddress == null)
                 throw new ArgumentException($"The '{nameof(client)}' needs to have '{nameof(client.BaseAddress)}' set");
 
-            Account = new AccountClient(client);
-            ScriptVersion = new ScriptVersionClient(client);
-            Script = new ScriptClient(client, ScriptVersion);
-            Parameter = new ParameterClient(client);
+            Account = new AccountResource(client);
+            ScriptVersion = new ScriptVersionResource(client);
+            Script = new ScriptResource(client, ScriptVersion);
+            Parameter = new ParameterResource(client);
         }
 
         public Uri Address => client.BaseAddress!;
-        public IAccountClient Account { get; }
-        public IScriptClient Script { get; }
-        public IScriptVersionClient ScriptVersion { get; }
-        public IParameterClient Parameter { get; }
+        public IAccountResource Account { get; }
+        public IScriptResource Script { get; }
+        public IScriptVersionResource ScriptVersion { get; }
+        public IParameterResource Parameter { get; }
 
         public async Task<ServerConfig> GetConfigurationAsync(CancellationToken cancellation) =>
             await client.GetFromJsonAsync<ServerConfig>($"{CultureInfo.CurrentCulture.Name}/configuration", SerializerOptions, cancellation);
@@ -38,30 +45,26 @@ namespace Joba.IBM.RPA.Cli
             client?.Dispose();
         }
 
-        class ScriptClient : IScriptClient
+        class ScriptResource : IScriptResource
         {
             private readonly HttpClient client;
-            private readonly IScriptVersionClient versionClient;
+            private readonly IScriptVersionResource versionResource;
 
-            public ScriptClient(HttpClient client, IScriptVersionClient versionClient)
+            public ScriptResource(HttpClient client, IScriptVersionResource versionResource)
             {
                 this.client = client;
-                this.versionClient = versionClient;
+                this.versionResource = versionResource;
             }
 
             public async Task<ScriptVersion?> GetLatestVersionAsync(Guid scriptId, CancellationToken cancellation)
             {
-                //v1.0/en-US/script/{id}/info
-                //var url = $"{CultureInfo.CurrentCulture.Name}/script/{scriptId}/info";
-                //var test = await client.GetStringAsync(aaaa, cancellation);
-
-                var url = $"{CultureInfo.CurrentCulture.Name}/script/{scriptId}/version?offset=0&limit=1&orderBy=version&asc=false";
+                var url = $"{CultureInfo.CurrentCulture.Name}/script/{scriptId}/version?offset=0&limit=1&orderBy=version&asc=false&include=Script";
                 var response = await client.GetFromJsonAsync<PagedResponse<ScriptVersionBuilder>>(url, SerializerOptions, cancellation);
                 if (response.Results.Length == 0)
                     return null;
 
                 var builder = response.Results[0];
-                var content = await versionClient.GetContentAsync(builder.Id, cancellation);
+                var content = await versionResource.GetContentAsync(builder.Id, cancellation);
                 return builder.Build(content);
             }
 
@@ -85,13 +88,38 @@ namespace Joba.IBM.RPA.Cli
                 var response = await client.GetFromJsonAsync<PagedResponse<Script>>(url, SerializerOptions, cancellation);
                 return response.Results;
             }
+
+            public async Task<ScriptVersion?> GetAsync(string scriptName, WalVersion version, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/script/{scriptName}/info?versionId={version}&excludeContent=false";
+                var response = await client.GetAsync(url, cancellation);
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                    return null;
+                await response.ThrowWhenUnsuccessful(cancellation);
+                var data = await response.Content.ReadFromJsonAsync<ScriptInfo>(SerializerOptions, cancellation);
+                if (data == null)
+                    throw new InvalidOperationException($"Could not deserialize the response from: {url}");
+
+                return new ScriptVersion(data.ScriptVersionId, data.ScriptId, scriptName, data.Version,
+                    Version.Parse(data.ProductVersion), data.Content);
+            }
         }
 
-        class ScriptVersionClient : IScriptVersionClient
+        class ScriptInfo
+        {
+            public required Guid ScriptId { get; set; }
+            public required Guid ScriptVersionId { get; set; }
+            public required string Name { get; set; }
+            public required string ProductVersion { get; set; }
+            public required string Content { get; set; }
+            public required WalVersion Version { get; set; }
+        }
+
+        class ScriptVersionResource : IScriptVersionResource
         {
             private readonly HttpClient client;
 
-            public ScriptVersionClient(HttpClient client) => this.client = client;
+            public ScriptVersionResource(HttpClient client) => this.client = client;
 
             public async Task<string> GetContentAsync(Guid scriptVersionId, CancellationToken cancellation)
             {
@@ -103,11 +131,11 @@ namespace Joba.IBM.RPA.Cli
         /// <summary>
         /// TODO: use https://www.ibm.com/docs/en/rpa/21.0?topic=api-reference
         /// </summary>
-        class AccountClient : IAccountClient
+        class AccountResource : IAccountResource
         {
             private readonly HttpClient client;
 
-            public AccountClient(HttpClient client) => this.client = client;
+            public AccountResource(HttpClient client) => this.client = client;
 
             public async Task<Session> AuthenticateAsync(int tenantCode, string userName, string password, CancellationToken cancellation)
             {
@@ -160,18 +188,20 @@ namespace Joba.IBM.RPA.Cli
 
         record struct PagedResponse<T>(T[] Results);
 
-        record class ScriptVersionBuilder(Guid Id, Guid ScriptId, int Version, string ProductVersion)
+        record class ScriptVersionBuilder(Guid Id, Guid ScriptId, WalVersion Version, string ProductVersion, ScriptVersionBuilder.ScriptInfo Script)
         {
             public ScriptVersion Build(string content) => string.IsNullOrEmpty(content) ?
                 throw new Exception($"Could not build {nameof(ScriptVersion)} because {nameof(content)} is null or empty") :
-                new(Id, ScriptId, Version, System.Version.Parse(ProductVersion), content);
+                new(Id, ScriptId, Script.Name, Version, System.Version.Parse(ProductVersion), content);
+
+            public record class ScriptInfo(Guid Id, string Name);
         }
 
-        class ParameterClient : IParameterClient
+        class ParameterResource : IParameterResource
         {
             private readonly HttpClient client;
 
-            public ParameterClient(HttpClient client) => this.client = client;
+            public ParameterResource(HttpClient client) => this.client = client;
 
             public async Task<IEnumerable<Parameter>> SearchAsync(string parameterName, int limit, CancellationToken cancellation)
             {

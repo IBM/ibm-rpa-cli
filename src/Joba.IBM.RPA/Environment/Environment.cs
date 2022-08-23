@@ -8,17 +8,17 @@
         private readonly EnvironmentSettings environmentSettings;
         private readonly UserSettingsFile userFile;
         private readonly UserSettings userSettings;
-        private readonly DependenciesFile dependenciesFile;
+        private readonly EnvironmentDependenciesFile dependenciesFile;
         private EnvironmentDependencies? dependencies;
 
         internal Environment(bool isDefault, DirectoryInfo envDir, EnvironmentFile environmentFile, RemoteSettings remoteSettings,
-            UserSettingsFile userFile, UserSettings userSettings, DependenciesFile dependenciesFile, EnvironmentDependencies dependencies)
+            UserSettingsFile userFile, UserSettings userSettings, EnvironmentDependenciesFile dependenciesFile, EnvironmentDependencies dependencies)
             : this(envDir, environmentFile, new EnvironmentSettings { IsDefault = isDefault, Remote = remoteSettings }, userFile, userSettings,
                   dependenciesFile, dependencies)
         { }
 
         internal Environment(DirectoryInfo envDir, EnvironmentFile environmentFile, EnvironmentSettings environmentSettings,
-            UserSettingsFile userFile, UserSettings? userSettings, DependenciesFile dependenciesFile, EnvironmentDependencies? dependencies)
+            UserSettingsFile userFile, UserSettings? userSettings, EnvironmentDependenciesFile dependenciesFile, EnvironmentDependencies? dependencies)
         {
             this.envDir = envDir;
             this.environmentFile = environmentFile;
@@ -35,9 +35,9 @@
         public RemoteSettings Remote => environmentSettings.Remote;
         public bool IsDefault => environmentSettings.IsDefault;
         public ILocalRepository Files => repository;
-        public IEnvironmentDependencies Dependencies => dependencies ??= new EnvironmentDependencies();
+        public IEnvironmentDependencies Dependencies => dependencies ??= new EnvironmentDependencies(envDir);
 
-        public Session GetSession() => new Session
+        public Session GetSession() => new Session //TODO: return a proper 'session' from the data in the UserSettings like ExpirationDate
         {
             AccessToken = userSettings.Token ?? throw new Exception("There is no session token available"),
             PersonName = Remote.PersonName,
@@ -49,6 +49,7 @@
         public void SetSession(Session session)
         {
             userSettings.Token = session.AccessToken;
+            userSettings.TokenExpiration = DateTime.UtcNow.AddSeconds(session.ExpiresIn);
         }
 
         public async Task SaveAsync(CancellationToken cancellation)

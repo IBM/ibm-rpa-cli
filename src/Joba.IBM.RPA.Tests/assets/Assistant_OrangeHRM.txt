@@ -1,0 +1,177 @@
+﻿defVar --name nextSentence --type String --parameter  --output
+defVar --name kbAnswer --type String --parameter
+defVar --name chat --type ChatData --parameter
+defVar --name kbTags --type String --parameter  --output
+defVar --name kbScore --type Numeric --parameter
+defVar --name userName --type String --parameter  --output
+defVar --name leavesReport --type DataTable
+defVar --name filteredReport --type DataTable
+defVar --name row --type Numeric
+defVar --name leaveType --type String
+defVar --name leaveBalance --type Numeric
+defVar --name filterExpression --type String
+defVar --name leaveColumnName --type String
+defVar --name leaveEntitlements --type Numeric
+defVar --name leaveTaken --type Numeric
+defVar --name leavePending --type Numeric
+defVar --name leaveScheduled --type Numeric
+defVar --name leavesReportImage --type Image
+defVar --name filePath --type String
+defVar --name success --type Boolean
+defVar --name error --type Error
+defVar --name browser --type Browser --parameter
+defVar --name employees --type List --innertype String --value "[Garry White,Fiona Grace,Lisa Andrews,Paul Collings,Alice Duval,David Morris]"
+defVar --name utterance --type String
+defVar --name timedOut --type Boolean
+defVar --name askedLeaveType --type String
+defVar --name timesheetStatus --type String
+defVar --name timesheetReport --type DataTable
+defVar --name projectName --type String
+defVar --name projectTotalHoursText --type String
+defVar --name partsOfText --type List --innertype String
+defVar --name projectHours --type String
+defVar --name projectMinutes --type String
+defVar --name skipBotAsk --type Boolean --output
+defVar --name chosenUserName --type String
+defVar --name isDebug --type Boolean --parameter
+defVar --name orangeHrmUserName --type String
+defVar --name orangeHrmUserPassword --type String
+defVar --name orangeHrmUrl --type String
+setTimeout --timeout 00:00:45
+botAttach --chat ${chat}
+
+//************************************
+//Required parameters on Control Center:
+// - Assistant_OrangeHRM_Url
+// - Assistant_OrangeHRM_UserName
+// - Assistant_OrangeHRM_Password
+//************************************
+getParameters --mappings "Assistant_OrangeHRM_UserName=${orangeHrmUserName},Assistant_OrangeHRM_Password=${orangeHrmUserPassword},Assistant_OrangeHRM_Url=${orangeHrmUrl}" success=success
+assert --message "Could not get all required parameters from Control Center" --left "${success}" --operator "Is_True"
+gosubIf --label HandleLeaves --left "${kbTags}" --operator "Contains" --right "+leaves"
+gosubIf --label HandleTimesheets --left "${kbTags}" --operator "Contains" --right "+timesheet"
+beginSub --name ShowLeaves
+	filterTable --where "${filterExpression}" --dataTable ${leavesReport} filteredReport=value
+	if --left "${filteredReport.Rows}" --operator "Greater_Than" --right 0
+		setVar --name "${nextSentence}" --value "Here\'s the report:"
+		for --variable ${row} --from 1 --to ${filteredReport.Rows} --step 1
+			mapTableRow --dataTable ${filteredReport} --row ${row} --mappings "name=Leave Type=${leaveType},name=${leaveColumnName}=${leaveBalance}"
+			if --left "${kbTags}" --operator "Contains" --right "+vacation" --comment "if the user asked specifically for \'vacation\', we should not add the other \'leave types\'"
+				if --left "${leaveType}" --operator "Contains" --right Vacation
+					concatTexts --text "${nextSentence}\r\n" --value "- *${leaveType}*: **${leaveBalance}** day(s)" nextSentence=value
+				endIf
+			else
+				concatTexts --text "${nextSentence}\r\n" --value "- *${leaveType}*: **${leaveBalance}** day(s)" nextSentence=value
+			endIf
+		next
+	else
+		setVarIf --variablename "${askedLeaveType}" --value scheduled --left "${kbTags}" --operator "Contains" --right "+scheduled"
+		setVarIf --variablename "${askedLeaveType}" --value entitlements --left "${kbTags}" --operator "Contains" --right "+entitlements"
+		setVarIf --variablename "${askedLeaveType}" --value pending --left "${kbTags}" --operator "Contains" --right "+pending"
+		setVarIf --variablename "${askedLeaveType}" --value taken --left "${kbTags}" --operator "Contains" --right "+taken"
+		
+		setVarIf --variablename "${nextSentence}" --value "Sorry, you don\'t have any **${askedLeaveType}** leaves" --left "${askedLeaveType}" --operator "Is_Null_Or_Empty" --negate
+		setVarIf --variablename "${nextSentence}" --value "Sorry, you don\'t have any leaves" --left "${askedLeaveType}" --operator "Is_Null_Or_Empty"
+	endIf
+endSub
+beginSub --name ShowLeaveReport
+	if --left "${leavesReport.Rows}" --operator "Greater_Than" --right 0
+		saveImage --image ${leavesReportImage} --directory "C:\\temp\\" --createrandomfile  --format "Png" filePath=value
+		chatSendMedia --title "Leaves report" --type "LocalFile" --path "${filePath}" --text "**${userName}**, here is the full report" --textformat "0"
+	//for --variable ${row} --from 1 --to ${leavesReport.Rows} --step 1
+	//mapTableRow --dataTable ${leavesReport} --row ${row} --mappings "name=Leave Type=${leaveType},name=Leave Balance=${leaveBalance},name=Leave Entitlements=${leaveEntitlements},name=Leave Taken=${leaveTaken},name=Leave Pending Approval=${leavePending},name=Leave Scheduled=${leaveScheduled}"
+	//concatTexts --text "${nextSentence}\r\n" --value "Type | Entitlements | Pending | Scheduled | Taken | Balance |\r\n**${leaveType}** | ${leaveEntitlements} | ${leavePending} | ${leaveScheduled} | ${leaveTaken} | ${leaveBalance}" nextSentence=value
+	//next
+	else
+		setVar --name "${nextSentence}" --value "Sorry, you don\'t have any leaves"
+	endIf
+endSub
+beginSub --name HandleLeaves
+	label --name RetryLeaves
+	botStartOnHold --message "Okay **${userName}**, working on it, this could take a few seconds..." --textformat "Markdown"
+		executeScript --handleError  --name Joba_OrangeHRM --parameters "employeeName=${userName},browser=${browser},methodName=LeavesReport,userName=${orangeHrmUserName},userPassword=${orangeHrmUserPassword},url=${orangeHrmUrl}" --output "leavesReport=${leavesReport},leavesReportImage=${leavesReportImage}" --version 2 success=value error=error
+	botStopOnHold
+	
+	if --left "${error.Message}" --operator "Contains" --right "Employee does not exist"
+		botAskList --names ${employees} --beep  --text "Sorry, **${userName}** does not exist in the system.\r\nWho are you?" --textformat "0" --timeout "00:00:30" chosenUserName=value utterance=utterance timedOut=timedout success=success
+		if --left "${success}" --operator "Is_True"
+			setVar --name "${userName}" --value "${chosenUserName}" --comment "we cannot use \'userName\' right in the \'botAskList\' because if the user does not select one from the list, the \'userName\' variable will be set to \'null\', and that will break the bot"
+			goto --label RetryLeaves
+		else
+			setVarIf --variablename "${skipBotAsk}" --value true --left "${timedOut}" --operator "Is_True" --negate
+			setVarIf --variablename "${nextSentence}" --value "${utterance}" --left "${timedOut}" --operator "Is_True" --negate
+			setVarIf --variablename "${nextSentence}" --value "Aren\'t you shy?\r\nWhat else can I help you with?" --left "${timedOut}" --operator "Is_True"
+			stopExecution --current
+		endIf
+	elseIf --left "${error.Message}" --operator "Contains" --right "System Error"
+		setVar --name "${nextSentence}" --value "My apologies, looks like there\'s an error in the system:\r\n*${error.Message}*\r\n"
+		stopExecution --current
+	endIf
+	
+	gosubIf --label ShowLeaves --assignments "${filterExpression}=[Leave Balance] > 0,${leaveColumnName}=Leave Balance" --left "${kbTags}" --operator "Contains" --right "+balance"
+	gosubIf --label ShowLeaves --assignments "${filterExpression}=[Leave Entitlements] > 0,${leaveColumnName}=Leave Entitlements" --left "${kbTags}" --operator "Contains" --right "+entitlements"
+	gosubIf --label ShowLeaves --assignments "${filterExpression}=[Leave Pending Approval] > 0,${leaveColumnName}=Leave Pending Approval" --left "${kbTags}" --operator "Contains" --right "+pending"
+	gosubIf --label ShowLeaves --assignments "${filterExpression}=[Leave Scheduled] > 0,${leaveColumnName}=Leave Scheduled" --left "${kbTags}" --operator "Contains" --right "+scheduled"
+	gosubIf --label ShowLeaves --assignments "${filterExpression}=[Leave Taken] > 0,${leaveColumnName}=Leave Taken" --left "${kbTags}" --operator "Contains" --right "+taken"
+	gosubIf --label ShowLeaveReport --left "${kbTags}" --operator "Contains" --right "+report"
+endSub
+beginSub --name HandleTimesheets
+	label --name RetryTimesheet
+	botStartOnHold --message "Okay **${userName}** , working on it, this could take a few seconds..." --textformat "0"
+		executeScript --handleError  --name Joba_OrangeHRM --parameters "employeeName=${userName},browser=${browser},methodName=Timesheet,userName=${orangeHrmUserName},userPassword=${orangeHrmUserPassword},url=${orangeHrmUrl}" --output "timesheetStatus=${timesheetStatus},timesheetReport=${timesheetReport}" success=value error=error
+	botStopOnHold
+	
+	if --left "${error.Message}" --operator "Contains" --right "Employee does not exist"
+		botAskList --names ${employees} --beep  --text "Sorry, **${userName}** does not exist in the system.\r\nWho are you?" --textformat "0" --timeout "00:00:30" chosenUserName=value utterance=utterance timedOut=timedout success=success
+		if --left "${success}" --operator "Is_True"
+			setVar --name "${userName}" --value "${chosenUserName}" --comment "we cannot use \'userName\' right in the \'botAskList\' because if the user does not select one from the list, the \'userName\' variable will be set to \'null\'"
+			goto --label RetryTimesheet
+		else
+			setVarIf --variablename "${skipBotAsk}" --value true --left "${timedOut}" --operator "Is_True" --negate
+			setVarIf --variablename "${nextSentence}" --value "${utterance}" --left "${timedOut}" --operator "Is_True" --negate
+			setVarIf --variablename "${nextSentence}" --value "Aren\'t you shy?\r\nWhat else can I help you with?" --left "${timedOut}" --operator "Is_True"
+			stopExecution --current
+		endIf
+	elseIf --left "${error.Message}" --operator "Contains" --right "System Error"
+		setVar --name "${nextSentence}" --value "My apologies, looks like there\'s an error in the system:\r\n*${error.Message}*\r\n"
+		stopExecution --current
+	endIf
+	
+	#region validating the
+	if --left "${timesheetReport}" --operator "Is_Null"
+		setVar --name "${nextSentence}" --value "Sorry, it doesn\'t seem like you have timesheet report"
+		return
+	endIf
+	if --left "${timesheetReport.Rows}" --operator "Equal_To" --right 0
+		setVar --name "${nextSentence}" --value "Sorry, it doesn\'t seem like you have timesheet report"
+		return
+	endIf
+	#endregion
+	
+	if --left "${kbTags}" --operator "Contains" --right "+status" --comment "handling specific question about the timesheet STATUS"
+		if --left "${kbTags}" --operator "Contains" --right "+approved"
+			setVarIf --variablename "${nextSentence}" --value "Yes, your timesheet has been **approved**" --left "${timesheetStatus}" --operator "Equal_To" --right Approved
+			setVarIf --variablename "${nextSentence}" --value "No, your timesheet has not been approved yet, it\'s **${timesheetStatus}**" --left "${timesheetStatus}" --operator "Equal_To" --right Approved --negate
+		else
+			setVar --name "${nextSentence}" --value "Your timesheet status is **${timesheetStatus}**"
+		endIf
+	else --comment "handling the timesheet report - general question"
+		for --variable ${row} --from 1 --to ${timesheetReport.Rows} --step 1
+			mapTableRow --dataTable ${timesheetReport} --row ${row} --mappings "name=Project Name=${projectName},name=Total=${projectTotalHoursText}"
+			if --left "${projectName}" --operator "Equal_To" --right Total
+				continue
+			endIf
+			
+			if --left "${projectTotalHoursText}" --operator "Equal_To" --right "00:00" --negate
+				splitString --text "${projectTotalHoursText}" --delimiteroption "CustomDelimiter" --customdelimiter ":" --count 2 partsOfText=value
+				get --collection "${partsOfText}" --index 1 projectHours=value
+				get --collection "${partsOfText}" --index 2 projectMinutes=value
+				setVar --name "${projectTotalHoursText}" --value "${projectHours} hours"
+				setVar --name "${projectTotalHoursText}" --value "${projectTotalHoursText} and ${projectMinutes} minutes"
+				concatTexts --text "${nextSentence}\r\n" --value "- ${projectName}: **${projectTotalHoursText}**" nextSentence=value
+			else
+				concatTexts --text "${nextSentence}\r\n" --value "- ${projectName}: *no hours*" nextSentence=value
+			endIf
+		next
+	endIf
+endSub

@@ -7,6 +7,7 @@
         {
             AddCommand(new PullWalCommand());
             AddCommand(new PullParameterCommand());
+            AddCommand(new PullPackageCommand());
 
             this.SetHandler(HandleAsync,
                 Bind.FromServiceProvider<Project>(),

@@ -19,7 +19,7 @@ namespace Joba.IBM.RPA
         /// Gets the name without the wildcard.
         /// </summary>
         public string Name => nameWithoutStar;
-        internal bool HasWildcard => endsWithStar;
+        public bool HasWildcard => endsWithStar;
 
         internal bool Matches(string name) => HasWildcard ? name.StartsWith(nameWithoutStar) : name == nameWithoutStar;
 
