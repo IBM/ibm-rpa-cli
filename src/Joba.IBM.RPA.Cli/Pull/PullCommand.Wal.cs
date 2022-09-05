@@ -27,14 +27,14 @@
                 if (!string.IsNullOrEmpty(fileName))
                 {
                     pullService.One.ShouldContinueOperation += OnShouldPullingOneFile;
-                    pullService.One.Pulled += OnPulled;
+                    pullService.One.Pulled += ShowPulledResults;
                     await pullService.One.PullAsync(fileName, cancellation);
                 }
                 else
                 {
                     pullService.Many.ShouldContinueOperation += OnShouldPullingAllFiles;
                     pullService.Many.Pulling += OnPulling;
-                    pullService.Many.Pulled += OnPulled;
+                    pullService.Many.Pulled += ShowPulledResults;
                     await pullService.Many.PullAsync(cancellation);
                     StatusCommand.Handle(project, environment);
                 }
@@ -43,7 +43,7 @@
                 await environment.SaveAsync(cancellation);
             }
 
-            private void OnPulled(object? sender, PulledOneEventArgs<WalFile> e)
+            private void ShowPulledResults(object? sender, PulledOneEventArgs<WalFile> e)
             {
                 ExtendedConsole.Write($"From ");
                 environmentRenderer.RenderLine(e.Environment);
@@ -59,7 +59,7 @@
                 }
             }
 
-            private void OnPulled(object? sender, PulledAllEventArgs e)
+            private void ShowPulledResults(object? sender, PulledAllEventArgs e)
             {
                 if (e.Total == 0)
                     ExtendedConsole.WriteLine($"No files found for {e.Project.Name:blue} project.");
@@ -73,7 +73,7 @@
                     ExtendedConsole.WriteLineIndented($"({e.Current}/{e.Total}) pulling {e.ResourceName:blue}");
             }
 
-            private void OnShouldPullingAllFiles(object? sender, ContinuePullOperationEventArgs e)
+            private void OnShouldPullingAllFiles(object? sender, ContinueOperationEventArgs e)
             {
                 e.Continue = ExtendedConsole.YesOrNo(
                     $"This operation will pull the latest server file versions of {e.Project.Name:blue} project. " +
@@ -81,7 +81,7 @@
                     $"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
             }
 
-            private void OnShouldPullingOneFile(object? sender, ContinuePullOperationEventArgs<WalFile> e)
+            private void OnShouldPullingOneFile(object? sender, ContinueOperationEventArgs<WalFile> e)
             {
                 e.Continue = ExtendedConsole.YesOrNo($"This operation will fetch and overwrite the file {e.Resource.Info.Name:blue} with the latest server version. This is irreversible. " +
                     $"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);

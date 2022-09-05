@@ -3,7 +3,6 @@ using System.CommandLine.Help;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Reflection;
-using System.Xml.Linq;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -22,29 +21,21 @@ namespace Joba.IBM.RPA.Cli
              * - rpa pull <name> (pulls the wal file)
              * - rpa pull --parameter (pulls only parameters)
              * - rpa pull <name> --parameter (pulls the parameter)
-             
-             * - rpa push (pushes all the project files - wal & parameters)
-             * - rpa push <name> (pushes the wal file)
-             * - rpa push --parameter (pushes only parameters)
-             * - rpa push <name> --parameter (pushes the parameter)
              * 
-             * - rpa fetch (fetches the files and compare with the local copy, showing either they match or not)
-             * - rpa fetch <name> (fetches the wal file)
-             * - rpa fetch --parameter (fetches only parameters)
-             * - rpa fetch <name> --parameter (fetches the parameter)
+             * - rpa package source <alias> (add a package source - a tenant where only packages scripts lives - nothing else)
+             *   (to create packages, you can start a "package project" like you would, and "deploy" them to the "package" tenant)
+             *   (to consume packages in other projects, you would use "rpa package install <name>" and that would query the "source alias")
+             *   
+             * - rpa package install <name> (intalls packages from source)
+             * - rpa package restore (restores the packages from source - downloads the files locally into "packages" folder)
+             *   (developers should use 'executeScript' with local files - with 'rpa deploy' we will update the 'executeScript' commands)
+             *   
+             * - rpa deploy <env> (deploys all the scripts, including packages, to the environment)
+             *   (we do not need 'rpa push', because this should be handled by GIT)
              * 
-             * - rpa tag <tagname> 
-             *    (tags the current local files to a version. This would be used in the 'promote', to assert that
-             *     those files versions will be the exact ones that gets promoted. This tag would be saved within the project configuration
-             *     with all the files, their versions, and hashes, so when 'promote' is called, we can compare the server hash with the tag hash)
              * - rpa promote <tag> <env> 
              *    (promote the project tag to another environment, by downloading the tagged files versions on a 'staging area',
              *     and pushing them to the new <env> if the hash matches, then delete the staging.)             
-             * Roadmap
-             * - read wal files to get the 'parameters' they are using and create a local file with it
-             *   - allow specifying different values in other environments
-             * - handle chatbot settings
-             * - handle credentials
              */
 
             Directory.CreateDirectory(Constants.LocalFolder);

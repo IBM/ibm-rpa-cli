@@ -73,6 +73,12 @@ namespace Joba.IBM.RPA
             Save();
         }
 
+        internal void Overwrite(ScriptVersion version)
+        {
+            UpdateWith(version);
+            Save();
+        }
+
         private void UpdateWith(ScriptVersion version)
         {
             Content = new WalContent(version.Content);
@@ -81,6 +87,9 @@ namespace Joba.IBM.RPA
             Version = version.Version;
             ProductVersion = version.ProductVersion;
         }
+
+        internal PublishScript PrepareToPublish() => 
+            new(Id, VersionId, Name, string.Empty, Content.ToString(), ProductVersion?.ToString(), false, 300, 300, 300);
 
         internal protected virtual void Save()
         {

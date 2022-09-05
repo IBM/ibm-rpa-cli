@@ -13,12 +13,12 @@
             this.services = services;
         }
 
-        public event EventHandler<ContinuePullOperationEventArgs>? ShouldContinueOperation;
+        public event EventHandler<ContinueOperationEventArgs>? ShouldContinueOperation;
         public event EventHandler<PullingEventArgs>? Pulling;
 
         public async Task PullAsync(CancellationToken cancellation)
         {
-            var args = new ContinuePullOperationEventArgs { Project = project, Environment = environment };
+            var args = new ContinueOperationEventArgs { Project = project, Environment = environment };
             ShouldContinueOperation?.Invoke(this, args);
             if (!args.Continue.HasValue)
                 throw new OperationCanceledException("User did not provide an answer");
@@ -33,7 +33,7 @@
             }
         }
 
-        private void OnShouldContinueOperation(object? sender, ContinuePullOperationEventArgs e) => e.Continue = true;
+        private void OnShouldContinueOperation(object? sender, ContinueOperationEventArgs e) => e.Continue = true;
 
         private void OnPulling(object? sender, PullingEventArgs e)
         {
@@ -43,25 +43,32 @@
 
     public interface IPullOne<T>
     {
-        event EventHandler<ContinuePullOperationEventArgs<T>>? ShouldContinueOperation;
+        event EventHandler<ContinueOperationEventArgs<T>>? ShouldContinueOperation;
         event EventHandler<PulledOneEventArgs<T>>? Pulled;
         Task PullAsync(string name, CancellationToken cancellation);
     }
 
     public interface IPullMany
     {
-        event EventHandler<ContinuePullOperationEventArgs>? ShouldContinueOperation;
+        event EventHandler<ContinueOperationEventArgs>? ShouldContinueOperation;
         event EventHandler<PullingEventArgs>? Pulling;
         event EventHandler<PulledAllEventArgs>? Pulled;
         Task PullAsync(CancellationToken cancellation);
     }
 
-    public class ContinuePullOperationEventArgs<T> : ContinuePullOperationEventArgs
+    public interface IPushOne<T>
+    {
+        event EventHandler<ContinueOperationEventArgs<T>>? ShouldContinueOperation;
+        event EventHandler<PushedOneEventArgs<T>>? Pushed;
+        Task PushAsync(string name, CancellationToken cancellation);
+    }
+
+    public class ContinueOperationEventArgs<T> : ContinueOperationEventArgs
     {
         public required T Resource { get; init; }
     }
 
-    public class ContinuePullOperationEventArgs : EventArgs
+    public class ContinueOperationEventArgs : EventArgs
     {
         public required Project Project { get; init; }
         public required Environment Environment { get; init; }
@@ -114,5 +121,12 @@
         }
 
         public enum ChangeType { NoChange, Created, Updated }
+    }
+
+    public class PushedOneEventArgs<T> : EventArgs
+    {
+        public required Project Project { get; init; }
+        public required Environment Environment { get; init; }
+        public required T Resource { get; init; }
     }
 }

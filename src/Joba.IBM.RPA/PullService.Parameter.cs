@@ -26,7 +26,7 @@ namespace Joba.IBM.RPA
                 this.environment = environment;
             }
 
-            public event EventHandler<ContinuePullOperationEventArgs<Parameter>>? ShouldContinueOperation;
+            public event EventHandler<ContinueOperationEventArgs<Parameter>>? ShouldContinueOperation;
             public event EventHandler<PulledOneEventArgs<Parameter>>? Pulled;
 
             public async Task PullAsync(string name, CancellationToken cancellation)
@@ -42,7 +42,7 @@ namespace Joba.IBM.RPA
                 }
                 else
                 {
-                    var args = new ContinuePullOperationEventArgs<Parameter> { Resource = local, Project = project, Environment = environment };
+                    var args = new ContinueOperationEventArgs<Parameter> { Resource = local, Project = project, Environment = environment };
                     ShouldContinueOperation?.Invoke(this, args);
                     if (!args.Continue.HasValue)
                         throw new OperationCanceledException("User did not provide an answer");
@@ -85,13 +85,13 @@ namespace Joba.IBM.RPA
                 this.environment = environment;
             }
 
-            public event EventHandler<ContinuePullOperationEventArgs>? ShouldContinueOperation;
+            public event EventHandler<ContinueOperationEventArgs>? ShouldContinueOperation;
             public event EventHandler<PullingEventArgs>? Pulling;
             public event EventHandler<PulledAllEventArgs>? Pulled;
 
             public async Task PullAsync(CancellationToken cancellation)
             {
-                var args = new ContinuePullOperationEventArgs { Project = project, Environment = environment };
+                var args = new ContinueOperationEventArgs { Project = project, Environment = environment };
                 ShouldContinueOperation?.Invoke(this, args);
                 if (!args.Continue.HasValue)
                     throw new OperationCanceledException("User did not provide an answer");

@@ -19,7 +19,7 @@
         {
             var cancellation = context.GetCancellationToken();
             var client = RpaClientFactory.CreateClient(environment);
-            var pullService = new PullService(project, environment, new WalPullService(client, project, environment).Many, new ParameterPullService(client, project, environment).Many);
+            var pullService = new PullService(project, environment, new ParameterPullService(client, project, environment).Many, new WalPullService(client, project, environment).Many);
 
             pullService.ShouldContinueOperation += OnShouldPullingFiles;
             pullService.Pulling += OnPulling;
@@ -30,7 +30,7 @@
             StatusCommand.Handle(project, environment);
         }
 
-        private void OnShouldPullingFiles(object? sender, ContinuePullOperationEventArgs e)
+        private void OnShouldPullingFiles(object? sender, ContinueOperationEventArgs e)
         {
             var all = "all";
             e.Continue = ExtendedConsole.YesOrNo(

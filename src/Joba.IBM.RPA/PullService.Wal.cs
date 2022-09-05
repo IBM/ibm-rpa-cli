@@ -24,13 +24,13 @@
                 this.environment = environment;
             }
 
-            public event EventHandler<ContinuePullOperationEventArgs>? ShouldContinueOperation;
+            public event EventHandler<ContinueOperationEventArgs>? ShouldContinueOperation;
             public event EventHandler<PullingEventArgs>? Pulling;
             public event EventHandler<PulledAllEventArgs>? Pulled;
 
             public async Task PullAsync(CancellationToken cancellation)
             {
-                var args = new ContinuePullOperationEventArgs { Project = project, Environment = environment };
+                var args = new ContinueOperationEventArgs { Project = project, Environment = environment };
                 ShouldContinueOperation?.Invoke(this, args);
                 if (!args.Continue.HasValue)
                     throw new OperationCanceledException("User did not provide an answer");
@@ -98,7 +98,7 @@
                 this.environment = environment;
             }
 
-            public event EventHandler<ContinuePullOperationEventArgs<WalFile>>? ShouldContinueOperation;
+            public event EventHandler<ContinueOperationEventArgs<WalFile>>? ShouldContinueOperation;
             public event EventHandler<PulledOneEventArgs<WalFile>>? Pulled;
 
             public async Task PullAsync(string name, CancellationToken cancellation)
@@ -113,7 +113,7 @@
                 }
                 else if (!wal.IsFromServer)
                 {
-                    var args = new ContinuePullOperationEventArgs<WalFile> { Resource = wal, Project = project, Environment = environment };
+                    var args = new ContinueOperationEventArgs<WalFile> { Resource = wal, Project = project, Environment = environment };
                     ShouldContinueOperation?.Invoke(this, args);
                     if (!args.Continue.HasValue)
                         throw new OperationCanceledException("User did not provide an answer");
@@ -128,7 +128,7 @@
                 }
                 else
                 {
-                    var args = new ContinuePullOperationEventArgs<WalFile> { Resource = wal, Project = project, Environment = environment };
+                    var args = new ContinueOperationEventArgs<WalFile> { Resource = wal, Project = project, Environment = environment };
                     ShouldContinueOperation?.Invoke(this, args);
                     if (!args.Continue.HasValue)
                         throw new OperationCanceledException("User did not provide an answer");

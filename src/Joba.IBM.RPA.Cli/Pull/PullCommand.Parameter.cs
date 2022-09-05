@@ -71,7 +71,7 @@
                     ExtendedConsole.WriteLineIndented($"({e.Current}/{e.Total}) pulling {e.ResourceName:blue}");
             }
 
-            private void OnShouldPullingAllFiles(object? sender, ContinuePullOperationEventArgs e)
+            private void OnShouldPullingAllFiles(object? sender, ContinueOperationEventArgs e)
             {
                 e.Continue = ExtendedConsole.YesOrNo(
                     $"This operation will pull the server parameters configured as dependencies of {e.Project.Name:blue} project. " +
@@ -79,7 +79,7 @@
                     $"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
             }
 
-            private void OnShouldPullingOneFile(object? sender, ContinuePullOperationEventArgs<Parameter> e)
+            private void OnShouldPullingOneFile(object? sender, ContinueOperationEventArgs<Parameter> e)
             {
                 e.Continue = ExtendedConsole.YesOrNo($"This operation will fetch and overwrite the parameter {e.Resource.Name:blue} with the latest server value. This is irreversible. " +
                     $"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);

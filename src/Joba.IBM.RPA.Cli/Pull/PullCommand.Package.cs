@@ -73,7 +73,7 @@
 					ExtendedConsole.WriteLineIndented($"({e.Current}/{e.Total}) pulling {e.ResourceName:blue}");
 			}
 
-			private void OnShouldPullingAllFiles(object? sender, ContinuePullOperationEventArgs e)
+			private void OnShouldPullingAllFiles(object? sender, ContinueOperationEventArgs e)
 			{
 				e.Continue = ExtendedConsole.YesOrNo(
 					$"This operation will pull the latest server file versions of {e.Project.Name:blue} project. " +
@@ -81,7 +81,7 @@
 					$"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
 			}
 
-			private void OnShouldPullingOneFile(object? sender, ContinuePullOperationEventArgs<WalFile> e)
+			private void OnShouldPullingOneFile(object? sender, ContinueOperationEventArgs<WalFile> e)
 			{
 				e.Continue = ExtendedConsole.YesOrNo($"This operation will fetch and overwrite the file {e.Resource.Info.Name:blue} with the latest server version. This is irreversible. " +
 					$"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);

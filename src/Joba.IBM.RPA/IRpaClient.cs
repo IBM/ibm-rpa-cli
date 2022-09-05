@@ -28,6 +28,7 @@
         /// <returns></returns>
         Task<IEnumerable<Script>> SearchAsync(string scriptName, int limit, CancellationToken cancellation);
         Task<ScriptVersion?> GetAsync(string scriptName, WalVersion version, CancellationToken cancellation);
+        Task<ScriptVersion> PublishAsync(PublishScript script, CancellationToken cancellation);
     }
 
     public interface IScriptVersionResource
@@ -49,4 +50,6 @@
     }
 
     public record class Parameter([property: JsonPropertyName("Id")] string Name, string Value);
+    public record class PublishScript(Guid? Id, Guid? VersionId, string Name, string? Description, string Content, string ProductVersion,
+        bool SetAsProduction, int GreenExecutionTimeSeconds, int YellowExecutionTimeSeconds, int RedExecutionTimeSeconds);
 }

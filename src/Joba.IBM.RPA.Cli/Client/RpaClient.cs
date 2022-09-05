@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 
@@ -102,6 +103,19 @@ namespace Joba.IBM.RPA.Cli
 
                 return new ScriptVersion(data.ScriptVersionId, data.ScriptId, scriptName, data.Version,
                     Version.Parse(data.ProductVersion), data.Content);
+            }
+
+            public async Task<ScriptVersion> PublishAsync(PublishScript script, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/script/publish";
+                var response = await client.PutAsJsonAsync(url, script, SerializerOptions, cancellation);
+                await response.ThrowWhenUnsuccessful(cancellation);
+
+                var builder = await response.Content.ReadFromJsonAsync<ScriptVersionBuilder>(SerializerOptions, cancellation);
+                if (builder == null)
+                    throw new InvalidOperationException($"Could not deserialize the response from: {url}");
+
+                return builder.Build(script.Content);
             }
         }
 
