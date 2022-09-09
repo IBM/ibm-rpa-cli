@@ -22,7 +22,7 @@
             private async Task HandleAsync(string? name, int? version, Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var client = RpaClientFactory.CreateClient(environment);
+                var client = RpaClientFactory.CreateFromEnvironment(environment);
                 var manager = new PackageManager(client, project, environment);
 
                 if (version.HasValue && name == null)

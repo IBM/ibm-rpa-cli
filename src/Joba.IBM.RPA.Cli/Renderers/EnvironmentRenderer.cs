@@ -53,7 +53,7 @@
         private void Render(Environment environment, bool newLine, int padding)
         {
             var spaces = new string(' ', padding);
-            ExtendedConsole.Write($"{spaces}{environment.Alias:blue} ({environment.Remote.TenantName}), [{environment.Remote.Name:blue}]({environment.Remote.Address})");
+            ExtendedConsole.Write($"{spaces}{environment.Alias:blue} ({environment.Remote.TenantName}), [{environment.Remote.Region:blue}]({environment.Remote.Address})");
             if (newLine)
                 Console.WriteLine();
         }

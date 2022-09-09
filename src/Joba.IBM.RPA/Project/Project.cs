@@ -18,17 +18,19 @@
         public async Task SaveAsync(CancellationToken cancellation) =>
             await projectFile.SaveAsync(projectSettings, cancellation);
 
-        public Environment ConfigureEnvironmentAndSwitch(string alias, Region region, Session session)
+        public async Task<Environment> ConfigureEnvironmentAndSwitchAsync(IAccountResource resource, string alias, 
+            Region region, AccountCredentials credentials, CancellationToken cancellation)
         {
+            var session = await credentials.AuthenticateAsync(resource, cancellation);
             var environment = EnvironmentFactory.Create(projectFile, alias, region, session);
-            projectSettings.MapAlias(alias, Path.GetRelativePath(projectFile.WorkingDirectory.FullName, environment.Directory.FullName));
+            projectSettings.MapEnvironment(alias, environment.Remote);
             SwitchTo(environment.Alias);
 
             return environment;
         }
 
         public async Task<Environment?> GetCurrentEnvironmentAsync(CancellationToken cancellation) =>
-            await EnvironmentFactory.LoadAsync(projectFile.RpaDirectory, projectFile, projectSettings, cancellation);
+            await EnvironmentFactory.LoadAsync(projectFile, projectSettings, cancellation);
 
         public bool SwitchTo(string alias)
         {

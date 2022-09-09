@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 
 namespace Joba.IBM.RPA.Cli
 {
-    public static class HttpRpaFactory
+    internal static class HttpRpaFactory
     {
         public static HttpClient Create(Uri address)
         {
@@ -19,12 +19,12 @@ namespace Joba.IBM.RPA.Cli
             return client;
         }
 
-        public static HttpClient Create(Environment environment, Func<Environment, CancellationToken, Task<Session>> sessionFactory)
+        public static HttpClient Create(Environment environment, IRenewExpiredSession sessionRenewal)
         {
             var policy = HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
             var pollyHandler = new PolicyHttpMessageHandler(policy) { InnerHandler = new HttpClientHandler() };
             var userAgentHandler = new UserAgentHandler(pollyHandler);
-            var tokenHandler = new RefreshTokenHandler(environment, sessionFactory, userAgentHandler);
+            var tokenHandler = new RefreshTokenHandler(sessionRenewal, userAgentHandler);
             var client = new HttpClient(tokenHandler) { BaseAddress = environment.Remote.Address };
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             return client;
@@ -32,14 +32,12 @@ namespace Joba.IBM.RPA.Cli
 
         class RefreshTokenHandler : DelegatingHandler
         {
-            private readonly Func<Environment, CancellationToken, Task<Session>> sessionFactory;
-            private readonly Environment environment;
+            private readonly IRenewExpiredSession sessionRenewal;
 
-            public RefreshTokenHandler(Environment environment, Func<Environment, CancellationToken, Task<Session>> sessionFactory, DelegatingHandler innerHandler)
+            public RefreshTokenHandler(IRenewExpiredSession sessionRenewal, DelegatingHandler innerHandler)
                 : base(innerHandler)
             {
-                this.sessionFactory = sessionFactory;
-                this.environment = environment;
+                this.sessionRenewal = sessionRenewal;
             }
 
             protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellation)
@@ -48,11 +46,15 @@ namespace Joba.IBM.RPA.Cli
                 if (response.StatusCode != HttpStatusCode.Unauthorized)
                     return response;
 
-                //TODO: sessionFactory should be Singleton and have the semaphore there
-                var session = await sessionFactory.Invoke(environment, cancellation);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", session.AccessToken);
+                var session = await sessionRenewal.RenewAsync(cancellation);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", session.Token);
                 return await base.SendAsync(request, cancellation);
             }
         }
+    }
+
+    internal interface IRenewExpiredSession
+    {
+        Task<Session> RenewAsync(CancellationToken cancellation);
     }
 }

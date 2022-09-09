@@ -151,7 +151,7 @@ namespace Joba.IBM.RPA.Cli
 
             public AccountResource(HttpClient client) => this.client = client;
 
-            public async Task<Session> AuthenticateAsync(int tenantCode, string userName, string password, CancellationToken cancellation)
+            public async Task<CreatedSession> AuthenticateAsync(int tenantCode, string userName, string password, CancellationToken cancellation)
             {
                 var tenants = await FetchTenantsAsync(userName, cancellation);
                 var tenant = tenants.FirstOrDefault(t => t.Code == tenantCode);
@@ -161,7 +161,7 @@ namespace Joba.IBM.RPA.Cli
                 return await GetTokenAsync(tenant.Id, userName, password, cancellation);
             }
 
-            private async Task<Session> GetTokenAsync(Guid tenantId, string userName, string password, CancellationToken cancellation)
+            private async Task<CreatedSession> GetTokenAsync(Guid tenantId, string userName, string password, CancellationToken cancellation)
             {
                 var parameters = new Dictionary<string, string>
                 {
@@ -176,7 +176,7 @@ namespace Joba.IBM.RPA.Cli
                 request.Headers.Add("tenantid", tenantId.ToString());
                 var response = await client.SendAsync(request, cancellation);
                 await response.ThrowWhenUnsuccessful(cancellation);
-                return await response.Content.ReadFromJsonAsync<Session?>(SerializerOptions, cancellation)
+                return await response.Content.ReadFromJsonAsync<CreatedSession?>(SerializerOptions, cancellation)
                     ?? throw new Exception("Could not read token from http response");
             }
 

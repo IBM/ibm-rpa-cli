@@ -35,7 +35,7 @@
             private async Task HandleAsync(string? fileName, Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var client = RpaClientFactory.CreateClient(environment);
+                var client = RpaClientFactory.CreateFromEnvironment(environment);
                 var pushService = new WalPushService(client, project, environment);
 
                 if (!string.IsNullOrEmpty(fileName))

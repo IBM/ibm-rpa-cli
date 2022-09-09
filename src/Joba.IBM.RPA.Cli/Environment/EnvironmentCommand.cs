@@ -36,17 +36,15 @@
                 using var regionSelector = new RegionSelector();
                 var region = await regionSelector.SelectAsync(options.RegionName, cancellation);
 
-                using var client = RpaClientFactory.CreateClient(region);
+                using var client = RpaClientFactory.CreateFromRegion(region);
                 var accountSelector = new AccountSelector(client.Account);
                 var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, cancellation);
-                var session = await credentials.AuthenticateAsync(client.Account, cancellation);
-
-                var environment = project.ConfigureEnvironmentAndSwitch(options.Alias, region, session);
+                var environment = await project.ConfigureEnvironmentAndSwitchAsync(client.Account, options.Alias, region, credentials, cancellation);
                 await project.SaveAsync(cancellation);
                 await environment.SaveAsync(cancellation);
 
                 var envRenderer = new ShallowEnvironmentRenderer();
-                ExtendedConsole.WriteLine($"Hi {session.PersonName:blue}, the following environment has been configured:");
+                ExtendedConsole.WriteLine($"Hi {environment.Session.Current.PersonName:blue}, the following environment has been configured:");
                 envRenderer.RenderLine(environment);
                 ExtendedConsole.WriteLine($"Use {RpaCommand.CommandName:blue} {Name:blue} to configure more environments");
             }

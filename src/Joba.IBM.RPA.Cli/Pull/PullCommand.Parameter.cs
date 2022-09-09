@@ -21,7 +21,7 @@
             private async Task HandleAsync(string? parameterName, Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var client = RpaClientFactory.CreateClient(environment);
+                var client = RpaClientFactory.CreateFromEnvironment(environment);
                 var pullService = new ParameterPullService(client, project, environment);
 
                 if (!string.IsNullOrEmpty(parameterName))

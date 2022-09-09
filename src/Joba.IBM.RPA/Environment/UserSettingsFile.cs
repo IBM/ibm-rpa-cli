@@ -53,7 +53,6 @@ namespace Joba.IBM.RPA
 
     internal class UserSettings
     {
-        internal string? Token { get; set; }
-        internal DateTime? TokenExpiration { get; set; }
+        internal Session? Session { get; set; }
     }
 }

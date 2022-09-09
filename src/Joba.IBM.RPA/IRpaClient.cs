@@ -12,7 +12,7 @@
     public interface IAccountResource
     {
         Task<IEnumerable<Tenant>> FetchTenantsAsync(string userName, CancellationToken cancellation);
-        Task<Session> AuthenticateAsync(int tenantCode, string userName, string password, CancellationToken cancellation);
+        Task<CreatedSession> AuthenticateAsync(int tenantCode, string userName, string password, CancellationToken cancellation);
     }
 
     public interface IScriptResource

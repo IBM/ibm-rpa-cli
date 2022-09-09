@@ -62,13 +62,10 @@ namespace Joba.IBM.RPA
 
     internal class ProjectSettings
     {
-        public ProjectSettings()
-        {
+        public ProjectSettings() { }
 
-        }
         internal string? CurrentEnvironment { get; set; } = string.Empty;
-        [JsonPropertyName("environments")]
-        internal Dictionary<string, string> AliasMapping { get; init; } = new Dictionary<string, string>();
+        internal Dictionary<string, RemoteSettings> Environments { get; init; } = new Dictionary<string, RemoteSettings>();
         internal INames Files { get; init; } = new NamePatternList();
         internal ProjectDependencies Dependencies { get; init; } = new ProjectDependencies();
 
@@ -78,14 +75,35 @@ namespace Joba.IBM.RPA
             Dependencies.Configure(pattern);
         }
 
-        internal void MapAlias(string alias, string directoryPath) => AliasMapping.Add(alias, directoryPath);
-        internal bool EnvironmentExists(string alias) => AliasMapping.ContainsKey(alias);
-        internal DirectoryInfo GetDirectory(string alias)
+        internal void MapEnvironment(string alias, RemoteSettings remote) => Environments.Add(alias, remote);
+        internal bool EnvironmentExists(string alias) => Environments.ContainsKey(alias);
+        internal DirectoryInfo GetDirectory(string alias, DirectoryInfo workingDir)
         {
             if (!EnvironmentExists(alias))
                 throw new Exception($"The environment '{alias}' does not exist");
 
-            return new DirectoryInfo(AliasMapping[alias]);
+            return new DirectoryInfo(Path.GetRelativePath(workingDir.FullName, Environments[alias].TenantName));
+        }
+    }
+
+    public class RemoteSettings
+    {
+        [JsonPropertyName("code")]
+        public required int TenantCode { get; init; }
+        [JsonPropertyName("name")]
+        public required string TenantName { get; init; }
+        public required string Region { get; init; }
+        public required Uri Address { get; init; }
+
+        internal static RemoteSettings Create(Region region, CreatedSession session)
+        {
+            return new RemoteSettings
+            {
+                Region = region.Name,
+                Address = region.ApiAddress,
+                TenantCode = session.TenantCode,
+                TenantName = session.TenantName
+            };
         }
     }
 }

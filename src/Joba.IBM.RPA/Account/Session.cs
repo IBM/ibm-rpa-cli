@@ -1,6 +1,16 @@
 ﻿namespace Joba.IBM.RPA
 {
-    public struct Session
+    public record struct Session(string Token, DateTime ExpirationDate, int TenantCode, string TenantName, string UserName, string PersonName)
+    {
+        [JsonIgnore]
+        public bool IsExpired => DateTime.UtcNow >= ExpirationDate;
+
+        internal static Session From(CreatedSession session) =>
+            new(session.AccessToken, DateTime.UtcNow.AddSeconds(session.ExpiresIn),
+                session.TenantCode, session.TenantName, session.UserName, session.PersonName);
+    }
+
+    public struct CreatedSession
     {
         [JsonPropertyName("access_token")]
         public string AccessToken { get; init; }

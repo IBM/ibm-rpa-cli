@@ -16,7 +16,7 @@
             private async Task HandleAsync(Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var client = RpaClientFactory.CreateClient(environment);
+                var client = RpaClientFactory.CreateFromEnvironment(environment);
                 var manager = new PackageManager(client, project, environment);
                 var packages = await manager.RestoreAsync(cancellation);
                 if (packages.Any())
