@@ -60,7 +60,7 @@
                 var envRenderer = new ShallowEnvironmentRenderer();
                 ExtendedConsole.WriteLine($"Hi {environment.Session.Current.PersonName:blue}, the following environment has been configured:");
                 envRenderer.RenderLine(environment);
-                ExtendedConsole.WriteLine($"Use {RpaCommand.CommandName:blue} {Name:blue} to configure more environments");
+                ExtendedConsole.WriteLine($"Use {RpaCommand.CommandName:blue} {EnvironmentCommand.CommandName:blue} {Name:blue} to configure more environments");
             }
         }
     }

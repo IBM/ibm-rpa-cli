@@ -9,6 +9,14 @@
         IParameterResource Parameter { get; }
     }
 
+    public interface IRpaClientFactory
+    {
+        IRpaClient CreateFromAddress(Uri address);
+        IRpaClient CreateFromRegion(Region region);
+        IRpaClient CreateFromEnvironment(Environment environment);
+        IRpaClient CreateFromPackageSource(PackageSource source);
+    }
+
     public interface IAccountResource
     {
         Task<IEnumerable<Tenant>> FetchTenantsAsync(string userName, CancellationToken cancellation);

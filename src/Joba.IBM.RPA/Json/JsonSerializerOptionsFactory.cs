@@ -27,5 +27,19 @@
             options.TypeInfoResolver = new EnvironmentDependenciesJsonTypeInfoResolver(environmentDirectory);
             return options;
         }
+
+        internal static JsonSerializerOptions CreateForPackageSources(ProjectSettings projectSettings, UserSettingsFile userFile, UserSettings userSettings)
+        {
+            var options = CreateDefault();
+            options.Converters.Add(new PackageSourcesJsonConverterFactory(projectSettings, userFile, userSettings));
+            return options;
+        }
+
+        internal static JsonSerializerOptions CreateForPackageSources()
+        {
+            var options = CreateDefault();
+            options.Converters.Add(new PackageSourcesJsonConverterFactory());
+            return options;
+        }
     }
 }

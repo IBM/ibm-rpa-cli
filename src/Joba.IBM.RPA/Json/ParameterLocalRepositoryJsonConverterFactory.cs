@@ -4,7 +4,7 @@
     {
         public override bool CanConvert(Type typeToConvert) => typeof(ILocalRepository<Parameter>).IsAssignableFrom(typeToConvert);
 
-        public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options) => 
+        public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
             new ParameterLocalRepositoryJsonConverter();
 
         class ParameterLocalRepositoryJsonConverter : JsonConverter<ILocalRepository<Parameter>>

@@ -8,9 +8,9 @@ namespace Joba.IBM.RPA
         internal const string FileName = "settings.json";
         private readonly FileInfo file;
 
-        internal UserSettingsFile(string projectName, string alias)
+        internal UserSettingsFile(string projectName)
             : this(new FileInfo(Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-                "rpa", projectName, alias, FileName)))
+                "rpa", projectName, FileName)))
         { }
 
         private UserSettingsFile(FileInfo file)
@@ -21,7 +21,6 @@ namespace Joba.IBM.RPA
         internal string FullPath => file.FullName;
         internal bool Exists => file.Exists;
         internal string ProjectName => file.Directory?.Parent?.Name ?? throw new Exception($"The grandparent directory of '{file.FullName}' should exist");
-        internal string Alias => file.Directory?.Name ?? throw new Exception($"The parent directory of '{file.FullName}' should exist");
 
         internal async Task SaveAsync(UserSettings userSettings, CancellationToken cancellation)
         {
@@ -31,9 +30,9 @@ namespace Joba.IBM.RPA
             await JsonSerializer.SerializeAsync(stream, userSettings, JsonSerializerOptionsFactory.SerializerOptions, cancellation);
         }
 
-        internal static async Task<(UserSettingsFile, UserSettings?)> LoadAsync(string projectName, string alias, CancellationToken cancellation)
+        internal static async Task<(UserSettingsFile, UserSettings)> LoadAsync(string projectName, CancellationToken cancellation)
         {
-            var file = new UserSettingsFile(projectName, alias);
+            var file = new UserSettingsFile(projectName);
             if (file.Exists)
             {
                 using var stream = File.OpenRead(file.FullPath);
@@ -43,16 +42,32 @@ namespace Joba.IBM.RPA
                 return (file, settings);
             }
 
-            return (file, null);
+            return (file, new UserSettings());
         }
 
         public override string ToString() => file.FullName;
 
-        private string GetDebuggerDisplay() => $"[{ProjectName}]({Alias}) {ToString()}";
+        private string GetDebuggerDisplay() => $"[{ProjectName}] {ToString()}";
     }
 
     internal class UserSettings
     {
-        internal Session? Session { get; set; }
+        internal IDictionary<string, Session> Sessions { get; init; } = new Dictionary<string, Session>();
+
+        internal Session? TryGetSession(string alias)
+        {
+            if (Sessions.TryGetValue(alias, out var value))
+                return value;
+
+            return null;
+        }
+
+        internal void AddOrUpdateSession(string alias, Session session)
+        {
+            if (Sessions.ContainsKey(alias))
+                Sessions[alias] = session;
+            else
+                Sessions.Add(alias, session);
+        }
     }
 }

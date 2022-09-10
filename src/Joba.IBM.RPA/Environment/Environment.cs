@@ -16,7 +16,7 @@
                   dependenciesFile, null)
         { }
 
-        internal Environment(string alias, DirectoryInfo envDir, RemoteSettings remote, UserSettingsFile userFile, UserSettings? userSettings,
+        internal Environment(string alias, DirectoryInfo envDir, RemoteSettings remote, UserSettingsFile userFile, UserSettings userSettings,
             EnvironmentDependenciesFile dependenciesFile, EnvironmentDependencies? dependencies)
         {
             Alias = alias;
@@ -27,7 +27,7 @@
             this.dependenciesFile = dependenciesFile;
             this.dependencies = dependencies;
             repository = new LocalWalRepository(envDir);
-            session = new SessionManager(this.userFile, this.userSettings, remote);
+            session = new SessionManager(alias, this.userFile, this.userSettings, remote);
         }
 
         public string Alias { get; }
@@ -46,48 +46,5 @@
             if (dependencies != null)
                 await dependenciesFile.SaveAsync(dependencies, cancellation);
         }
-    }
-
-    internal class SessionManager : ISessionManager
-    {
-        private readonly UserSettingsFile userFile;
-        private readonly UserSettings userSettings;
-        private readonly RemoteSettings remote;
-
-        public SessionManager(UserSettingsFile userFile, UserSettings userSettings, RemoteSettings remote)
-        {
-            this.userFile = userFile;
-            this.userSettings = userSettings;
-            this.remote = remote;
-        }
-
-        Session ISessionManager.Current => userSettings.Session ?? Session.NoSession;
-
-        async Task<Session> ISessionManager.RenewAndSaveAsync(IAccountResource resource, string password, CancellationToken cancellation)
-        {
-            var currentSession = userSettings.Session ?? throw new InvalidOperationException("A previous session needs to be available in order to renew it.");
-            if (!currentSession.IsExpired)
-                return currentSession;
-
-            return await CreateAndSaveAsync(resource, currentSession.UserName, password, cancellation);
-        }
-
-        public async Task<Session> CreateAndSaveAsync(IAccountResource resource, string userName, string password, CancellationToken cancellation)
-        {
-            var credentials = new AccountCredentials(remote.TenantCode, userName, password);
-            var internalSession = await credentials.AuthenticateAsync(resource, cancellation);
-            var session = Session.From(internalSession);
-            userSettings.Session = session;
-
-            await userFile.SaveAsync(userSettings, cancellation);
-            return session;
-        }
-    }
-
-    public interface ISessionManager
-    {
-        Session Current { get; }
-        Task<Session> RenewAndSaveAsync(IAccountResource resource, string password, CancellationToken cancellation);
-        Task<Session> CreateAndSaveAsync(IAccountResource resource, string userName, string password, CancellationToken cancellation);
     }
 }

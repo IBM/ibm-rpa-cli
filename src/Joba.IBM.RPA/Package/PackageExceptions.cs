@@ -1,24 +1,14 @@
 ﻿namespace Joba.IBM.RPA
 {
-    public class PackageAlreadyInstalledException : Exception
+    public class PackageException : Exception
     {
-        public PackageAlreadyInstalledException(string name, WalVersion version)
-            : base($"The package '{name}' is already installed with the following version: {version}.")
-        {
-            PackageName = name;
-        }
-
+        public PackageException(string packageName, string message) : base(message) => PackageName = packageName;
         public string PackageName { get; }
     }
 
-    public class PackageNotFoundException : Exception
+    public class PackageAlreadyInstalledException : PackageException
     {
-        public PackageNotFoundException(string name)
-            : base($"Could not find '{name}' package to update.")
-        {
-            PackageName = name;
-        }
-
-        public string PackageName { get; }
+        public PackageAlreadyInstalledException(string packageName, WalVersion version)
+            : base(packageName, $"The package '{packageName}' is already installed with the following version: {version}.") { }
     }
 }

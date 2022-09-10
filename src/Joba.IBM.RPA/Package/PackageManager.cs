@@ -4,29 +4,29 @@
     {
         private readonly Project project;
         private readonly Environment environment;
-        private readonly IRpaClient client;
+        private readonly IPackageSourceResource source;
 
-        public PackageManager(IRpaClient client, Project project, Environment environment)
+        internal PackageManager(Project project, Environment environment, IPackageSourceResource source)
         {
-            this.client = client;
             this.project = project;
             this.environment = environment;
+            this.source = source;
         }
 
         public async Task<IEnumerable<PackageMetadata>> InstallAsync(NamePattern pattern, CancellationToken cancellation)
         {
-            var packageSearch = new PackageSearch(client);
-            var packages = await packageSearch.SearchAsync(pattern, cancellation);
+            var packages = await source.SearchAsync(pattern, cancellation);
             if (!packages.Any())
-                throw new Exception($"No packages were found with the query '{pattern}'.");
+                throw new PackageNotFoundException(pattern.ToString(), $"No packages were found with the query '{pattern}'.");
 
-            project.Dependencies.Packages.AddOrUpdate(packages.OrderBy(p => p.Name).ToArray());
+            var metadata = packages.Select(p => p.Metadata).ToArray();
+            project.Dependencies.Packages.AddOrUpdate(metadata.OrderBy(p => p.Name).ToArray());
             foreach (var package in packages)
-                await environment.Dependencies.Packages.DownloadAsync(client.Script, package.Name, package.Version, cancellation);
+                environment.Dependencies.Packages.Create(package.Script);
 
             await environment.SaveAsync(cancellation);
             await project.SaveAsync(cancellation);
-            return packages;
+            return metadata;
         }
 
         public async Task<PackageMetadata> InstallAsync(string name, WalVersion version, CancellationToken cancellation)
@@ -35,56 +35,70 @@
             if (current != null)
                 throw new PackageAlreadyInstalledException(name, version);
 
-            var script = await client.Script.GetAsync(name, version, cancellation);
-            if (script == null)
-                throw new Exception($"Could not find package '{name}' with version '{version}'.");
+            var package = await source.GetAsync(name, version, cancellation);
+            if (package == null)
+                throw new PackageNotFoundException(name, version);
 
-            var package = new PackageMetadata(script.Name, script.Version);
-            project.Dependencies.Packages.AddOrUpdate(package);
-            environment.Dependencies.Packages.Create(script);
+            project.Dependencies.Packages.AddOrUpdate(package.Metadata);
+            environment.Dependencies.Packages.Create(package.Script);
 
             await environment.SaveAsync(cancellation);
             await project.SaveAsync(cancellation);
-            return package;
+            return package.Metadata;
         }
 
         public async Task<UpdatePackageOperation> UpdateAsync(string name, WalVersion? version, CancellationToken cancellation)
         {
-            var package = project.Dependencies.Packages.Get(name);
-            if (package == null)
+            var metadata = project.Dependencies.Packages.Get(name);
+            if (metadata == null)
                 throw new PackageNotFoundException(name);
-            if (package.Version == version)
-                throw new Exception($"The package '{name}' is already on version '{version}'");
+            if (metadata.Version == version)
+                throw new PackageException(name, $"The package '{name}' is already on version '{version}'");
 
-            var downloadTask = version != null ?
-                environment.Dependencies.Packages.DownloadAsync(client.Script, name, version.Value, cancellation) :
-                environment.Dependencies.Packages.DownloadLatestAsync(client.Script, name, cancellation);
+            var getTask = version != null ?
+                source.GetAsync(name, version.Value, cancellation) :
+                source.GetLatestAsync(name, cancellation);
 
-            var wal = await downloadTask;
-            var updatedPackage = wal.ToPackage();
-            if (updatedPackage.Version != package.Version)
+            var package = await getTask;
+            if (package == null)
+                if (version != null)
+                    throw new PackageNotFoundException(name, version.Value);
+                else
+                    throw new PackageNotFoundException(name);
+
+            if (metadata.Version != package.Metadata.Version)
             {
-                var updater = new PackageReferenceUpdater(project, environment);
-                updater.UpdateTo(updatedPackage);
+                project.Dependencies.Packages.Update(package.Metadata);
+                environment.Dependencies.Packages.Create(package.Script);
 
-                await project.SaveAsync(cancellation);
+                var updater = new PackageReferenceUpdater(environment);
+                var affected = updater.UpdateTo(package.Metadata).ToArray();
+
                 await environment.SaveAsync(cancellation);
+                await project.SaveAsync(cancellation);
+
+                return new UpdatePackageOperation(metadata, package.Metadata, affected);
             }
 
-            return new UpdatePackageOperation(package, updatedPackage, Enumerable.Empty<WalFile>().ToArray());
+            return new UpdatePackageOperation(metadata, package.Metadata, Enumerable.Empty<WalFile>().ToArray());
         }
 
         public async Task<UpdateAllPackagesOperation> UpdateAllAsync(CancellationToken cancellation)
         {
-            var updater = new PackageReferenceUpdater(project, environment);
+            var updater = new PackageReferenceUpdater(environment);
             var operation = new UpdateAllPackagesOperation();
             var packages = project.Dependencies.Packages.ToList();
-            foreach (var package in packages)
+            foreach (var metadata in packages)
             {
-                var wal = await environment.Dependencies.Packages.DownloadLatestAsync(client.Script, package.Name, cancellation);
-                var updatedPackage = wal.ToPackage();
-                updater.UpdateTo(updatedPackage);
-                operation.Add(package, updatedPackage, Enumerable.Empty<WalFile>().ToArray());
+                var package = await source.GetLatestAsync(metadata.Name, cancellation);
+                if (package == null)
+                    throw new PackageNotFoundException(metadata.Name);
+
+                project.Dependencies.Packages.Update(package.Metadata);
+                environment.Dependencies.Packages.Create(package.Script);
+
+                var affected = updater.UpdateTo(package.Metadata).ToArray();
+                operation.Add(metadata, package.Metadata, affected);
             }
 
             await project.SaveAsync(cancellation);
@@ -96,8 +110,14 @@
         public async Task<IEnumerable<PackageMetadata>> RestoreAsync(CancellationToken cancellation)
         {
             var packages = project.Dependencies.Packages.ToList();
-            foreach (var package in packages)
-                _ = await environment.Dependencies.Packages.DownloadAsync(client.Script, package.Name, package.Version, cancellation);
+            foreach (var metadata in packages)
+            {
+                var package = await source.GetAsync(metadata.Name, metadata.Version, cancellation);
+                if (package == null)
+                    throw new PackageNotFoundException(metadata.Name, metadata.Version);
+
+                environment.Dependencies.Packages.Create(package.Script);
+            }
 
             await environment.SaveAsync(cancellation);
             return packages;
@@ -114,8 +134,8 @@
                     project.Dependencies.Packages.Remove(package.Name);
                 }
 
-                await project.SaveAsync(cancellation);
                 await environment.SaveAsync(cancellation);
+                await project.SaveAsync(cancellation);
             }
 
             return packages;
@@ -130,8 +150,8 @@
                     environment.Dependencies.Packages.Delete(package.Name);
 
                 project.Dependencies.Packages.Clear();
-                await project.SaveAsync(cancellation);
                 await environment.SaveAsync(cancellation);
+                await project.SaveAsync(cancellation);
             }
 
             return packages;
@@ -159,28 +179,31 @@
 
     class PackageReferenceUpdater
     {
-        private readonly Project project;
         private readonly Environment environment;
 
-        public PackageReferenceUpdater(Project project, Environment environment)
+        public PackageReferenceUpdater(Environment environment)
         {
-            this.project = project;
             this.environment = environment;
         }
 
-        public void UpdateTo(PackageMetadata package)
+        public IEnumerable<WalFile> UpdateTo(PackageMetadata package)
         {
-            project.Dependencies.Packages.Update(package);
+            var affected = new List<WalFile>();
             foreach (var wal in environment.Files)
             {
                 var parser = new WalParser(wal.Content);
                 var lines = parser.Parse();
                 var analyzer = new WalAnalyzer(lines);
                 var references = analyzer.FindPackages(package.Name);
-
-                references.Replace(package.Version);
-                wal.Overwrite(lines.Build());
+                if (references.Any())
+                {
+                    references.Replace(package.Version);
+                    wal.Overwrite(lines.Build());
+                    affected.Add(wal);
+                }
             }
+
+            return affected;
         }
     }
 }

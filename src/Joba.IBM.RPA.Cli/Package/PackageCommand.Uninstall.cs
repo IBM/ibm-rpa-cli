@@ -20,8 +20,8 @@
             private async Task HandleAsync(string? name, Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var client = RpaClientFactory.CreateFromEnvironment(environment);
-                var manager = new PackageManager(client, project, environment);
+                var factory = new PackageManagerFactory(new RpaClientFactory());
+                var manager = factory.Create(project, environment);
 
                 IEnumerable<PackageMetadata> packages;
                 if (name == null)

@@ -10,23 +10,25 @@
             {
                 var name = new Argument<string?>("name", "The package name.'") { Arity = ArgumentArity.ZeroOrOne };
                 var version = new Option<int?>("--version", "The version of the package to update.");
+                var source = new Option<string?>("--source", "The package source name where the package should be fetched from.");
 
                 AddArgument(name);
                 AddOption(version);
-                this.SetHandler(HandleAsync, name, version,
+                AddOption(source);
+                this.SetHandler(HandleAsync, name, version, source,
                     Bind.FromServiceProvider<Project>(),
                     Bind.FromServiceProvider<Environment>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string? name, int? version, Project project, Environment environment, InvocationContext context)
+            private async Task HandleAsync(string? name, int? version, string? sourceAlias, Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var client = RpaClientFactory.CreateFromEnvironment(environment);
-                var manager = new PackageManager(client, project, environment);
+                var factory = new PackageManagerFactory(new RpaClientFactory());
+                var manager = factory.Create(project, environment, sourceAlias);
 
                 if (version.HasValue && name == null)
-                    throw new Exception($"You cannot specify the version without specifying the package name.");
+                    throw new InvalidOperationException($"You cannot specify the version without specifying the package name.");
 
                 if (name == null)
                 {

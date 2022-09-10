@@ -5,7 +5,7 @@ namespace Joba.IBM.RPA.Cli
 {
     internal class RpaCommand : RootCommand
     {
-        public static readonly string CommandName = "rpa";
+        public const string CommandName = "rpa";
         public RpaCommand() : base("Provides features to manage RPA through the command line")
         {
             AddCommand(new ProjectCommand());

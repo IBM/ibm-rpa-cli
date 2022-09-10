@@ -19,13 +19,13 @@ namespace Joba.IBM.RPA.Cli
             return client;
         }
 
-        public static HttpClient Create(Environment environment, IRenewExpiredSession sessionRenewal)
+        public static HttpClient Create(RemoteSettings remote, IRenewExpiredSession sessionRenewal)
         {
             var policy = HttpPolicyExtensions.HandleTransientHttpError().CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
             var pollyHandler = new PolicyHttpMessageHandler(policy) { InnerHandler = new HttpClientHandler() };
             var userAgentHandler = new UserAgentHandler(pollyHandler);
             var tokenHandler = new RefreshTokenHandler(sessionRenewal, userAgentHandler);
-            var client = new HttpClient(tokenHandler) { BaseAddress = environment.Remote.Address };
+            var client = new HttpClient(tokenHandler) { BaseAddress = remote.Address };
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             return client;
         }

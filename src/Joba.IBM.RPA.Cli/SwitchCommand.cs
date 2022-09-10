@@ -21,7 +21,7 @@
             if (switched)
             {
                 var client = RpaClientFactory.CreateFromEnvironment(environment);
-                var sessionEnsurer = new EnvironmentSessionEnsurer(client, environment);
+                var sessionEnsurer = new SessionEnsurer(client.Account, environment.Session);
                 _ = await sessionEnsurer.EnsureAsync(cancellation);
                 await project.SaveAsync(cancellation);
                 ExtendedConsole.WriteLine($"Switched to {environmentName:blue}");

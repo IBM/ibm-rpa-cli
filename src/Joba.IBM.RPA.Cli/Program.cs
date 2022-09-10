@@ -1,8 +1,4 @@
-﻿using Polly;
-using System;
-using System.CommandLine.Builder;
-using System.CommandLine.Help;
-using System.CommandLine.IO;
+﻿using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Reflection;
 
@@ -34,10 +30,6 @@ namespace Joba.IBM.RPA.Cli
              *   
              * - rpa deploy <env> (deploys all the scripts, including packages, to the environment)
              *   (we do not need 'rpa push', because this should be handled by GIT)
-             * 
-             * - rpa promote <tag> <env> 
-             *    (promote the project tag to another environment, by downloading the tagged files versions on a 'staging area',
-             *     and pushing them to the new <env> if the hash matches, then delete the staging.)             
              */
 
             Directory.CreateDirectory(Constants.LocalFolder);
@@ -63,20 +55,43 @@ namespace Joba.IBM.RPA.Cli
             using (ExtendedConsole.BeginForegroundColor(ConsoleColor.Red))
             {
                 Console.WriteLine(exception.Message);
+
                 PackageAlreadyInstalledException(exception);
                 PackageNotFoundException(exception);
+                PackageException(exception);
+
+                PackageSourceNotFoundException(exception);
+                PackageSourceException(exception);
             }
 
             void PackageAlreadyInstalledException(Exception exception)
             {
                 if (exception is PackageAlreadyInstalledException ex)
-                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.UpdatePackageCommand.CommandName} {ex.PackageName}' to update it.");
+                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName} {PackageCommand.UpdatePackageCommand.CommandName} {ex.PackageName}' to update it.");
             }
 
             void PackageNotFoundException(Exception exception)
             {
                 if (exception is PackageNotFoundException ex)
-                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.InstallPackageCommand.CommandName} {ex.PackageName}' to install it first.");
+                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName} {PackageCommand.InstallPackageCommand.CommandName} {ex.PackageName}' to install it first.");
+            }
+
+            void PackageException(Exception exception)
+            {
+                if (exception is PackageException ex)
+                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName}' to manage packages.");
+            }
+
+            void PackageSourceNotFoundException(Exception exception)
+            {
+                if (exception is PackageSourceNotFoundException ex)
+                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName} {PackageCommand.PackageSourceCommand.CommandName} {ex.Alias}' to add it first.");
+            }
+
+            void PackageSourceException(Exception exception)
+            {
+                if (exception is PackageSourceException ex)
+                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName} {PackageCommand.PackageSourceCommand.CommandName}' to add package sources.");
             }
         }
 

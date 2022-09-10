@@ -44,6 +44,10 @@
       "commandName": "Project",
       "commandLineArgs": "pull parameter"
     },
+    "rpa package source joba": {
+      "commandName": "Project",
+      "commandLineArgs": "package source joba"
+    },
     "rpa package install Joba_System": {
       "commandName": "Project",
       "commandLineArgs": "package install Joba_System"

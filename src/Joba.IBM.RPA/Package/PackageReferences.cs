@@ -41,4 +41,10 @@
     }
 
     public record class PackageMetadata(string Name, WalVersion Version);
+
+    public record class Package(PackageMetadata Metadata, ScriptVersion Script)
+    {
+        public static Package From(ScriptVersion version) =>
+            new(new PackageMetadata(version.Name, version.Version), version);
+    }
 }

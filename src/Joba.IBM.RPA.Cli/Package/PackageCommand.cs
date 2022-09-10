@@ -2,8 +2,10 @@
 {
     internal partial class PackageCommand : Command
     {
-        public PackageCommand() : base("package", "Manages package dependencies")
+        public const string CommandName = "package";
+        public PackageCommand() : base(CommandName, "Manages package dependencies")
         {
+            AddCommand(new PackageSourceCommand());
             AddCommand(new InstallPackageCommand());
             AddCommand(new UpdatePackageCommand());
             AddCommand(new RestorePackageCommand());
