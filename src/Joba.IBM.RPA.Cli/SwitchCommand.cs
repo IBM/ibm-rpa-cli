@@ -1,6 +1,7 @@
 ﻿namespace Joba.IBM.RPA.Cli
 {
-    class SwitchCommand : Command
+    [RequiresProject]
+    internal class SwitchCommand : Command
     {
         public SwitchCommand() : base("switch", "Switches between environments")
         {
@@ -15,9 +16,13 @@
         private async Task HandleAsync(string environmentName, Project project, InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            var switched = project.SwitchTo(environmentName);
+            var (switched, environment) = await project.SwitchToAsync(environmentName, cancellation);
+           
             if (switched)
             {
+                var client = RpaClientFactory.CreateFromEnvironment(environment);
+                var sessionEnsurer = new EnvironmentSessionEnsurer(client, environment);
+                _ = await sessionEnsurer.EnsureAsync(cancellation);
                 await project.SaveAsync(cancellation);
                 ExtendedConsole.WriteLine($"Switched to {environmentName:blue}");
             }

@@ -2,8 +2,8 @@
 {
     partial class PackageCommand
     {
-        [RequiresEnvironment]
-        class RestorePackageCommand : Command
+        [RequiresProject, RequiresEnvironment]
+        internal class RestorePackageCommand : Command
         {
             public RestorePackageCommand() : base("restore", "Restores package dependencies")
             {

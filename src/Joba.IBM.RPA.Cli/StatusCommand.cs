@@ -1,8 +1,7 @@
-﻿using System;
-
-namespace Joba.IBM.RPA.Cli
+﻿namespace Joba.IBM.RPA.Cli
 {
-    class StatusCommand : Command
+    [RequiresProject]
+    internal class StatusCommand : Command
     {
         public StatusCommand() : base("status", "Inspects the status of the project and files in the current environment")
         {

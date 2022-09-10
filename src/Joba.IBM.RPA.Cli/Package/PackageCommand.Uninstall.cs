@@ -2,8 +2,8 @@
 {
     partial class PackageCommand
     {
-        [RequiresEnvironment]
-        public class UninstallPackageCommand : Command
+        [RequiresProject, RequiresEnvironment]
+        internal class UninstallPackageCommand : Command
         {
             public const string CommandName = "uninstall";
             public UninstallPackageCommand() : base(CommandName, "Uninstall packages")

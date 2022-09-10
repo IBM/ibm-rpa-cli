@@ -12,13 +12,17 @@
       "commandName": "Project",
       "commandLineArgs": "env --help"
     },
-    "rpa project assistant": {
+    "rpa project new assistant": {
       "commandName": "Project",
-      "commandLineArgs": "project Assistant"
+      "commandLineArgs": "project new Assistant"
     },
-    "rpa project assistant --env": {
+    "rpa project new assistant --env": {
       "commandName": "Project",
-      "commandLineArgs": "project Assistant --env dev"
+      "commandLineArgs": "project new Assistant --env dev"
+    },
+    "rpa project init": {
+      "commandName": "Project",
+      "commandLineArgs": "project init"
     },
     "rpa env dev": {
       "commandName": "Project",

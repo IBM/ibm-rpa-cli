@@ -2,6 +2,8 @@
 {
     public record struct Session(string Token, DateTime ExpirationDate, int TenantCode, string TenantName, string UserName, string PersonName)
     {
+        public static readonly Session NoSession = new();
+
         [JsonIgnore]
         public bool IsExpired => DateTime.UtcNow >= ExpirationDate;
 

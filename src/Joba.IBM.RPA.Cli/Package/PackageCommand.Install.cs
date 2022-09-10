@@ -2,8 +2,8 @@
 {
     partial class PackageCommand
     {
-        [RequiresEnvironment]
-        public class InstallPackageCommand : Command
+        [RequiresProject, RequiresEnvironment]
+        internal class InstallPackageCommand : Command
         {
             public const string CommandName = "install";
             public InstallPackageCommand() : base(CommandName, "Installs packages")

@@ -3,7 +3,7 @@ using System.CommandLine.IO;
 
 namespace Joba.IBM.RPA.Cli
 {
-    class RpaCommand : RootCommand
+    internal class RpaCommand : RootCommand
     {
         public static readonly string CommandName = "rpa";
         public RpaCommand() : base("Provides features to manage RPA through the command line")

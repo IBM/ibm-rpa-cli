@@ -30,7 +30,7 @@ namespace Joba.IBM.RPA
             await JsonSerializer.SerializeAsync(stream, dependencies, serializerOptions, cancellation);
         }
 
-        internal static async Task<(EnvironmentDependenciesFile, EnvironmentDependencies?)> LoadAsync(
+        internal static async Task<(EnvironmentDependenciesFile, EnvironmentDependencies?)> TryLoadAsync(
             DirectoryInfo environmentDir, string projectName, string alias, CancellationToken cancellation)
         {
             var file = new EnvironmentDependenciesFile(environmentDir, projectName, alias);

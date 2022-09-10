@@ -8,7 +8,7 @@
         public EnvironmentException(string message, Exception innerException)
         : base(message, innerException) { }
 
-        public static EnvironmentException NoEnvironment(string commandName) =>
-            new($"No environment is loaded. The command '{commandName}' requires an environment.");
+        public static EnvironmentException ThrowRequired(string commandLine) =>
+            new($"No environment is loaded. The command '{commandLine}' requires an environment.");
     }
 }

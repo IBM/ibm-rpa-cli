@@ -1,6 +1,7 @@
 ﻿namespace Joba.IBM.RPA.Cli
 {
-    class EnvironmentCommand : Command
+    [RequiresProject]
+    internal class EnvironmentCommand : Command
     {
         public static readonly string CommandName = "env";
         public EnvironmentCommand() : base(CommandName, "Manages environments")

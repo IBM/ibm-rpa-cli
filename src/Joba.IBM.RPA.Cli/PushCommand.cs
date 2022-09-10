@@ -1,24 +1,23 @@
 ﻿namespace Joba.IBM.RPA.Cli
 {
-    class PushCommand : Command
+    internal class PushCommand : Command
     {
         public PushCommand() : base("push", "Pushes all the project files")
         {
             AddCommand(new PushWalCommand());
-            //AddCommand(new PushParameterCommand());
-            //AddCommand(new PushPackageCommand());
 
-            this.SetHandler(HandleAsync,
-                Bind.FromServiceProvider<Project>(),
-                Bind.FromServiceProvider<Environment>(),
-                Bind.FromServiceProvider<InvocationContext>());
+            //this.SetHandler(HandleAsync,
+            //    Bind.FromServiceProvider<Project>(),
+            //    Bind.FromServiceProvider<Environment>(),
+            //    Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private async Task HandleAsync(Project project, Environment environment, InvocationContext context)
-        {
-            var cancellation = context.GetCancellationToken();
-        }
+        //private async Task HandleAsync(Project project, Environment environment, InvocationContext context)
+        //{
+        //    var cancellation = context.GetCancellationToken();
+        //}
 
+        [RequiresProject, RequiresEnvironment]
         class PushWalCommand : Command
         {
             public PushWalCommand() : base("wal", "Pushes wal files")

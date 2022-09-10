@@ -18,6 +18,7 @@ namespace Joba.IBM.RPA
             rpaDir = new DirectoryInfo(Path.Combine(file.Directory!.FullName, ".rpa"));
         }
 
+        internal bool Exists => file.Exists;
         internal string FullPath => file.FullName;
         internal string ProjectName => file.Name.Replace(Extension, null);
         internal DirectoryInfo RpaDirectory => rpaDir;
@@ -29,20 +30,22 @@ namespace Joba.IBM.RPA
             await JsonSerializer.SerializeAsync(stream, projectSettings, JsonSerializerOptionsFactory.SerializerOptions, cancellation);
         }
 
-        internal static async Task<(ProjectFile, ProjectSettings)> LoadAsync(DirectoryInfo workingDir, CancellationToken cancellation)
+        internal static async Task<(ProjectFile?, ProjectSettings?)> TryLoadAsync(DirectoryInfo workingDir, CancellationToken cancellation)
         {
             var file = Find(workingDir);
-            if (!file.RpaDirectory.Exists)
-                throw new Exception($"Could not load project because there is no '.rpa' directory found within '{file.WorkingDirectory}'");
+            if (file == null)
+                return (null, null);
+            if (!file.Value.Exists || !file.Value.RpaDirectory.Exists)
+                return (file, null);
 
-            using var stream = File.OpenRead(file.FullPath);
+            using var stream = File.OpenRead(file.Value.FullPath);
             var settings = await JsonSerializer.DeserializeAsync<ProjectSettings>(stream, JsonSerializerOptionsFactory.SerializerOptions, cancellation)
-                ?? throw new Exception($"Could not load project '{file.ProjectName}' from '{file}'");
+                ?? throw new Exception($"Could not load project '{file.Value.ProjectName}' from '{file}'");
 
             return (file, settings);
         }
 
-        private static ProjectFile Find(DirectoryInfo workingDir)
+        private static ProjectFile? Find(DirectoryInfo workingDir)
         {
             var files = workingDir.GetFiles($"*{Extension}", SearchOption.TopDirectoryOnly);
             if (files.Length > 1)
@@ -50,7 +53,7 @@ namespace Joba.IBM.RPA
                     $"Files found: {string.Join(", ", files.Select(f => f.Name))}");
 
             if (files.Length == 0)
-                throw new Exception($"Cannot load the project because no '{Extension}' file was found in the '{workingDir.FullName}' directory");
+                return null;
 
             return new ProjectFile(files[0]);
         }

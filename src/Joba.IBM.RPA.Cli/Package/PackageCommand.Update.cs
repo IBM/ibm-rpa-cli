@@ -2,7 +2,7 @@
 {
     partial class PackageCommand
     {
-        [RequiresEnvironment]
+        [RequiresProject, RequiresEnvironment]
         internal class UpdatePackageCommand : Command
         {
             public const string CommandName = "update";

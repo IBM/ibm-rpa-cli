@@ -18,7 +18,7 @@
         public async Task SaveAsync(CancellationToken cancellation) =>
             await projectFile.SaveAsync(projectSettings, cancellation);
 
-        public async Task<Environment> ConfigureEnvironmentAndSwitchAsync(IAccountResource resource, string alias, 
+        public async Task<Environment> ConfigureEnvironmentAndSwitchAsync(IAccountResource resource, string alias,
             Region region, AccountCredentials credentials, CancellationToken cancellation)
         {
             var session = await credentials.AuthenticateAsync(resource, cancellation);
@@ -29,10 +29,12 @@
             return environment;
         }
 
-        public async Task<Environment?> GetCurrentEnvironmentAsync(CancellationToken cancellation) =>
-            await EnvironmentFactory.LoadAsync(projectFile, projectSettings, cancellation);
+        public async Task<Environment?> GetCurrentEnvironmentAsync(CancellationToken cancellation) => 
+            string.IsNullOrEmpty(projectSettings.CurrentEnvironment)
+                ? null
+                : await EnvironmentFactory.LoadAsync(projectFile, projectSettings, cancellation);
 
-        public bool SwitchTo(string alias)
+        private bool SwitchTo(string alias)
         {
             if (!projectSettings.EnvironmentExists(alias))
                 throw new Exception($"The environment '{alias}' does not exist");
@@ -45,6 +47,14 @@
             }
 
             return false;
+        }
+
+        public async Task<(bool, Environment)> SwitchToAsync(string alias, CancellationToken cancellation)
+        {
+            var switched = SwitchTo(alias);
+            var environment = await EnvironmentFactory.LoadAsync(projectFile, projectSettings, cancellation);
+
+            return (switched, environment);
         }
     }
 }

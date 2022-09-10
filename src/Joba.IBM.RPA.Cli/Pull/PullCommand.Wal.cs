@@ -2,8 +2,8 @@
 {
     partial class PullCommand
     {
-        [RequiresEnvironment]
-        class PullWalCommand : Command
+        [RequiresProject, RequiresEnvironment]
+        internal class PullWalCommand : Command
         {
             private readonly ShallowEnvironmentRenderer environmentRenderer = new();
 
