@@ -10,7 +10,7 @@
             {
                 WriteIndented = true,
                 PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNamingPolicy = new JsonKebabCaseNamingPolicy(),
                 TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver(),
             };
             @default.Converters.Add(new WalVersionJsonConverter());
