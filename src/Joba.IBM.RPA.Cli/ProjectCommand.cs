@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Joba.IBM.RPA.Cli
+﻿namespace Joba.IBM.RPA.Cli
 {
     internal class ProjectCommand : Command
     {
@@ -32,11 +30,11 @@ namespace Joba.IBM.RPA.Cli
 
                 if (string.IsNullOrEmpty(environmentName))
                     ExtendedConsole.WriteLine($"Project {project.Name:blue} has been initialized. " +
-                        $"Use {RpaCommand.CommandName:blue} {EnvironmentCommand.CommandName:blue} to add environments.");
+                        $"Use {RpaCommand.CommandName:blue} {EnvironmentCommand.CommandName:blue} {EnvironmentCommand.AddEnvironmentCommand.CommandName:blue} to add environments.");
                 else
                 {
-                    var command = new EnvironmentCommand();
-                    await command.HandleAsync(new EnvironmentCommand.Options(environmentName), project, cancellation);
+                    var command = new EnvironmentCommand.AddEnvironmentCommand();
+                    await command.HandleAsync(new RemoteOptions(environmentName), project, cancellation);
                 }
             }
         }
@@ -58,7 +56,7 @@ namespace Joba.IBM.RPA.Cli
                 if (environment == null)
                 {
                     ExtendedConsole.WriteLine($"The project has been initialized, but no environment has been configured yet. " +
-                        $"Use {RpaCommand.CommandName:blue} {EnvironmentCommand.CommandName:blue} to configure one.");
+                        $"Use {RpaCommand.CommandName:blue} {EnvironmentCommand.CommandName:blue} {EnvironmentCommand.AddEnvironmentCommand.CommandName:blue} to configure one.");
                 }
                 else
                 {

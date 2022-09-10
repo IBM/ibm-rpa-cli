@@ -4,35 +4,48 @@
     internal class EnvironmentCommand : Command
     {
         public static readonly string CommandName = "env";
-        public EnvironmentCommand() : base(CommandName, "Manages environments")
+        internal EnvironmentCommand() : base(CommandName, "Manages environments")
         {
-            var alias = new Argument<string?>("alias", "The environment name") { Arity = ArgumentArity.ZeroOrOne };
-            var region = new Option<string>("--region", "The region you want to connect");
-            var userName = new Option<string>("--userName", "The user name, usually the e-mail, to use for authentication");
-            var tenant = new Option<int?>("--tenant", "The tenant code to use for authentication");
-
-            AddArgument(alias);
-            AddOption(region);
-            AddOption(userName);
-            AddOption(tenant);
+            AddCommand(new AddEnvironmentCommand());
 
             this.SetHandler(HandleAsync,
-                new OptionsBinder(alias, region, userName, tenant),
                 Bind.FromServiceProvider<Project>(),
                 Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private async Task HandleAsync(Options options, Project project, InvocationContext context) =>
-            await HandleAsync(options, project, context.GetCancellationToken());
-
-        public async Task HandleAsync(Options options, Project project, CancellationToken cancellation)
+        public async Task HandleAsync(Project project, InvocationContext context)
         {
-            if (string.IsNullOrEmpty(options.Alias))
+            //TODO: status of environments
+            //TODO: get all environment files
+            throw new NotImplementedException();
+        }
+
+        [RequiresProject]
+        internal class AddEnvironmentCommand : Command
+        {
+            public static readonly string CommandName = "add";
+            public AddEnvironmentCommand() : base(CommandName, "Adds environments")
             {
-                //TODO: status of environments
-                //TODO: get all environment files
+                var alias = new Argument<string>("alias", "The environment name");
+                var region = new Option<string>("--region", "The region you want to connect");
+                var userName = new Option<string>("--userName", "The user name, usually the e-mail, to use for authentication");
+                var tenant = new Option<int?>("--tenant", "The tenant code to use for authentication");
+
+                AddArgument(alias);
+                AddOption(region);
+                AddOption(userName);
+                AddOption(tenant);
+
+                this.SetHandler(HandleAsync,
+                    new RemoteOptionsBinder(alias, region, userName, tenant),
+                    Bind.FromServiceProvider<Project>(),
+                    Bind.FromServiceProvider<InvocationContext>());
             }
-            else
+
+            private async Task HandleAsync(RemoteOptions options, Project project, InvocationContext context) =>
+                await HandleAsync(options, project, context.GetCancellationToken());
+
+            public async Task HandleAsync(RemoteOptions options, Project project, CancellationToken cancellation)
             {
                 using var regionSelector = new RegionSelector();
                 var region = await regionSelector.SelectAsync(options.RegionName, cancellation);
@@ -50,34 +63,32 @@
                 ExtendedConsole.WriteLine($"Use {RpaCommand.CommandName:blue} {Name:blue} to configure more environments");
             }
         }
+    }
 
-#pragma warning disable CS0108 // Member hides inherited member; missing new keyword
-        public record struct Options(string? Alias, string? RegionName = null, string? UserName = null, int? TenantCode = null);
-#pragma warning restore CS0108 // Member hides inherited member; missing new keyword
+    public record struct RemoteOptions(string Alias, string? RegionName = null, string? UserName = null, int? TenantCode = null);
 
-        class OptionsBinder : BinderBase<Options>
+    class RemoteOptionsBinder : BinderBase<RemoteOptions>
+    {
+        private readonly Argument<string> aliasArgument;
+        private readonly Option<string> regionOption;
+        private readonly Option<string> userNameOption;
+        private readonly Option<int?> tenantCodeOption;
+
+        public RemoteOptionsBinder(Argument<string> aliasArgument, Option<string> regionOption, Option<string> userNameOption, Option<int?> tenantCodeOption)
         {
-            private readonly Argument<string?> aliasArgument;
-            private readonly Option<string> regionOption;
-            private readonly Option<string> userNameOption;
-            private readonly Option<int?> tenantCodeOption;
+            this.aliasArgument = aliasArgument;
+            this.regionOption = regionOption;
+            this.userNameOption = userNameOption;
+            this.tenantCodeOption = tenantCodeOption;
+        }
 
-            public OptionsBinder(Argument<string?> aliasArgument, Option<string> regionOption, Option<string> userNameOption, Option<int?> tenantCodeOption)
-            {
-                this.aliasArgument = aliasArgument;
-                this.regionOption = regionOption;
-                this.userNameOption = userNameOption;
-                this.tenantCodeOption = tenantCodeOption;
-            }
-
-            protected override Options GetBoundValue(BindingContext bindingContext)
-            {
-                return new Options(
-                    bindingContext.ParseResult.GetValueForArgument(aliasArgument),
-                    bindingContext.ParseResult.GetValueForOption(regionOption),
-                    bindingContext.ParseResult.GetValueForOption(userNameOption),
-                    bindingContext.ParseResult.GetValueForOption(tenantCodeOption));
-            }
+        protected override RemoteOptions GetBoundValue(BindingContext bindingContext)
+        {
+            return new RemoteOptions(
+                bindingContext.ParseResult.GetValueForArgument(aliasArgument),
+                bindingContext.ParseResult.GetValueForOption(regionOption),
+                bindingContext.ParseResult.GetValueForOption(userNameOption),
+                bindingContext.ParseResult.GetValueForOption(tenantCodeOption));
         }
     }
 }

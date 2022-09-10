@@ -24,9 +24,9 @@
       "commandName": "Project",
       "commandLineArgs": "project init"
     },
-    "rpa env dev": {
+    "rpa env add dev": {
       "commandName": "Project",
-      "commandLineArgs": "env dev"
+      "commandLineArgs": "env add dev"
     },
     "rpa switch dev": {
       "commandName": "Project",
