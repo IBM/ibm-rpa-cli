@@ -1,14 +1,12 @@
 ﻿namespace Joba.IBM.RPA
-{   class LocalWalRepository : ILocalRepository
+{
+    class LocalWalRepository : ILocalRepository
     {
         protected readonly DirectoryInfo directory;
-        private readonly Enumerator enumerator;
 
-        public LocalWalRepository(DirectoryInfo directory)
-        {
-            this.directory = directory;
-            enumerator = new Enumerator(directory);
-        }
+        public LocalWalRepository(DirectoryInfo directory) => this.directory = directory;
+
+        DirectoryInfo ILocalRepository.Directory => directory;
 
         WalFile? ILocalRepository.Get(string name)
         {
@@ -56,31 +54,12 @@
 
         protected virtual WalFile Create(FileInfo walFile, ScriptVersion version) => WalFileFactory.Create(walFile, version);
 
-        IEnumerator<WalFile> IEnumerable<WalFile>.GetEnumerator() => enumerator;
-        IEnumerator IEnumerable.GetEnumerator() => enumerator;
-
-        struct Enumerator : IEnumerator<WalFile>
-        {
-            private readonly Lazy<IEnumerator<WalFile>> enumerator;
-
-            public Enumerator(DirectoryInfo directory)
-            {
-                enumerator = new Lazy<IEnumerator<WalFile>>(() =>
-                {
-                    return directory
-                    .EnumerateFiles($"*{WalFile.Extension}", SearchOption.TopDirectoryOnly)
-                    .OrderBy(f => f.Name)
-                    .Select(WalFile.Read)
-                    .GetEnumerator();
-                });
-            }
-
-            WalFile IEnumerator<WalFile>.Current => enumerator.Value.Current;
-            object IEnumerator.Current => enumerator.Value.Current;
-            void IDisposable.Dispose() => enumerator.Value.Dispose();
-            bool IEnumerator.MoveNext() => enumerator.Value.MoveNext();
-            void IEnumerator.Reset() => enumerator.Value.Reset();
-        }
+        public IEnumerator<WalFile> GetEnumerator() => directory
+            .EnumerateFiles($"*{WalFile.Extension}", SearchOption.TopDirectoryOnly)
+            .OrderBy(f => f.Name)
+            .Select(WalFile.Read)
+            .GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     class LocalPackageRepository : LocalWalRepository
@@ -93,6 +72,7 @@
 
     public interface ILocalRepository : IEnumerable<WalFile>
     {
+        DirectoryInfo Directory { get; }
         WalFile? Get(string name);
         WalFile Create(ScriptVersion script);
         Task<WalFile> DownloadLatestAsync(IScriptResource resource, string name, CancellationToken cancellation);

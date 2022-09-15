@@ -39,7 +39,7 @@
                 if (args.Continue.Value == false)
                     throw new OperationCanceledException("User cancelled the operation");
 
-                var model = wal.PrepareToPublish();
+                var model = wal.PrepareToPublish($"New version from {project.Name} project");
                 var version = await client.Script.PublishAsync(model, cancellation);
                 wal.Overwrite(version);
 

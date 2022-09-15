@@ -108,5 +108,7 @@ namespace Joba.IBM.RPA
                 TenantName = session.TenantName
             };
         }
+
+        public override string ToString() => $"{TenantName}, [{Region}]({Address})";
     }
 }

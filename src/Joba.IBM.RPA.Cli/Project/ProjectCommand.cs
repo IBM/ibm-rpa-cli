@@ -6,6 +6,7 @@
         {
             AddCommand(new NewProjectCommand());
             AddCommand(new InitializeProjectCommand());
+            AddCommand(new DeployCommand());
         }
     }
 }

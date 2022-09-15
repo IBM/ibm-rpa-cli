@@ -75,19 +75,27 @@
         public bool? Continue { get; set; }
     }
 
-    public class PullingEventArgs : EventArgs
+    public class PullingEventArgs : DownloadingEventArgs
     {
-        public required Project Project { get; init; }
         public required Environment Environment { get; init; }
-        public string? ResourceName { get; init; }
         public int? Total { get; init; }
         public int? Current { get; init; }
     }
 
-    public class PulledAllEventArgs : EventArgs
+    public class DownloadingEventArgs : EventArgs
     {
         public required Project Project { get; init; }
+        public string? ResourceName { get; init; }
+    }
+
+    public class PulledAllEventArgs : DownloadedEventArgs
+    {
         public required Environment Environment { get; init; }
+    }
+
+    public class DownloadedEventArgs : EventArgs
+    {
+        public required Project Project { get; init; }
         public required int Total { get; init; }
     }
 

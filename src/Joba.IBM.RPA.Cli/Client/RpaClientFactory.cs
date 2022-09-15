@@ -10,7 +10,7 @@ namespace Joba.IBM.RPA.Cli
         IRpaClient IRpaClientFactory.CreateFromPackageSource(PackageSource source)
         {
             var sessionEnsurer = new SessionEnsurer(CreateFromAddress(source.Remote.Address).Account, source.Session);
-            var client = HttpRpaFactory.Create(source.Remote, new RenewExpiredSession(sessionEnsurer));
+            var client = HttpRpaFactory.Create(source.Remote.Address, new RenewExpiredSession(sessionEnsurer));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", source.Session.Current.Token);
             return new RpaClient(client);
         }
@@ -18,7 +18,7 @@ namespace Joba.IBM.RPA.Cli
         IRpaClient IRpaClientFactory.CreateFromEnvironment(Environment environment)
         {
             var sessionEnsurer = new SessionEnsurer(CreateFromAddress(environment.Remote.Address).Account, environment.Session);
-            var client = HttpRpaFactory.Create(environment.Remote, new RenewExpiredSession(sessionEnsurer));
+            var client = HttpRpaFactory.Create(environment.Remote.Address, new RenewExpiredSession(sessionEnsurer));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", environment.Session.Current.Token);
             return new RpaClient(client);
         }

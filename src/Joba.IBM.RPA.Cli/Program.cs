@@ -1,4 +1,5 @@
-﻿using System.CommandLine.Builder;
+﻿using Microsoft.Extensions.Logging;
+using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Reflection;
 
@@ -97,11 +98,23 @@ namespace Joba.IBM.RPA.Cli
 
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
+            InjectLoggerFactory(context);
+
             if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult &&
                 context.ParseResult.CommandResult.Command != null)
                 await TryLoadProjectAsync(context);
 
             await next(context);
+        }
+
+        private static void InjectLoggerFactory(InvocationContext context)
+        {
+            var verbosity = new Verbosity(context.ParseResult.GetValueForOption(RpaCommand.VerbosityOption));
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole().SetMinimumLevel(verbosity.ToLogLevel());
+            });
+            context.BindingContext.AddService(s => loggerFactory);
         }
 
         private static async Task TryLoadProjectAsync(InvocationContext context)

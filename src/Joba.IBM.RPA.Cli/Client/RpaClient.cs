@@ -240,8 +240,39 @@ namespace Joba.IBM.RPA.Cli
                 var url = $"{CultureInfo.CurrentCulture.Name}/parameter/value";
                 var body = new { Id = parameterName };
                 var response = await client.PostAsJsonAsync(url, body, cancellation);
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                    return null;
+
                 await response.ThrowWhenUnsuccessful(cancellation);
-                return await response.Content.ReadFromJsonAsync<Parameter>(SerializerOptions, cancellation);
+                var value = await response.Content.ReadAsStringAsync(cancellation);
+                return new Parameter(parameterName, value);
+            }
+
+            public async Task<Parameter> CreateAsync(string parameterName, string value, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/parameter";
+                var parameter = new Parameter(parameterName, value);
+                var response = await client.PostAsJsonAsync(url, parameter, cancellation);
+                await response.ThrowWhenUnsuccessful(cancellation);
+                return await response.Content.ReadFromJsonAsync<Parameter>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response"); ;
+            }
+
+            public async Task<Parameter> UpdateAsync(string parameterName, string value, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/parameter";
+                var parameter = new Parameter(parameterName, value);
+                var response = await client.PutAsJsonAsync(url, parameter, cancellation);
+                await response.ThrowWhenUnsuccessful(cancellation);
+                return await response.Content.ReadFromJsonAsync<Parameter>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response"); ;
+            }
+
+            public async Task<Parameter> CreateOrUpdateAsync(string parameterName, string value, CancellationToken cancellation)
+            {
+                var parameter = await GetAsync(parameterName, cancellation);
+                if (parameter == null)
+                    return await CreateAsync(parameterName, value, cancellation);
+
+                return await UpdateAsync(parameterName, value, cancellation);
             }
         }
     }

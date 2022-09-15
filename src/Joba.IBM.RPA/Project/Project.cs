@@ -23,10 +23,14 @@
             this.packageSources = packageSources;
         }
 
+        internal DirectoryInfo RpaDirectory => projectFile.RpaDirectory;
+        internal DirectoryInfo WorkingDirectory => projectFile.WorkingDirectory;
         public string Name => projectFile.ProjectName;
         public IProjectDependencies Dependencies => projectSettings.Dependencies;
         public INames Files => projectSettings.Files;
         public IPackageSources PackageSources => packageSources ??= new PackageSources(projectSettings, userFile, userSettings);
+
+        public IEnumerable<Uri> GetConfiguredRemoteAddresses() => projectSettings.Environments.Values.Select(v => v.Address).Distinct();
 
         public async Task SaveAsync(CancellationToken cancellation)
         {
@@ -50,7 +54,7 @@
         public async Task<Environment?> GetCurrentEnvironmentAsync(CancellationToken cancellation) =>
             string.IsNullOrEmpty(projectSettings.CurrentEnvironment)
                 ? null
-                : await EnvironmentFactory.LoadAsync(projectFile, projectSettings, userFile, userSettings, cancellation);
+                : await EnvironmentFactory.LoadAsync(projectSettings.CurrentEnvironment, projectFile, projectSettings, userFile, userSettings, cancellation);
 
         private bool SwitchTo(string alias)
         {
@@ -70,9 +74,12 @@
         public async Task<(bool, Environment)> SwitchToAsync(string alias, CancellationToken cancellation)
         {
             var switched = SwitchTo(alias);
-            var environment = await EnvironmentFactory.LoadAsync(projectFile, projectSettings, userFile, userSettings, cancellation);
+            var environment = (await GetCurrentEnvironmentAsync(cancellation))!;
 
             return (switched, environment);
         }
+
+        public async Task<Environment> GetEnvironmentAsync(string alias, CancellationToken cancellation) =>
+            await EnvironmentFactory.LoadAsync(alias, projectFile, projectSettings, userFile, userSettings, cancellation);
     }
 }

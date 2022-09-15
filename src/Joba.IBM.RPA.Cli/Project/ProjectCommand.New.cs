@@ -8,15 +8,17 @@
             {
                 var name = new Argument<string>("name", "The project name. This will be used as the pattern to fetch wal files if '--pattern' is not specified.");
                 var pattern = new Option<string?>("--pattern", "Specifies the pattern to fetch files, e.g 'Assistant*'");
+                var serverUrl = new Option<string?>("--url", $"The server domain url. You can specify '{ServerAddress.DefaultOptionName}' to use {ServerAddress.DefaultUrl}");
                 var environmentName = new Option<string?>("--env", "Specifies the first environment to set up after the project is created.");
 
                 AddArgument(name);
                 AddOption(pattern);
+                AddOption(serverUrl);
                 AddOption(environmentName);
-                this.SetHandler(HandleAsync, name, pattern, environmentName, Bind.FromServiceProvider<InvocationContext>());
+                this.SetHandler(HandleAsync, name, pattern, serverUrl, environmentName, Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string name, string? pattern, string? environmentName, InvocationContext context)
+            private async Task HandleAsync(string name, string? pattern, string? serverUrl, string? environmentName, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
                 var project = ProjectFactory.CreateFromCurrentDirectory(name, new NamePattern(pattern ?? name + "*"));
@@ -28,7 +30,7 @@
                 else
                 {
                     var command = new EnvironmentCommand.AddEnvironmentCommand();
-                    await command.HandleAsync(new RemoteOptions(environmentName), project, cancellation);
+                    await command.HandleAsync(new RemoteOptions(environmentName, new ServerAddress(serverUrl)), project, cancellation);
                 }
             }
         }

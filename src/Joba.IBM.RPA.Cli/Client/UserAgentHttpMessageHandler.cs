@@ -3,9 +3,9 @@ using System.Reflection;
 
 namespace Joba.IBM.RPA.Cli
 {
-    internal class UserAgentHandler : DelegatingHandler
+    internal class UserAgentHttpMessageHandler : DelegatingHandler
     {
-        public UserAgentHandler(DelegatingHandler handler) : base(handler) { }
+        public UserAgentHttpMessageHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {

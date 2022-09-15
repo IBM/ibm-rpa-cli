@@ -55,6 +55,9 @@
         Task<IEnumerable<Parameter>> SearchAsync(string parameterName, int limit, CancellationToken cancellation);
         Task<Parameter?> GetAsync(string parameterName, CancellationToken cancellation);
         Task<IEnumerable<Parameter>> GetAsync(string[] parameters, CancellationToken cancellation);
+        Task<Parameter> CreateAsync(string parameterName, string value, CancellationToken cancellation);
+        Task<Parameter> UpdateAsync(string parameterName, string value, CancellationToken cancellation);
+        Task<Parameter> CreateOrUpdateAsync(string parameterName, string value, CancellationToken cancellation);
     }
 
     public record class Parameter([property: JsonPropertyName("Id")] string Name, string Value);

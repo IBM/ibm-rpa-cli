@@ -1,8 +1,10 @@
 ﻿using ProtoBuf;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Joba.IBM.RPA
 {
+    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     public class WalFile
     {
         public static readonly string Extension = ".wal";
@@ -32,6 +34,7 @@ namespace Joba.IBM.RPA
         protected Guid? VersionId { get; set; }
         public WalVersion? Version { get; set; }
         protected Version? ProductVersion { get; set; }
+        internal WalVersion NextVersion => Version.HasValue ? new WalVersion(Version.Value.ToInt32() + 1) : new WalVersion(1);
 
         public async Task UpdateToLatestAsync(IScriptResource resource, CancellationToken cancellation)
         {
@@ -88,8 +91,8 @@ namespace Joba.IBM.RPA
             ProductVersion = version.ProductVersion;
         }
 
-        internal PublishScript PrepareToPublish() => 
-            new(Id, VersionId, Name, string.Empty, Content.ToString(), ProductVersion?.ToString(), false, 300, 300, 300);
+        internal PublishScript PrepareToPublish(string message) =>
+            new(Id, VersionId, Name, message, Content.ToString(), ProductVersion?.ToString(), false, 300, 300, 300);
 
         internal protected virtual void Save()
         {
@@ -111,6 +114,15 @@ namespace Joba.IBM.RPA
             return new WalFile(Info, proto);
         }
 
+        internal WalFile CopyContentsTo(DirectoryInfo info)
+        {
+            var file = new FileInfo(Path.Combine(info.FullName, $"{Name}{Extension}"));
+            var proto = new WalFileProto { Content = Content.ToString(), ProductVersion = ProductVersion?.ToString() };
+            var wal = new WalFile(file, proto);
+            wal.Save();
+            return wal;
+        }
+
         public override string ToString() => Content.ToString();
 
         internal static WalFile Read(FileInfo file)
@@ -125,6 +137,7 @@ namespace Joba.IBM.RPA
             var wal = Read(file);
             return wal.Content;
         }
+        private string GetDebuggerDisplay() => $"{Name} {Version ?? new WalVersion(0)} => {NextVersion}";
 
         [ProtoContract]
         protected class WalFileProto
@@ -246,6 +259,15 @@ namespace Joba.IBM.RPA
             var wal = new PackageFile(file, version);
             wal.Save();
             return wal;
+        }
+
+        public static WalFile Create(DirectoryInfo directory, ScriptVersion version)
+        {
+            if (!directory.Exists)
+                directory.Create();
+
+            var file = new FileInfo(Path.Combine(directory.FullName, $"{version.Name}{WalFile.Extension}"));
+            return Create(file, version);
         }
     }
 }

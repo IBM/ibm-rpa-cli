@@ -6,7 +6,7 @@
     },
     "rpa status": {
       "commandName": "Project",
-      "commandLineArgs": "status"
+      "commandLineArgs": "status -v Normal"
     },
     "rpa --help": {
       "commandName": "Project",
@@ -18,15 +18,19 @@
     },
     "rpa project new assistant --env": {
       "commandName": "Project",
-      "commandLineArgs": "project new Assistant --env dev"
+      "commandLineArgs": "project new Assistant --env dev --url default"
     },
     "rpa project init": {
       "commandName": "Project",
       "commandLineArgs": "project init"
     },
-    "rpa env add dev": {
+    "rpa project deploy QA": {
       "commandName": "Project",
-      "commandLineArgs": "env add dev"
+      "commandLineArgs": "project deploy QA --source dev"
+    },
+    "rpa env add QA": {
+      "commandName": "Project 123@qwe123@QWE",
+      "commandLineArgs": "env add QA --url https://ap1qaapi.wdgautomation.com/v1.0/ --region QA_AP1 --userName owner@wdgautomation.com --tenant 5000"
     },
     "rpa switch dev": {
       "commandName": "Project",
@@ -46,7 +50,7 @@
     },
     "rpa package source joba": {
       "commandName": "Project",
-      "commandLineArgs": "package source joba"
+      "commandLineArgs": "package source joba --url default"
     },
     "rpa package install Joba_System": {
       "commandName": "Project",

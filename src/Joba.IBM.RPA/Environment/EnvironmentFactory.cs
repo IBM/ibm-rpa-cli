@@ -14,12 +14,9 @@ namespace Joba.IBM.RPA
             return new Environment(alias, envDir, remote, userFile, userSettings, dependenciesFile);
         }
 
-        internal static async Task<Environment> LoadAsync(ProjectFile projectFile, ProjectSettings projectSettings,
+        internal static async Task<Environment> LoadAsync(string alias, ProjectFile projectFile, ProjectSettings projectSettings,
             UserSettingsFile userFile, UserSettings userSettings, CancellationToken cancellation)
         {
-            var alias = projectSettings.CurrentEnvironment;
-            if (string.IsNullOrEmpty(alias))
-                throw new EnvironmentException($"No current environment is set for the project.");
             if (!projectSettings.Environments.ContainsKey(alias))
                 throw new EnvironmentException($"Environment '{alias}' is not mapped to the project environments.");
 
