@@ -2,12 +2,14 @@
 {
     class EnvironmentRenderer
     {
+        private readonly IConsole console;
         private readonly WalFileRenderer walRenderer;
         private readonly Project project;
         private readonly int padding;
 
-        public EnvironmentRenderer(WalFileRenderer walRenderer, Project project, int padding)
+        public EnvironmentRenderer(IConsole console, WalFileRenderer walRenderer, Project project, int padding)
         {
+            this.console = console;
             this.walRenderer = walRenderer;
             this.project = project;
             this.padding = padding;
@@ -18,44 +20,45 @@
             var files = environment.Files.ToArray();
             if (files.Any())
             {
-                ExtendedConsole.WriteLineIndented($"Wal files:", padding);
+                console.WriteLineIndented($"Wal files:", padding);
                 foreach (var wal in files)
                     walRenderer.Render(wal);
             }
 
             if (environment.Dependencies.Parameters.Any())
             {
-                ExtendedConsole.WriteLineIndented($"Parameters:", padding);
+                console.WriteLineIndented($"Parameters:", padding);
                 foreach (var parameter in environment.Dependencies.Parameters.OrderBy(p => p.Name))
                 {
                     var isTracked = project.Dependencies.Parameters.IsTracked(parameter.Name);
                     var color = isTracked ? Console.ForegroundColor : ConsoleColor.Red;
-                    using (ExtendedConsole.BeginForegroundColor(color))
+                    using (console.BeginForegroundColor(color))
                     {
                         if (isTracked)
-                            ExtendedConsole.WriteLineIndented($"{parameter.Name,40}");
+                            console.WriteLineIndented($"{parameter.Name,-40}");
                         else
-                            ExtendedConsole.WriteLineIndented($"{parameter.Name,40} (local)");
+                            console.WriteLineIndented($"{parameter.Name,-40} (local)");
                     }
                 }
             }
         }
     }
 
-    class ShallowEnvironmentRenderer
+    class SummaryEnvironmentRenderer
     {
-        public void Render(Environment environment) => Render(environment, true, 0);
+        private readonly IConsole console;
+        private readonly int padding;
 
-        public void RenderLine(Environment environment) => Render(environment, true, 0);
+        public SummaryEnvironmentRenderer(IConsole console, int padding)
+        {
+            this.console = console;
+            this.padding = padding;
+        }
 
-        public void RenderLineIndented(Environment environment, int padding) => Render(environment, true, padding);
-
-        private void Render(Environment environment, bool newLine, int padding)
+        public void Render(Environment environment)
         {
             var spaces = new string(' ', padding);
-            ExtendedConsole.Write($"{spaces}{environment.Alias:blue} ({environment.Remote.TenantName}), [{environment.Remote.Region:blue}]({environment.Remote.Address})");
-            if (newLine)
-                Console.WriteLine();
+            console.WriteLine($"{spaces}{environment.Alias:blue} ({environment.Remote.TenantName}), [{environment.Remote.Region:blue}]({environment.Remote.Address})");
         }
     }
 }

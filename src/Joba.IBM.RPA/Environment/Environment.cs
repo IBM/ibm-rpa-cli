@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA
+﻿using System;
+
+namespace Joba.IBM.RPA
 {
     public class Environment
     {
@@ -70,5 +72,7 @@
             var toDependencies = await EnvironmentDependenciesFile.LoadAsync(toDependenciesFile, cancellation);
             return new Environment(to.Alias, directory, to.Remote, userFile, userSettings, toDependenciesFile, toDependencies);
         }
+
+        public override string ToString() => $"{Alias} ({Remote.TenantName}), [{Remote.Region}]({Remote.Address})";
     }
 }

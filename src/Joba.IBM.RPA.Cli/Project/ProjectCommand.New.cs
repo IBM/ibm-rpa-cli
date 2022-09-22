@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA.Cli
+﻿using Microsoft.Extensions.Logging;
+
+namespace Joba.IBM.RPA.Cli
 {
     internal partial class ProjectCommand
     {
@@ -15,22 +17,26 @@
                 AddOption(pattern);
                 AddOption(serverUrl);
                 AddOption(environmentName);
-                this.SetHandler(HandleAsync, name, pattern, serverUrl, environmentName, Bind.FromServiceProvider<InvocationContext>());
+                this.SetHandler(HandleAsync, name, pattern, serverUrl, environmentName,
+                    Bind.FromLogger<NewProjectCommand>(),
+                    Bind.FromServiceProvider<IRpaClientFactory>(),
+                    Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string name, string? pattern, string? serverUrl, string? environmentName, InvocationContext context)
+            private async Task HandleAsync(string name, string? pattern, string? serverUrl, string? environmentName,
+                ILogger<NewProjectCommand> logger, IRpaClientFactory clientFactory, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
                 var project = ProjectFactory.CreateFromCurrentDirectory(name, new NamePattern(pattern ?? name + "*"));
                 await project.SaveAsync(cancellation);
 
                 if (string.IsNullOrEmpty(environmentName))
-                    ExtendedConsole.WriteLine($"Project {project.Name:blue} has been initialized. " +
-                        $"Use {RpaCommand.CommandName:blue} {EnvironmentCommand.CommandName:blue} {EnvironmentCommand.AddEnvironmentCommand.CommandName:blue} to add environments.");
+                    logger.LogInformation("Project '{ProjectName}' has been initialized. Use '{RpaCommandName} {EnvironmentCommandName} {AddEnvironmentCommandName}' to add environments.",
+                        project.Name, RpaCommand.CommandName, EnvironmentCommand.CommandName, EnvironmentCommand.AddEnvironmentCommand.CommandName);
                 else
                 {
                     var command = new EnvironmentCommand.AddEnvironmentCommand();
-                    await command.HandleAsync(new RemoteOptions(environmentName, new ServerAddress(serverUrl)), project, cancellation);
+                    await command.HandleAsync(new RemoteOptions(environmentName, new ServerAddress(serverUrl)), logger, clientFactory, project, context);
                 }
             }
         }

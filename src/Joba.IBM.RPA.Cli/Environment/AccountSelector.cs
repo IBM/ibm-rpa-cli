@@ -2,10 +2,12 @@
 {
     class AccountSelector
     {
+        private readonly IConsole console;
         private readonly IAccountResource resource;
 
-        public AccountSelector(IAccountResource resource)
+        public AccountSelector(IConsole console, IAccountResource resource)
         {
+            this.console = console;
             this.resource = resource;
         }
 
@@ -13,15 +15,15 @@
         {
             if (string.IsNullOrEmpty(userName))
             {
-                Console.Write("User name: ");
+                console.Write("User name: ");
                 userName = Console.ReadLine() ?? throw new OperationCanceledException("User did not provide the 'user name'");
             }
 
             if (!tenantCode.HasValue)
                 tenantCode = await PromptToSelectTenantAsync(userName, cancellation);
 
-            Console.Write("Password: ");
-            var password = ExtendedConsole.Password();
+            console.Write("Password: ");
+            var password = console.Password();
 
             return new AccountCredentials(tenantCode.Value, userName, password);
         }
@@ -34,7 +36,7 @@
 
             if (tenants.Length == 1)
                 return tenants[0].Code;
-            var choice = ExtendedConsole.ShowMenu("Choose a tenant by using the arrow keys to navigate", tenants.Select(t => t.Name).ToArray());
+            var choice = console.ShowMenu("Choose a tenant by using the arrow keys to navigate", tenants.Select(t => t.Name).ToArray());
             if (!choice.HasValue)
                 throw new Exception("User skipped tenant selection");
 

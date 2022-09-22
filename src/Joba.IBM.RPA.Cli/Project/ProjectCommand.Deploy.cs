@@ -16,15 +16,17 @@ namespace Joba.IBM.RPA.Cli
                 AddArgument(target);
                 AddOption(source);
                 this.SetHandler(HandleAsync, source, target,
-                   Bind.FromServiceProvider<ILoggerFactory>(),
+                   Bind.FromLogger<DeployCommand>(),
+                   Bind.FromServiceProvider<IRpaClientFactory>(),
                    Bind.FromServiceProvider<Project>(),
                    Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string? sourceAlias, string targetAlias, ILoggerFactory loggerFactory, Project project, InvocationContext context)
+            private async Task HandleAsync(string? sourceAlias, string targetAlias, ILogger<DeployCommand> logger, IRpaClientFactory clientFactory,
+                Project project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var service = new DeployService(loggerFactory.CreateLogger<DeployService>(), new RpaClientFactory(), project);
+                var service = new DeployService(logger, clientFactory, project);
                 await service.DeployAsync(sourceAlias, targetAlias, cancellation);
             }
         }

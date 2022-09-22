@@ -1,21 +1,13 @@
-﻿namespace Joba.IBM.RPA.Cli
+﻿using Microsoft.Extensions.Logging;
+
+namespace Joba.IBM.RPA.Cli
 {
     internal class PushCommand : Command
     {
         public PushCommand() : base("push", "Pushes all the project files")
         {
             AddCommand(new PushWalCommand());
-
-            //this.SetHandler(HandleAsync,
-            //    Bind.FromServiceProvider<Project>(),
-            //    Bind.FromServiceProvider<Environment>(),
-            //    Bind.FromServiceProvider<InvocationContext>());
         }
-
-        //private async Task HandleAsync(Project project, Environment environment, InvocationContext context)
-        //{
-        //    var cancellation = context.GetCancellationToken();
-        //}
 
         [RequiresProject, RequiresEnvironment]
         class PushWalCommand : Command
@@ -26,15 +18,19 @@
                 AddArgument(fileName);
 
                 this.SetHandler(HandleAsync, fileName,
+                    Bind.FromLogger<PushWalCommand>(),
+                    Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
                     Bind.FromServiceProvider<Environment>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string? fileName, Project project, Environment environment, InvocationContext context)
+            private async Task HandleAsync(string? fileName, ILogger<PushWalCommand> logger, IRpaClientFactory clientFactory,
+                Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var client = RpaClientFactory.CreateFromEnvironment(environment);
+                var console = context.Console;
+                var client = clientFactory.CreateFromEnvironment(environment);
                 var pushService = new WalPushService(client, project, environment);
 
                 if (!string.IsNullOrEmpty(fileName))
@@ -52,22 +48,18 @@
                     //StatusCommand.Handle(project, environment);
                 }
 
-                //await project.SaveAsync(cancellation);
-                //await environment.SaveAsync(cancellation);
-            }
+                void OnPushed(object? sender, PushedOneEventArgs<WalFile> e) => logger.LogInformation("File '{Resource}' published", e.Resource);
 
-            private void OnPushed(object? sender, PushedOneEventArgs<WalFile> e)
-            {
-            }
-
-            private void OnShouldPushingOneFile(object? sender, ContinueOperationEventArgs<WalFile> e)
-            {
-                if (e.Resource.Version.HasValue)
-                    e.Continue = ExtendedConsole.YesOrNo($"This operation will push the file {e.Resource.Info.Name:blue} to the server, increasing the version from {e.Resource.Version} to {e.Resource.Version.Value.ToInt32() + 1} " +
-                        $"This is irreversible. Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
-                else
-                    e.Continue = ExtendedConsole.YesOrNo($"This operation will push the file {e.Resource.Info.Name:blue} to the server, creating a new version " +
-                        $"This is irreversible. Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
+                void OnShouldPushingOneFile(object? sender, ContinueOperationEventArgs<WalFile> e)
+                {
+                    using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
+                    if (e.Resource.Version.HasValue)
+                        e.Continue = console.YesOrNo($"This operation will push the file '{e.Resource.Info.Name}' to the server, increasing the version from '{e.Resource.Version}' to '{e.Resource.Version.Value.ToInt32() + 1}' " +
+                            $"This is irreversible. Are you sure you want to continue? [y/n]");
+                    else
+                        e.Continue = console.YesOrNo($"This operation will push the file '{e.Resource.Info.Name}' to the server, creating a new version " +
+                            $"This is irreversible. Are you sure you want to continue? [y/n]");
+                }
             }
         }
     }

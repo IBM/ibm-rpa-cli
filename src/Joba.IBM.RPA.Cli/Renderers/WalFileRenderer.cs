@@ -2,10 +2,12 @@
 {
     class WalFileRenderer
     {
+        private readonly IConsole console;
         private readonly Project project;
 
-        public WalFileRenderer(Project project)
+        public WalFileRenderer(IConsole console, Project project)
         {
+            this.console = console;
             this.project = project;
         }
 
@@ -15,8 +17,8 @@
             var color = isTracked ? Console.ForegroundColor : ConsoleColor.Red;
             var version = wal.Version.HasValue ? wal.Version.Value.ToString("D3") : "---";
 
-            using (ExtendedConsole.BeginForegroundColor(color))
-                ExtendedConsole.WriteLineIndented($"{wal.Info.Name,40} {version}");
+            using (console.BeginForegroundColor(color))
+                console.WriteLineIndented($"{wal.Info.Name,-40} {version}");
         }
     }
 }

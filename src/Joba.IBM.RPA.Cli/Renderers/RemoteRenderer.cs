@@ -2,11 +2,13 @@
 {
     class RemoteRenderer
     {
+        private readonly IConsole console;
         private readonly string alias;
         private readonly int padding;
 
-        public RemoteRenderer(string alias, int padding)
+        public RemoteRenderer(IConsole console, string alias, int padding)
         {
+            this.console = console;
             this.alias = alias;
             this.padding = padding;
         }
@@ -14,7 +16,7 @@
         public void Render(RemoteSettings remote)
         {
             var spaces = new string(' ', padding);
-            ExtendedConsole.WriteLine($"{spaces}{alias:blue} ({remote.TenantName}), [{remote.Region:blue}]({remote.Address})");
+            console.WriteLine($"{spaces}{alias:blue} ({remote.TenantName}), [{remote.Region:blue}]({remote.Address})");
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA.Cli
+﻿using Microsoft.Extensions.Logging;
+
+namespace Joba.IBM.RPA.Cli
 {
     partial class PackageCommand
     {
@@ -12,15 +14,18 @@
 
                 AddArgument(name);
                 this.SetHandler(HandleAsync, name,
+                    Bind.FromLogger<UninstallPackageCommand>(),
+                    Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
                     Bind.FromServiceProvider<Environment>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string? name, Project project, Environment environment, InvocationContext context)
+            private async Task HandleAsync(string? name, ILogger<UninstallPackageCommand> logger, IRpaClientFactory clientFactory,
+                Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var factory = new PackageManagerFactory(new RpaClientFactory());
+                var factory = new PackageManagerFactory(clientFactory);
                 var manager = factory.Create(project, environment);
 
                 IEnumerable<PackageMetadata> packages;
@@ -30,9 +35,9 @@
                     packages = await manager.UninstallAsync(new NamePattern(name), cancellation);
 
                 if (packages.Any())
-                    ExtendedConsole.WriteLine($"Total of {packages.Count()} packages has been uninstalled.");
+                    logger.LogInformation("Total of {Count} packages has been uninstalled.", packages.Count());
                 else
-                    ExtendedConsole.WriteLine($"No packages to uninstall.");
+                    logger.LogInformation("No packages to uninstall.");
             }
         }
     }

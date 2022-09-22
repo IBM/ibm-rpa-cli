@@ -1,4 +1,4 @@
-﻿using System.CommandLine.Parsing;
+﻿using Microsoft.Extensions.Logging;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -42,30 +42,34 @@ namespace Joba.IBM.RPA.Cli
 
                 this.SetHandler(HandleAsync,
                     new RemoteOptionsBinder(alias, url, region, userName, tenant),
+                    Bind.FromLogger<EnvironmentCommand>(),
+                    Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(RemoteOptions options, Project project, InvocationContext context) =>
-                await HandleAsync(options, project, context.GetCancellationToken());
+            private async Task HandleAsync(RemoteOptions options, ILogger<EnvironmentCommand> logger,
+                IRpaClientFactory clientFactory, Project project, InvocationContext context) =>
+                await HandleAsync(options, (ILogger)logger, clientFactory, project, context);
 
-            public async Task HandleAsync(RemoteOptions options, Project project, CancellationToken cancellation)
+            public async Task HandleAsync(RemoteOptions options, ILogger logger,
+                IRpaClientFactory clientFactory, Project project, InvocationContext context)
             {
-                var clientFactory = (IRpaClientFactory)new RpaClientFactory();
-                var regionSelector = new RegionSelector(clientFactory, project);
+                project.EnsureCanConfigure(options.Alias);
+
+                var cancellation = context.GetCancellationToken();
+                var regionSelector = new RegionSelector(context.Console, clientFactory, project);
                 var region = await regionSelector.SelectAsync(options.Address, options.RegionName, cancellation);
 
                 using var client = clientFactory.CreateFromRegion(region);
-                var accountSelector = new AccountSelector(client.Account);
+                var accountSelector = new AccountSelector(context.Console, client.Account);
                 var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, cancellation);
                 var environment = await project.ConfigureEnvironmentAndSwitchAsync(client.Account, options.Alias, region, credentials, cancellation);
                 await project.SaveAsync(cancellation);
                 await environment.SaveAsync(cancellation);
 
-                var envRenderer = new ShallowEnvironmentRenderer();
-                ExtendedConsole.WriteLine($"Hi {environment.Session.Current.PersonName:blue}, the following environment has been configured:");
-                envRenderer.RenderLine(environment);
-                ExtendedConsole.WriteLine($"Use {RpaCommand.CommandName:blue} {EnvironmentCommand.CommandName:blue} {Name:blue} to configure more environments");
+                logger.LogInformation("Hi '{PersonName}', the following environment has been configured: {Environment}\nUse '{RpaCommandName} {EnvironmentCommandName} {Name}' to configure more environments.",
+                    environment.Session.Current.PersonName, environment, RpaCommand.CommandName, EnvironmentCommand.CommandName, Name);
             }
         }
     }

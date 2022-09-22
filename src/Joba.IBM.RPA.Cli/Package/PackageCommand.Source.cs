@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA.Cli
+﻿using Microsoft.Extensions.Logging;
+
+namespace Joba.IBM.RPA.Cli
 {
     partial class PackageCommand
     {
@@ -21,26 +23,28 @@
                 AddOption(tenant);
                 this.SetHandler(HandleAsync,
                     new RemoteOptionsBinder(alias, url, region, userName, tenant),
+                    Bind.FromLogger<PackageSourceCommand>(),
+                    Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(RemoteOptions options, Project project, InvocationContext context)
+            private async Task HandleAsync(RemoteOptions options, ILogger<PackageSourceCommand> logger, IRpaClientFactory clientFactory,
+                Project project, InvocationContext context)
             {
+                project.EnsureCanConfigure(options.Alias);
                 var cancellation = context.GetCancellationToken();
-                var clientFactory = (IRpaClientFactory)new RpaClientFactory();
-                var regionSelector = new RegionSelector(clientFactory, project);
+                var regionSelector = new RegionSelector(context.Console, clientFactory, project);
                 var region = await regionSelector.SelectAsync(options.Address, options.RegionName, cancellation);
 
                 using var client = clientFactory.CreateFromRegion(region);
-                var accountSelector = new AccountSelector(client.Account);
+                var accountSelector = new AccountSelector(context.Console, client.Account);
                 var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, cancellation);
 
                 var package = await project.PackageSources.AddAsync(client.Account, options.Alias, region, credentials, cancellation);
                 await project.SaveAsync(cancellation);
 
-                ExtendedConsole.WriteLine($"Package source added:");
-                ExtendedConsole.WriteLine($"  {package.Alias:blue} ({package.Remote.TenantName}), [{package.Remote.Region:blue}]({package.Remote.Address})");
+                logger.LogInformation("Package source added: {Package}", package);
             }
         }
     }

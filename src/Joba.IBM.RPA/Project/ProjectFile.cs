@@ -109,6 +109,7 @@ namespace Joba.IBM.RPA
             };
         }
 
+        public string ToString(string alias) => $"{alias} ({TenantName}), [{Region}]({Address})";
         public override string ToString() => $"{TenantName}, [{Region}]({Address})";
     }
 }

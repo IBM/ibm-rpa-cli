@@ -1,4 +1,7 @@
-﻿namespace Joba.IBM.RPA.Cli
+﻿using Microsoft.Extensions.Logging;
+using System.CommandLine;
+
+namespace Joba.IBM.RPA.Cli
 {
     [RequiresProject]
     internal class StatusCommand : Command
@@ -14,24 +17,24 @@
         }
 
         private async Task HandleAsync(string? fileName, Project project, InvocationContext context) =>
-           Handle(fileName, project, await project.GetCurrentEnvironmentAsync(context.GetCancellationToken()));
+           Handle(fileName, project, await project.GetCurrentEnvironmentAsync(context.GetCancellationToken()), context);
 
-        public static void Handle(Project project, Environment environment) => Handle(null, project, environment);
+        public static void Handle(Project project, Environment environment, InvocationContext context) => Handle(null, project, environment, context);
 
-        private static void Handle(string? fileName, Project project, Environment? environment)
+        private static void Handle(string? fileName, Project project, Environment? environment, InvocationContext context)
         {
             if (environment == null)
-                ExtendedConsole.WriteLine($"Project {project.Name:blue}. No current environment.");
+                context.Console.WriteLine($"Project {project.Name}. No current environment.");
             else
             {
                 var padding = 2;
                 var nextPadding = padding + 2;
-                var shallowRenderer = new ShallowEnvironmentRenderer();
-                var walRenderer = new WalFileRenderer(project);
-                var envRenderer = new EnvironmentRenderer(walRenderer, project, nextPadding);
+                var summaryRenderer = new SummaryEnvironmentRenderer(context.Console, padding);
+                var walRenderer = new WalFileRenderer(context.Console, project);
+                var envRenderer = new EnvironmentRenderer(context.Console, walRenderer, project, nextPadding);
 
-                ExtendedConsole.WriteLine($"Project {project.Name:blue}, on environment");
-                shallowRenderer.RenderLineIndented(environment, padding);
+                context.Console.WriteLine($"Project '{project.Name}', on environment");
+                summaryRenderer.Render(environment);
 
                 if (!string.IsNullOrEmpty(fileName))
                 {

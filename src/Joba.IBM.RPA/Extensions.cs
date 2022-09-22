@@ -44,14 +44,6 @@ namespace Joba.IBM.RPA
             throw new HttpRequestException(builder.ToString(), null, response.StatusCode);
         }
 
-        public static string Trace(this Exception exception, string? label = null)
-        {
-            var arg = string.IsNullOrWhiteSpace(label) ? string.Empty : label + ": ";
-            var text = $"{arg}{exception}, HResult {exception.HResult}";
-            System.Diagnostics.Trace.TraceError(text);
-            return text;
-        }
-
         public static void CreateHidden(this DirectoryInfo dir)
         {
             dir.Create();

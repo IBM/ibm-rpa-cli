@@ -44,7 +44,10 @@ namespace Joba.IBM.RPA
         private string GetDebuggerDisplay() => $"{ToString()}";
     }
 
-    public record struct PackageSource(string Alias, RemoteSettings Remote, ISessionManager Session);
+    public record struct PackageSource(string Alias, RemoteSettings Remote, ISessionManager Session)
+    {
+        public override string ToString() => $"{Alias} ({Remote.TenantName}), [{Remote.Region:blue}]({Remote.Address})";
+    }
 
     internal class PackageSources : IPackageSources
     {
@@ -66,6 +69,8 @@ namespace Joba.IBM.RPA
             this.sources = sources.ToDictionary(k => k.Key,
                 v => new PackageSource(v.Key, v.Value, new SessionManager(v.Key, userFile, userSettings, v.Value)));
         }
+
+        internal bool SourceExists(string alias) => sources.ContainsKey(alias);
 
         PackageSource IPackageSources.this[string alias] => sources[alias];
         PackageSource? IPackageSources.Get(string alias) => sources.TryGetValue(alias, out var value) ? value : null;

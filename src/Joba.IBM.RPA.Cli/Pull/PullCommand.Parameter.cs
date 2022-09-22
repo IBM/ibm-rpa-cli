@@ -1,88 +1,90 @@
-﻿namespace Joba.IBM.RPA.Cli
+﻿using Microsoft.Extensions.Logging;
+
+namespace Joba.IBM.RPA.Cli
 {
     partial class PullCommand
     {
         [RequiresProject, RequiresEnvironment]
         internal class PullParameterCommand : Command
         {
-            private readonly ShallowEnvironmentRenderer environmentRenderer = new();
-
             public PullParameterCommand() : base("parameter", "Pulls parameters")
             {
                 var parameterName = new Argument<string?>("name", "The specific parameter name") { Arity = ArgumentArity.ZeroOrOne };
                 AddArgument(parameterName);
 
                 this.SetHandler(HandleAsync, parameterName,
+                    Bind.FromLogger<PullParameterCommand>(),
+                    Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
                     Bind.FromServiceProvider<Environment>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string? parameterName, Project project, Environment environment, InvocationContext context)
+            private async Task HandleAsync(string? parameterName, ILogger<PullParameterCommand> logger, IRpaClientFactory clientFactory, Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var client = RpaClientFactory.CreateFromEnvironment(environment);
+                var console = context.Console;
+                var client = clientFactory.CreateFromEnvironment(environment);
                 var pullService = new ParameterPullService(client, project, environment);
 
                 if (!string.IsNullOrEmpty(parameterName))
                 {
                     pullService.One.ShouldContinueOperation += OnShouldPullingOneFile;
-                    pullService.One.Pulled += OnPulled;
+                    pullService.One.Pulled += OnOnePulled;
                     await pullService.One.PullAsync(parameterName, cancellation);
                 }
                 else
                 {
                     pullService.Many.ShouldContinueOperation += OnShouldPullingAllFiles;
                     pullService.Many.Pulling += OnPulling;
-                    pullService.Many.Pulled += OnPulled;
+                    pullService.Many.Pulled += OnManyPulled;
+                    
+                    logger.LogInformation("Pulling parameters from '{ProjectName}' project...", project.Name);
                     await pullService.Many.PullAsync(cancellation);
-                    StatusCommand.Handle(project, environment);
+                    
+                    StatusCommand.Handle(project, environment, context);
                 }
 
                 await project.SaveAsync(cancellation);
                 await environment.SaveAsync(cancellation);
-            }
 
-            private void OnPulled(object? sender, PulledOneEventArgs<Parameter> e)
-            {
-                ExtendedConsole.Write($"From ");
-                environmentRenderer.RenderLine(e.Environment);
-                if (e.Change == PulledOneEventArgs<Parameter>.ChangeType.NoChange)
-                    ExtendedConsole.WriteLineIndented($"No change. {e.Resource.Name:blue} already has the server value.");
-                else if (e.Change == PulledOneEventArgs<Parameter>.ChangeType.Created)
-                    ExtendedConsole.WriteLineIndented($"{e.Resource.Name:blue} has been created from the server value {e.Resource.Value:green}.");
-                else
+                void OnOnePulled(object? sender, PulledOneEventArgs<Parameter> e)
                 {
-                    ExtendedConsole.WriteLineIndented($"{e.Resource.Name:blue} has been updated to {e.Resource.Value:green}.");
+                    if (e.Change == PulledOneEventArgs<Parameter>.ChangeType.NoChange)
+                        logger.LogInformation("From {Environment}\nNo change. '{ResourceName}' already has the server value.", e.Environment, e.Resource.Name);
+                    else if (e.Change == PulledOneEventArgs<Parameter>.ChangeType.Created)
+                        logger.LogInformation("From {Environment}\n'{ResourceName}' has been created from the server value '{Value}'.", e.Environment, e.Resource.Name, e.Resource.Value);
+                    else
+                        logger.LogInformation("From {Environment}\n'{ResourceName}' has been updated to '{Value}'.", e.Environment, e.Resource.Name, e.Resource.Value);
                 }
-            }
 
-            private void OnPulled(object? sender, PulledAllEventArgs e)
-            {
-                if (e.Total == 0)
-                    ExtendedConsole.WriteLine($"No parameters found for {e.Project.Name:blue} project.");
-            }
+                void OnManyPulled(object? sender, PulledAllEventArgs e)
+                {
+                    if (e.Total == 0)
+                        logger.LogInformation("No parameters found for '{ProjectName}' project.", e.Project.Name);
+                }
 
-            private void OnPulling(object? sender, PullingEventArgs e)
-            {
-                Console.Clear();
-                ExtendedConsole.WriteLine($"Pulling parameters from {e.Project.Name:blue} project...");
-                if (e.Current.HasValue && e.Total.HasValue && !string.IsNullOrEmpty(e.ResourceName))
-                    ExtendedConsole.WriteLineIndented($"({e.Current}/{e.Total}) pulling {e.ResourceName:blue}");
-            }
+                void OnPulling(object? sender, PullingEventArgs e)
+                {
+                    if (e.Current.HasValue && e.Total.HasValue && !string.IsNullOrEmpty(e.ResourceName))
+                        logger.LogDebug("({Current}/{Total}) pulling '{ResourceName}'", e.Current, e.Total, e.ResourceName);
+                }
 
-            private void OnShouldPullingAllFiles(object? sender, ContinueOperationEventArgs e)
-            {
-                e.Continue = ExtendedConsole.YesOrNo(
-                    $"This operation will pull the server parameters configured as dependencies of {e.Project.Name:blue} project. " +
-                    $"This will overwrite the current local parameters' values, except the ones that do not exist on the server. This is irreversible. " +
-                    $"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
-            }
+                void OnShouldPullingAllFiles(object? sender, ContinueOperationEventArgs e)
+                {
+                    using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
+                    e.Continue = console.YesOrNo(
+                        $"This operation will pull the server parameters configured as dependencies of '{e.Project.Name}' project. " +
+                        $"This will overwrite the current local parameters' values, except the ones that do not exist on the server. This is irreversible. " +
+                        $"Are you sure you want to continue? [y/n]");
+                }
 
-            private void OnShouldPullingOneFile(object? sender, ContinueOperationEventArgs<Parameter> e)
-            {
-                e.Continue = ExtendedConsole.YesOrNo($"This operation will fetch and overwrite the parameter {e.Resource.Name:blue} with the latest server value. This is irreversible. " +
-                    $"Are you sure you want to continue? [y/n]", ConsoleColor.Yellow);
+                void OnShouldPullingOneFile(object? sender, ContinueOperationEventArgs<Parameter> e)
+                {
+                    using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
+                    e.Continue = console.YesOrNo($"This operation will fetch and overwrite the parameter '{e.Resource.Name}' with the latest server value. This is irreversible. " +
+                        $"Are you sure you want to continue? [y/n]");
+                }
             }
         }
     }

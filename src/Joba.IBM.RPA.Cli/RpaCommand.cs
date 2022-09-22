@@ -1,43 +1,30 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
+using System.Reflection;
 
 namespace Joba.IBM.RPA.Cli
 {
     internal class RpaCommand : RootCommand
     {
         public const string CommandName = "rpa";
-        public static readonly Option<Verbosity> VerbosityOption = CreateVerbosityOption();
+        internal const string ServiceName = $"{CommandName} cli";
+        internal static readonly Option<Verbosity> VerbosityOption = CreateVerbosityOption();
+        private static readonly Lazy<string> lazyAssemblyVersion;
+        private static Assembly? assembly;
 
-        private static Option<Verbosity> CreateVerbosityOption()
+        static RpaCommand()
         {
-            var verbosity = new Option<Verbosity>("--verbosity", ParseVerbosity, isDefault: true, description: "Specifies how much output is sent to the console.")
-               .FromAmong(Verbosity.Quiet, Verbosity.Minimal, Verbosity.Normal, Verbosity.Detailed, Verbosity.Diagnostic);
-            verbosity.AddAlias("-v");
-            verbosity.AddValidator(ValidateVerbosity);
-            return verbosity;
-        }
-
-        private static Verbosity ParseVerbosity(ArgumentResult result)
-        {
-            if (result.Tokens.Count == 1)
-                return new Verbosity(result.Tokens[0].Value);
-
-            if (result.Tokens.Count == 1 && result.Tokens[0].Value == "-v")
-                return Verbosity.Diagnostic;
-
-#if DEBUG
-            return Verbosity.Diagnostic;
-#else
-            return Verbosity.Normal;
-#endif
-        }
-
-        private static void ValidateVerbosity(OptionResult result)
-        {
-            //not called
+            lazyAssemblyVersion = new Lazy<string>(() =>
+            {
+                var assembly = GetAssembly();
+                var assemblyVersionAttribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+                if (assemblyVersionAttribute == null)
+                    return assembly.GetName().Version?.ToString() ?? "";
+                else
+                    return assemblyVersionAttribute.InformationalVersion;
+            });
         }
 
         public RpaCommand() : base("Provides features to manage RPA through the command line")
@@ -64,6 +51,29 @@ namespace Joba.IBM.RPA.Cli
                                               context.ParseResult);
 
             context.HelpBuilder.Write(helpContext);
+        }
+
+        private static Assembly GetAssembly() => assembly ??= (Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly());
+        internal static string AssemblyVersion => lazyAssemblyVersion.Value;
+        internal static string AssemblyName => GetAssembly().GetName().Name!;
+        private static Option<Verbosity> CreateVerbosityOption()
+        {
+            var verbosity = new Option<Verbosity>("--verbosity", ParseVerbosity, isDefault: true, description: "Specifies how much output is sent to the console.")
+               .FromAmong(Verbosity.Quiet, Verbosity.Minimal, Verbosity.Normal, Verbosity.Detailed, Verbosity.Diagnostic);
+            verbosity.Arity = ArgumentArity.ZeroOrOne;
+            verbosity.AddAlias("-v");
+            return verbosity;
+
+            static Verbosity ParseVerbosity(ArgumentResult result)
+            {
+                if (result.Tokens.Count == 1)
+                    return new Verbosity(result.Tokens[0].Value);
+
+                if ((result.Parent as OptionResult)?.Token?.Value == "-v")
+                    return Verbosity.Diagnostic;
+
+                return Verbosity.Normal;
+            }
         }
     }
 

@@ -2,11 +2,13 @@
 {
     class RegionSelector
     {
+        private readonly IConsole console;
         private readonly IRpaClientFactory clientFactory;
         private readonly Project project;
 
-        public RegionSelector(IRpaClientFactory clientFactory, Project project)
+        public RegionSelector(IConsole console, IRpaClientFactory clientFactory, Project project)
         {
+            this.console = console;
             this.clientFactory = clientFactory;
             this.project = project;
         }
@@ -19,7 +21,7 @@
             var server = await client.GetConfigurationAsync(cancellation);
             if (!string.IsNullOrEmpty(regionName))
                 return server.GetByName(regionName) ??
-                    PromptToSelectRegion($"The specified region {regionName:red} does not exist. Please select one:", server.Regions);
+                    PromptToSelectRegion($"The specified region '{regionName}' does not exist. Please select one:", server.Regions);
 
             if (server.Regions.Length == 1)
                 return server.Regions[0];
@@ -33,32 +35,23 @@
             if (configured.Count() > 1)
             {
                 var choices = configured.Select(c => c.ToString()).ToArray();
-                var choice = ExtendedConsole.ShowMenu("Please provide the server address", choices);
+                var choice = console.ShowMenu("Please provide the server address", choices);
                 if (!choice.HasValue)
                 {
-                    Console.Write($"Skipped. Type the server address ('{ServerAddress.DefaultOptionName}' to use the default): ");
+                    console.Write($"Skipped. Type the server address ('{ServerAddress.DefaultOptionName}' to use the default): ");
                     return new ServerAddress(Console.ReadLine());
                 }
 
                 return new ServerAddress(choices[choice.Value]);
             }
 
-            Console.Write($"Type the server address ('{ServerAddress.DefaultOptionName}' to use the default): ");
+            console.Write($"Type the server address ('{ServerAddress.DefaultOptionName}' to use the default): ");
             return new ServerAddress(Console.ReadLine());
         }
 
-        private static Region PromptToSelectRegion(string title, Region[] regions)
+        private Region PromptToSelectRegion(string title, Region[] regions)
         {
-            var choice = ExtendedConsole.ShowMenu(title, regions.Select(r => $"[{r.Name}] {r.Description}").ToArray());
-            if (!choice.HasValue)
-                throw new Exception("User skipped region selection");
-
-            return regions[choice.Value];
-        }
-
-        private static Region PromptToSelectRegion(ref ConsoleInterpolatedStringHandler builder, Region[] regions)
-        {
-            var choice = ExtendedConsole.ShowMenu(ref builder, regions.Select(r => $"[{r.Name}] {r.Description}").ToArray());
+            var choice = console.ShowMenu(title, regions.Select(r => $"[{r.Name}] {r.Description}").ToArray());
             if (!choice.HasValue)
                 throw new Exception("User skipped region selection");
 

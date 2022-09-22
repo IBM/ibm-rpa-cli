@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA.Cli
+﻿using Microsoft.Extensions.Logging;
+
+namespace Joba.IBM.RPA.Cli
 {
     [RequiresProject]
     internal class SwitchCommand : Command
@@ -9,25 +11,28 @@
 
             AddArgument(name);
             this.SetHandler(HandleAsync, name,
+                Bind.FromLogger<SwitchCommand>(),
+                Bind.FromServiceProvider<IRpaClientFactory>(),
                 Bind.FromServiceProvider<Project>(),
                 Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private async Task HandleAsync(string environmentName, Project project, InvocationContext context)
+        private async Task HandleAsync(string environmentName, ILogger<SwitchCommand> logger, IRpaClientFactory clientFactory,
+            Project project, InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
             var (switched, environment) = await project.SwitchToAsync(environmentName, cancellation);
-           
+
             if (switched)
             {
-                var client = RpaClientFactory.CreateFromEnvironment(environment);
-                var sessionEnsurer = new SessionEnsurer(client.Account, environment.Session);
+                var client = clientFactory.CreateFromEnvironment(environment);
+                var sessionEnsurer = new SessionEnsurer(context.Console, client.Account, environment.Session);
                 _ = await sessionEnsurer.EnsureAsync(cancellation);
                 await project.SaveAsync(cancellation);
-                ExtendedConsole.WriteLine($"Switched to {environmentName:blue}");
+                logger.LogInformation("Switched to {environmentName}", environmentName);
             }
             else
-                ExtendedConsole.WriteLine($"Already on {environmentName:blue}");
+                logger.LogInformation("Already on {environmentName}", environmentName);
         }
     }
 }

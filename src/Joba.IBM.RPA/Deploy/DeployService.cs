@@ -5,11 +5,11 @@ namespace Joba.IBM.RPA
 {
     public partial class DeployService
     {
-        private readonly ILogger<DeployService> logger;
+        private readonly ILogger logger;
         private readonly IRpaClientFactory clientFactory;
         private readonly Project project;
 
-        public DeployService(ILogger<DeployService> logger, IRpaClientFactory clientFactory, Project project)
+        public DeployService(ILogger logger, IRpaClientFactory clientFactory, Project project)
         {
             this.logger = logger;
             this.clientFactory = clientFactory;

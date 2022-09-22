@@ -6,7 +6,7 @@
     },
     "rpa status": {
       "commandName": "Project",
-      "commandLineArgs": "status -v Normal"
+      "commandLineArgs": "status"
     },
     "rpa --help": {
       "commandName": "Project",
@@ -28,6 +28,10 @@
       "commandName": "Project",
       "commandLineArgs": "project deploy QA --source dev"
     },
+    "rpa env add dev": {
+      "commandName": "Project",
+      "commandLineArgs": "env add dev --url default --region US1 --userName joberto.diniz@ibm.com"
+    },
     "rpa env add QA": {
       "commandName": "Project 123@qwe123@QWE",
       "commandLineArgs": "env add QA --url https://ap1qaapi.wdgautomation.com/v1.0/ --region QA_AP1 --userName owner@wdgautomation.com --tenant 5000"
@@ -38,7 +42,7 @@
     },
     "rpa pull": {
       "commandName": "Project",
-      "commandLineArgs": "pull"
+      "commandLineArgs": "pull -v"
     },
     "rpa pull wal": {
       "commandName": "Project",

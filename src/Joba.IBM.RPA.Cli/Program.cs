@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace Joba.IBM.RPA.Cli
@@ -9,40 +11,21 @@ namespace Joba.IBM.RPA.Cli
     {
         public static Task<int> Main(string[] args)
         {
-            //https://docs.microsoft.com/en-us/dotnet/standard/commandline/
-            //example: https://github.com/dotnet/command-line-api/issues/1776#issuecomment-1165482490
-            //bind class: https://github.com/dotnet/command-line-api/issues/1750#issuecomment-1152707726
-
-            /*
-             * Main purpose: manage "projects" and "environments" (tenants)
-             * Commands ideas
-             * - rpa pull (pulls all the project files - wal & parameters)
-             * - rpa pull <name> (pulls the wal file)
-             * - rpa pull --parameter (pulls only parameters)
-             * - rpa pull <name> --parameter (pulls the parameter)
-             * 
-             * - rpa package source <alias> (add a package source - a tenant where only packages scripts lives - nothing else)
-             *   (to create packages, you can start a "package project" like you would, and "deploy" them to the "package" tenant)
-             *   (to consume packages in other projects, you would use "rpa package install <name>" and that would query the "source alias")
-             *   
-             * - rpa package install <name> (intalls packages from source)
-             * - rpa package restore (restores the packages from source - downloads the files locally into "packages" folder)
-             *   (developers should use 'executeScript' with local files - with 'rpa deploy' we will update the 'executeScript' commands)
-             *   
-             * - rpa deploy <env> (deploys all the scripts, including packages, to the environment)
-             *   (we do not need 'rpa push', because this should be handled by GIT)
-             */
-
+            // dotnet pack -c Release
+            // dotnet tool update --global --add-source ./src/Joba.IBM.RPA.Cli/nupkg rpa
             Directory.CreateDirectory(Constants.LocalFolder);
 
             var parser = new CommandLineBuilder(new RpaCommand())
+                .AddInstrumentation()
+                .RegisterLoggerFactory()
+                .TrackUsage()
                 .UseHelp()
-                .UseSuggestDirective()
+                .UseVersionOption()
                 .RegisterWithDotnetSuggest()
                 .UseTypoCorrections()
                 .UseParseErrorReporting()
-                .UseExceptionHandler(OnException)
                 .CancelOnProcessTermination()
+                .UseExceptionHandler(OnException)
                 .AddMiddleware(Middleware)
                 .Build();
 
@@ -51,70 +34,57 @@ namespace Joba.IBM.RPA.Cli
 
         private static void OnException(Exception exception, InvocationContext context)
         {
-            exception.Trace();
+            var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger<RpaCommand>();
+            logger.LogError(exception, exception.Message);
 
-            using (ExtendedConsole.BeginForegroundColor(ConsoleColor.Red))
-            {
-                Console.WriteLine(exception.Message);
+            PackageAlreadyInstalledException(exception);
+            PackageNotFoundException(exception);
+            PackageException(exception);
 
-                PackageAlreadyInstalledException(exception);
-                PackageNotFoundException(exception);
-                PackageException(exception);
-
-                PackageSourceNotFoundException(exception);
-                PackageSourceException(exception);
-            }
+            PackageSourceNotFoundException(exception);
+            PackageSourceException(exception);
 
             void PackageAlreadyInstalledException(Exception exception)
             {
                 if (exception is PackageAlreadyInstalledException ex)
-                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName} {PackageCommand.UpdatePackageCommand.CommandName} {ex.PackageName}' to update it.");
+                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName} {UpdatePackageCommandName} {PackageName}' to update it.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.UpdatePackageCommand.CommandName, ex.PackageName);
             }
 
             void PackageNotFoundException(Exception exception)
             {
                 if (exception is PackageNotFoundException ex)
-                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName} {PackageCommand.InstallPackageCommand.CommandName} {ex.PackageName}' to install it first.");
+                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName} {InstallPackageCommandName} {PackageName}' to install it first.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.InstallPackageCommand.CommandName, ex.PackageName);
             }
 
             void PackageException(Exception exception)
             {
                 if (exception is PackageException ex)
-                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName}' to manage packages.");
+                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName}' to manage packages.", RpaCommand.CommandName, PackageCommand.CommandName);
             }
 
             void PackageSourceNotFoundException(Exception exception)
             {
                 if (exception is PackageSourceNotFoundException ex)
-                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName} {PackageCommand.PackageSourceCommand.CommandName} {ex.Alias}' to add it first.");
+                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName} {PackageSourceCommandName} {Alias}' to add it first.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.PackageSourceCommand.CommandName, ex.Alias);
             }
 
             void PackageSourceException(Exception exception)
             {
                 if (exception is PackageSourceException ex)
-                    Console.WriteLine($"Use '{RpaCommand.CommandName} {PackageCommand.CommandName} {PackageCommand.PackageSourceCommand.CommandName}' to add package sources.");
+                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName} {PackageSourceCommandName}' to add package sources.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.PackageSourceCommand.CommandName);
             }
         }
 
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
-            InjectLoggerFactory(context);
+            context.BindingContext.AddService<IRpaClientFactory>(s => new RpaClientFactory(context.Console));
 
             if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult &&
                 context.ParseResult.CommandResult.Command != null)
                 await TryLoadProjectAsync(context);
 
             await next(context);
-        }
-
-        private static void InjectLoggerFactory(InvocationContext context)
-        {
-            var verbosity = new Verbosity(context.ParseResult.GetValueForOption(RpaCommand.VerbosityOption));
-            var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole().SetMinimumLevel(verbosity.ToLogLevel());
-            });
-            context.BindingContext.AddService(s => loggerFactory);
         }
 
         private static async Task TryLoadProjectAsync(InvocationContext context)

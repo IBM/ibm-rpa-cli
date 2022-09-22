@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA.Cli
+﻿using Microsoft.Extensions.Logging;
+
+namespace Joba.IBM.RPA.Cli
 {
     partial class PackageCommand
     {
@@ -16,15 +18,19 @@
                 AddOption(version);
                 AddOption(source);
                 this.SetHandler(HandleAsync, name, version, source,
+                    Bind.FromLogger<UpdatePackageCommand>(),
+                    Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
                     Bind.FromServiceProvider<Environment>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string? name, int? version, string? sourceAlias, Project project, Environment environment, InvocationContext context)
+            private async Task HandleAsync(string? name, int? version, string? sourceAlias,
+                ILogger<UpdatePackageCommand> logger, IRpaClientFactory clientFactory,
+                Project project, Environment environment, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var factory = new PackageManagerFactory(new RpaClientFactory());
+                var factory = new PackageManagerFactory(clientFactory);
                 var manager = factory.Create(project, environment, sourceAlias);
 
                 if (version.HasValue && name == null)
@@ -35,37 +41,33 @@
                     var result = await manager.UpdateAllAsync(cancellation);
                     if (result.HasBeenUpdated)
                     {
-                        ExtendedConsole.WriteLine($"Total of {result.Operations.Count()} packages were updated to their latest version:");
-                        foreach (var operation in result.Operations.OrderBy(o => o.Old.Name))
-                            if (operation.HasBeenUpdated)
-                                ExtendedConsole.WriteLineIndented($"{operation.Old.Name,40} {operation.Old.Version} -> {operation.New.Version}", 2);
-
-                        var files = result.Files.ToList();
-                        if (files.Any())
+                        logger.LogInformation("Total of {Count} packages were updated to their latest version.", result.Operations.Count());
+                        if (logger.IsEnabled(LogLevel.Debug))
                         {
-                            ExtendedConsole.WriteLineIndented($"Affected files:");
-                            foreach (var file in files.OrderBy(f => f.Name))
-                                ExtendedConsole.WriteLineIndented($"{file.Info.Name}", 2);
+                            foreach (var operation in result.Operations.OrderBy(o => o.Old.Name))
+                                if (operation.HasBeenUpdated)
+                                    logger.LogDebug("{Name} {Old} -> {New}", operation.Old.Name, operation.Old.Version, operation.New.Version);
+
+                            var files = result.Files.ToList();
+                            if (files.Any())
+                                logger.LogDebug("Affected files: {Files}", string.Join(',', files.OrderBy(f => f.Name).Select(f => f.Info.Name)));
                         }
                     }
                     else
-                        ExtendedConsole.WriteLine($"No action was performed, because either all the packages are already in their latest versions or there are not packages installed.");
+                        logger.LogInformation("No action was performed, because either all the packages are already in their latest versions or there are not packages installed.");
                 }
                 else
                 {
                     var result = await manager.UpdateAsync(name, WalVersion.Create(version), cancellation);
                     if (result.HasBeenUpdated)
                     {
-                        ExtendedConsole.WriteLine($"Package {result.Old.Name:blue} updated from {result.Old.Version} to {result.New.Version:green}.");
-                        if (result.Files.Any())
-                        {
-                            ExtendedConsole.WriteLineIndented($"Affected files:", 2);
-                            foreach (var file in result.Files.OrderBy(f => f.Name))
-                                ExtendedConsole.WriteLineIndented($"{file.Info.Name}");
-                        }
+                        logger.LogInformation("Package '{Name}' updated from {Old} to {New}.", result.Old.Name, result.Old.Version, result.New.Version);
+                        if (logger.IsEnabled(LogLevel.Debug))
+                            if (result.Files.Any())
+                                logger.LogDebug("Affected files: {Files}", result.Files.OrderBy(f => f.Name).Select(f => f.Info.Name));
                     }
                     else
-                        ExtendedConsole.WriteLine($"Package {result.Old.Name:blue} is already on the latest version {result.Old.Version}");
+                        logger.LogInformation("Package '{Name}' is already on the latest version {Version}", result.Old.Name, result.Old.Version);
                 }
             }
         }

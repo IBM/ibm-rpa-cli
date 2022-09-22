@@ -29,9 +29,19 @@
         public IProjectDependencies Dependencies => projectSettings.Dependencies;
         public INames Files => projectSettings.Files;
         public IPackageSources PackageSources => packageSources ??= new PackageSources(projectSettings, userFile, userSettings);
-
         public IEnumerable<Uri> GetConfiguredRemoteAddresses() => projectSettings.Environments.Values.Select(v => v.Address).Distinct();
 
+        public void EnsureCanConfigure(string alias)
+        {
+            if (projectSettings.EnvironmentExists(alias) || (packageSources?.SourceExists(alias)).GetValueOrDefault())
+                throw new ProjectException($"Cannot configure '{alias}' because it's already being used. Aliases need to be unique among environments and package sources.");
+        }
+
+        /// <summary>
+        /// TODO: safely save by saving as ~name and then overwriting the original file
+        /// </summary>
+        /// <param name="cancellation"></param>
+        /// <returns></returns>
         public async Task SaveAsync(CancellationToken cancellation)
         {
             await projectFile.SaveAsync(projectSettings, cancellation);
