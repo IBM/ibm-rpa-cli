@@ -14,6 +14,11 @@
 		<VersionPrefix>1.0.0</VersionPrefix>
 		<VersionSuffix>beta-1</VersionSuffix>
 	</PropertyGroup>
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Joba.IBM.RPA.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
 
 	<ItemGroup>
 	  <Compile Remove="nupkg\**" />

@@ -24,11 +24,30 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Joba.IBM.RPA.Cli\Joba.IBM.RPA.Cli.csproj" />
     <ProjectReference Include="..\Joba.IBM.RPA\Joba.IBM.RPA.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="assets\Assistant_OrangeHRM.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\gitattributes\AddPattern.txt">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+    </None>
+    <None Update="assets\gitattributes\AddPattern.verified.txt">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+    </None>
+    <None Update="assets\gitattributes\UpdatePattern.txt">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\gitattributes\UpdatePattern.verified.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -1,19 +1,14 @@
 ﻿namespace Joba.IBM.RPA.Cli
 {
-    internal class GitCommand : Command
+    internal partial class GitCommand
     {
-        public GitCommand() : base("git", "Provides integration with git")
-        {
-            //TODO: git merge support: https://git-scm.com/docs/git-mergetool
-            AddCommand(new DiffCommand());
-        }
-
         /// <summary>
-        /// git diff support: https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes#Binary-Files
+        /// Read the following to learn how to tell git to handle binary files: https://git-scm.com/book/en/v2/Customizing-Git-Git-Attributes#Binary-Files
         /// </summary>
         internal class DiffCommand : Command
         {
-            public DiffCommand() : base("diff", "Converts the binary wal file to plain text for 'git diff'")
+            internal const string CommandName = "diff";
+            public DiffCommand() : base(CommandName, "Converts the binary wal file to plain text for 'git diff'")
             {
 
                 var gitFile = new Argument<FileInfo>("filePath",

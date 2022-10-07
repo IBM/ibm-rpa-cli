@@ -7,7 +7,7 @@ namespace Joba.IBM.RPA
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     public class WalFile
     {
-        public static readonly string Extension = ".wal";
+        public const string Extension = ".wal";
 
         protected WalFile(FileInfo file, WalFileProto proto)
         {
