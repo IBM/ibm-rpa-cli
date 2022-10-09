@@ -95,6 +95,10 @@
     "rpa git config --remove": {
       "commandName": "Project",
       "commandLineArgs": "git config --remove"
+    },
+    "rpa git merge": {
+      "commandName": "Project",
+      "commandLineArgs": "git merge base.wal local.wal remote.wal merged.wal"
     }
   }
 }

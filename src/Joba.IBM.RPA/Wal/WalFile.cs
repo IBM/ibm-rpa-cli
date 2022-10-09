@@ -70,7 +70,7 @@ namespace Joba.IBM.RPA
             }
         }
 
-        internal void Overwrite(WalContent content)
+        public void Overwrite(WalContent content)
         {
             Content = content;
             Save();
@@ -108,10 +108,12 @@ namespace Joba.IBM.RPA
             Serializer.Serialize(stream, proto);
         }
 
-        internal virtual WalFile Clone()
+        internal virtual WalFile Clone() => CloneTo(Info);
+
+        public WalFile CloneTo(FileInfo file)
         {
             var proto = new WalFileProto { Content = Content.ToString(), Id = Id, ProductVersion = ProductVersion?.ToString(), Version = Version?.ToInt32(), VersionId = VersionId };
-            return new WalFile(Info, proto);
+            return new WalFile(file, proto);
         }
 
         internal WalFile CopyContentsTo(DirectoryInfo info)
@@ -125,7 +127,7 @@ namespace Joba.IBM.RPA
 
         public override string ToString() => Content.ToString();
 
-        internal static WalFile Read(FileInfo file)
+        public static WalFile Read(FileInfo file)
         {
             using var stream = File.OpenRead(file.FullName);
             var proto = Serializer.Deserialize<WalFileProto>(stream);
@@ -211,6 +213,9 @@ namespace Joba.IBM.RPA
         public static bool operator <=(WalVersion left, WalVersion right) => left.version <= right.version;
     }
 
+    /// <summary>
+    /// TODO: this doesn't seem to be working
+    /// </summary>
     public class PackageFile : WalFile
     {
         internal PackageFile(FileInfo file, ScriptVersion version)

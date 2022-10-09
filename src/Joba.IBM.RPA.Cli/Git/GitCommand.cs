@@ -6,10 +6,9 @@
 
         internal GitCommand() : base(CommandName, "Provides integration with git")
         {
-            //TODO: git merge support: https://git-scm.com/docs/git-mergetool
-            //using VSCode: https://code.visualstudio.com/docs/editor/command-line#_core-cli-options
             AddCommand(new ConfigureCommand());
-            AddCommand(new DiffCommand());
+            AddCommand(new DiffCommand() { IsHidden = true });
+            AddCommand(new MergeCommand() { IsHidden = true });
         }
     }
 }
