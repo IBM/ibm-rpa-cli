@@ -14,7 +14,7 @@ namespace Joba.IBM.RPA.Tests
             var gitAttributes = new GitAttributes(file);
 
             //act
-            await gitAttributes.ConfigurePatternAsync(CancellationToken.None);
+            await gitAttributes.ConfigureAsync(CancellationToken.None);
 
             //assert
             await VerifyFile(file)
@@ -31,7 +31,7 @@ namespace Joba.IBM.RPA.Tests
             var gitAttributes = new GitAttributes(file);
 
             //act
-            await gitAttributes.ConfigurePatternAsync(CancellationToken.None);
+            await gitAttributes.ConfigureAsync(CancellationToken.None);
 
             //assert
             await VerifyFile(file)
