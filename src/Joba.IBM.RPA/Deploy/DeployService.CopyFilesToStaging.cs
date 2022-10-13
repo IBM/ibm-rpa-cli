@@ -26,7 +26,7 @@ namespace Joba.IBM.RPA
             {
                 foreach (var sourceFile in source)
                 {
-                    logger.LogInformation("Copying {Source} to {Target}", Path.GetRelativePath(sourceFile.Info.FullName, project.WorkingDirectory.FullName));
+                    logger.LogInformation("Copying {Source} to {Target}", Path.GetRelativePath(sourceFile.Info.FullName, project.WorkingDirectory.FullName), Path.GetRelativePath(staging.Directory.FullName, project.WorkingDirectory.FullName));
                     var stagingFile = staging.Get(sourceFile.Name);
                     if (stagingFile == null)
                         _ = sourceFile.CopyContentsTo(staging.Directory);
