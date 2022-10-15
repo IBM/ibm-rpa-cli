@@ -437,7 +437,7 @@ namespace Joba.IBM.RPA.Cli
                 await File.WriteAllTextAsync(file.FullName, contents.ToString(), cancellation);
             }
 
-            private static string[] GetIgnorePatterns() => new string[] { ".rpa", "*.wad" };
+            private static string[] GetIgnorePatterns() => new string[] { ".rpa", "*.wad", "packages" };
 
             internal async Task RemoveAsync(CancellationToken cancellation)
             {
