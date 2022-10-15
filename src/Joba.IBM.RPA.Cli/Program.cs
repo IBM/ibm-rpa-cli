@@ -11,8 +11,14 @@ namespace Joba.IBM.RPA.Cli
     {
         public static Task<int> Main(string[] args)
         {
+            // [build]
             // dotnet pack -c Release
-            // dotnet tool update --global --add-source ./src/Joba.IBM.RPA.Cli/nupkg rpa
+            // [install]
+            // dotnet tool install --global --add-source ./src/Joba.IBM.RPA.Cli/nupkg --version 0.0.1-beta-6 rpa
+            // [update]
+            // dotnet tool update --global --add-source ./src/Joba.IBM.RPA.Cli/nupkg --version 0.0.1-beta-6 rpa
+            // [uninstall]
+            // dotnet tool uninstall --global rpa
             Directory.CreateDirectory(Constants.LocalFolder);
 
             var parser = new CommandLineBuilder(new RpaCommand())
