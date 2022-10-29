@@ -4,7 +4,7 @@ namespace Joba.IBM.RPA.Cli
 {
     partial class PackageCommand
     {
-        [RequiresProject, RequiresEnvironment]
+        [RequiresProject]
         internal class UpdatePackageCommand : Command
         {
             public const string CommandName = "update";
@@ -21,17 +21,16 @@ namespace Joba.IBM.RPA.Cli
                     Bind.FromLogger<UpdatePackageCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
-                    Bind.FromServiceProvider<Environment>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
             private async Task HandleAsync(string? name, int? version, string? sourceAlias,
                 ILogger<UpdatePackageCommand> logger, IRpaClientFactory clientFactory,
-                Project project, Environment environment, InvocationContext context)
+                Project project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
                 var factory = new PackageManagerFactory(clientFactory);
-                var manager = factory.Create(project, environment, sourceAlias);
+                var manager = factory.Create(project, sourceAlias);
 
                 if (version.HasValue && name == null)
                     throw new InvalidOperationException($"You cannot specify the version without specifying the package name.");
@@ -44,13 +43,9 @@ namespace Joba.IBM.RPA.Cli
                         logger.LogInformation("Total of {Count} packages were updated to their latest version.", result.Operations.Count());
                         if (logger.IsEnabled(LogLevel.Debug))
                         {
-                            foreach (var operation in result.Operations.OrderBy(o => o.Old.Name))
+                            foreach (var operation in result.Operations.OrderBy(o => o.Previous.Name))
                                 if (operation.HasBeenUpdated)
-                                    logger.LogDebug("{Name} {Old} -> {New}", operation.Old.Name, operation.Old.Version, operation.New.Version);
-
-                            var files = result.Files.ToList();
-                            if (files.Any())
-                                logger.LogDebug("Affected files: {Files}", string.Join(',', files.OrderBy(f => f.Name).Select(f => f.Info.Name)));
+                                    logger.LogDebug("{Name} {Previous} -> {New}", operation.Previous.Name, operation.Previous.Version, operation.New.Version);
                         }
                     }
                     else
@@ -60,14 +55,9 @@ namespace Joba.IBM.RPA.Cli
                 {
                     var result = await manager.UpdateAsync(name, WalVersion.Create(version), cancellation);
                     if (result.HasBeenUpdated)
-                    {
-                        logger.LogInformation("Package '{Name}' updated from {Old} to {New}.", result.Old.Name, result.Old.Version, result.New.Version);
-                        if (logger.IsEnabled(LogLevel.Debug))
-                            if (result.Files.Any())
-                                logger.LogDebug("Affected files: {Files}", result.Files.OrderBy(f => f.Name).Select(f => f.Info.Name));
-                    }
+                        logger.LogInformation("Package '{Name}' updated from {Previous} to {New}.", result.Previous.Name, result.Previous.Version, result.New.Version);
                     else
-                        logger.LogInformation("Package '{Name}' is already on the latest version {Version}", result.Old.Name, result.Old.Version);
+                        logger.LogInformation("Package '{Name}' is already on the latest version {Version}", result.Previous.Name, result.Previous.Version);
                 }
             }
         }

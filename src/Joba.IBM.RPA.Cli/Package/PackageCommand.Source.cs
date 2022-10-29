@@ -15,14 +15,16 @@ namespace Joba.IBM.RPA.Cli
                 var region = new Option<string?>("--region", "The region of the package source");
                 var userName = new Option<string?>("--userName", "The user name to authenticate, usually the e-mail, to use for authentication");
                 var tenant = new Option<int?>("--tenant", "The tenant code to use for authentication");
+                var password = new Option<string?>("--password", "The user password.") { IsHidden = true };
 
                 AddArgument(alias);
                 AddOption(url);
                 AddOption(region);
                 AddOption(userName);
                 AddOption(tenant);
+                AddOption(password);
                 this.SetHandler(HandleAsync,
-                    new RemoteOptionsBinder(alias, url, region, userName, tenant),
+                    new RemoteOptionsBinder(alias, url, region, userName, tenant, password),
                     Bind.FromLogger<PackageSourceCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
@@ -39,7 +41,7 @@ namespace Joba.IBM.RPA.Cli
 
                 using var client = clientFactory.CreateFromRegion(region);
                 var accountSelector = new AccountSelector(context.Console, client.Account);
-                var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, cancellation);
+                var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, options.Password, cancellation);
 
                 var package = await project.PackageSources.AddAsync(client.Account, options.Alias, region, credentials, cancellation);
                 await project.SaveAsync(cancellation);

@@ -9,29 +9,30 @@ namespace Joba.IBM.RPA.Cli
             AddCommand(new PushWalCommand());
         }
 
-        [RequiresProject, RequiresEnvironment]
+        [RequiresProject]
         class PushWalCommand : Command
         {
             public PushWalCommand() : base("wal", "Pushes wal files")
             {
-                var fileName = new Argument<string?>("fileName", "The specific wal file name") { Arity = ArgumentArity.ZeroOrOne };
-                AddArgument(fileName);
+                var fileName = new Argument<string>("fileName", "The specific wal file name");
+                var environmentName = new Option<string>("--env", "The alias of the environment to push files to.") { Arity = ArgumentArity.ExactlyOne };
 
-                this.SetHandler(HandleAsync, fileName,
+                AddArgument(fileName);
+                AddOption(environmentName);
+                this.SetHandler(HandleAsync, fileName, environmentName,
                     Bind.FromLogger<PushWalCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
-                    Bind.FromServiceProvider<Environment>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string? fileName, ILogger<PushWalCommand> logger, IRpaClientFactory clientFactory,
-                Project project, Environment environment, InvocationContext context)
+            private async Task HandleAsync(string fileName, string environmentName, ILogger<PushWalCommand> logger, IRpaClientFactory clientFactory,
+                Project project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
                 var console = context.Console;
-                var client = clientFactory.CreateFromEnvironment(environment);
-                var pushService = new WalPushService(client, project, environment);
+                var client = clientFactory.CreateFromEnvironment(project.Environments[environmentName]);
+                var pushService = new WalPushService(client, project, environmentName);
 
                 if (!string.IsNullOrEmpty(fileName))
                 {

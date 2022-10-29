@@ -1,0 +1,69 @@
+ædefVar --name language --type Language
+defVar --name chat --type ChatData
+defVar --name messages --type Stack --innertype String
+defVar --name success --type Boolean
+defVar --name userAnswer --type String
+defVar --name nextSentence --type String
+defVar --name userName --type String
+defVar --name timeoutOptions --type List --innertype String --value "[What else can I help you with?,Anything else?,Ask away...,Any questions?,May I help you with anything else?]"
+defVar --name random --type Numeric
+defVar --name timeoutQtd --type Numeric
+defVar --name utterance --type String
+defVar --name timedOut --type Boolean
+defVar --name workingDirectory --type String
+//************************************
+//Template for a chatbot
+//- Continue you logic from line 49, within 'Core' routine.
+//************************************
+//Set the working directory where all local .wal files are located. Use 'workingDirectory' variable in the 'executeScript' to reference the scripts.
+//- This will ensure your dev team only have to change one variable (workingDirectory) to run the project.
+//- DO NOT publish or use published scripts in the 'executeScript'. The build process will buil ONE script with all the local referenced dependencies.
+//- To store the source code .wal files, use GIT. Do not use the Control Center to store the .wal files.
+setVar --name "${workingDirectory}" --value "C:\\Users"
+//************************************
+onError --label HandleErrorWrapper
+setTimeout --timeout 00:00:45
+createLanguage --culture "en-US" language=value
+botConnect --type "Chat" --language ${language} --messages ${messages} --autoanswer  --timeout "00:00:30" chat=chat
+	setVar --name "${userName}" --value "${chat.From.Name}"
+	setVar --name "${nextSentence}" --value "How may I assist you today, **${userName}**?"
+	repeat
+		goSub --label Core
+	until --left true --operator "Is_True"
+botDisconnect
+beginSub --name Core
+pop --collection "${messages}" --handleerror  success=success userAnswer=value
+if --left "${success}" --operator "Is_True"
+	//TODO: the user said something before the chat was loaded, so you need to provide the answer here. The 'userAnswer' holds what the user said.
+	botAsk --timeoutsub TimeoutWaitingForAnswer --beep  --text "You said **${userAnswer}**" --textformat "Markdown" userAnswer=value utterance=utterance timedOut=timedout success=success
+else
+	botAsk --timeoutsub TimeoutWaitingForAnswer --beep  --text "${nextSentence}" --textformat "Markdown" userAnswer=value utterance=utterance timedOut=timedout success=success
+	if --left "${success}" --operator "Is_True" --negate 
+		return
+	endIf
+endIf
+
+//TODO: write the rest of your logic from here
+//NOTE: whatever you do from now one, just set the 'nextSentence' variable and the loop will continue
+//NOTE: if you want to use 'botAskBoolean' or any 'botAskXXX', you would need to SKIP the 'nextSentence' logic flow by creating a 'skipSentence' variable and setting it to true.
+setVar --name "${nextSentence}" --value "The user said: **${userAnswer}**"
+endSub
+beginSub --name TimeoutWaitingForAnswer
+incrementVar --number ${timeoutQtd}
+if --left "${timeoutQtd}" --operator "Equal_To" --right 3
+	botSay --text "Okay, see you next time" --textformat "0"
+	stopExecution
+else
+	//pick a "can I help with anything else" sentence from the options
+	generateRandomNumber --minimum 1 --maximum ${timeoutOptions.Count} random=value
+	get --collection "${timeoutOptions}" --index "${random}" nextSentence=value
+endIf
+endSub
+beginSub --name HandleErrorWrapper
+logMessage --message "HandleErrorWrapper was called" --type "Info"
+goSub --label HandleError
+recover
+endSub
+beginSub --name HandleError
+setVar --name "${nextSentence}" --value "Sorry, it looks like my programming is broken.\r\nHere\'s the information to pass to my creators:\r\n\r\nError ${rpa:error.Message} in ${rpa:error.LineNumber} ${rpa:error.Command}"
+endSub*21.0.5.0

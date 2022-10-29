@@ -3,22 +3,22 @@
     public class PullService
     {
         private readonly Project project;
-        private readonly Environment environment;
+        private readonly string alias;
         private readonly IEnumerable<IPullMany> services;
 
-        public PullService(Project project, Environment environment, params IPullMany[] services)
+        public PullService(Project project, string alias, params IPullMany[] services)
         {
             this.project = project;
-            this.environment = environment;
+            this.alias = alias;
             this.services = services;
         }
 
         public event EventHandler<ContinueOperationEventArgs>? ShouldContinueOperation;
         public event EventHandler<PullingEventArgs>? Pulling;
 
-        public async Task PullAsync(CancellationToken cancellation)
+        public async Task PullAsync(NamePattern pattern, CancellationToken cancellation)
         {
-            var args = new ContinueOperationEventArgs { Project = project, Environment = environment };
+            var args = new ContinueOperationEventArgs { Project = project, Alias = alias, Pattern = pattern };
             ShouldContinueOperation?.Invoke(this, args);
             if (!args.Continue.HasValue)
                 throw new OperationCanceledException("User did not provide an answer");
@@ -29,7 +29,7 @@
             {
                 service.ShouldContinueOperation += OnShouldContinueOperation;
                 service.Pulling += OnPulling;
-                await service.PullAsync(cancellation);
+                await service.PullAsync(pattern, cancellation);
             }
         }
 
@@ -53,7 +53,7 @@
         event EventHandler<ContinueOperationEventArgs>? ShouldContinueOperation;
         event EventHandler<PullingEventArgs>? Pulling;
         event EventHandler<PulledAllEventArgs>? Pulled;
-        Task PullAsync(CancellationToken cancellation);
+        Task PullAsync(NamePattern pattern, CancellationToken cancellation);
     }
 
     public interface IPushOne<T>
@@ -71,13 +71,14 @@
     public class ContinueOperationEventArgs : EventArgs
     {
         public required Project Project { get; init; }
-        public required Environment Environment { get; init; }
+        public required NamePattern Pattern { get; init; }
+        public required string Alias { get; init; }
         public bool? Continue { get; set; }
     }
 
     public class PullingEventArgs : DownloadingEventArgs
     {
-        public required Environment Environment { get; init; }
+        public required string Alias { get; init; }
         public int? Total { get; init; }
         public int? Current { get; init; }
     }
@@ -90,7 +91,8 @@
 
     public class PulledAllEventArgs : DownloadedEventArgs
     {
-        public required Environment Environment { get; init; }
+        public required NamePattern Pattern { get; init; }
+        public required string Alias { get; init; }
     }
 
     public class DownloadedEventArgs : EventArgs
@@ -102,26 +104,26 @@
     public class PulledOneEventArgs<T> : EventArgs
     {
         public required Project Project { get; init; }
-        public required Environment Environment { get; init; }
+        public required string Alias { get; init; }
         public required ChangeType Change { get; init; }
         public required T Resource { get; init; }
         public T? Previous { get; init; }
 
-        public static PulledOneEventArgs<T> Created(Environment environment, Project project, T resource) =>
-            Factory(ChangeType.Created, environment, project, resource, default);
+        public static PulledOneEventArgs<T> Created(string alias, Project project, T resource) =>
+            Factory(ChangeType.Created, alias, project, resource, default);
 
-        public static PulledOneEventArgs<T> Updated(Environment environment, Project project, T resource, T previous) =>
-            Factory(ChangeType.Updated, environment, project, resource, previous);
+        public static PulledOneEventArgs<T> Updated(string alias, Project project, T resource, T previous) =>
+            Factory(ChangeType.Updated, alias, project, resource, previous);
 
-        public static PulledOneEventArgs<T> NoChange(Environment environment, Project project, T resource) =>
-            Factory(ChangeType.NoChange, environment, project, resource, default);
+        public static PulledOneEventArgs<T> NoChange(string alias, Project project, T resource) =>
+            Factory(ChangeType.NoChange, alias, project, resource, default);
 
-        private static PulledOneEventArgs<T> Factory(ChangeType change, Environment environment, Project project, T resource, T? previous)
+        private static PulledOneEventArgs<T> Factory(ChangeType change, string alias, Project project, T resource, T? previous)
         {
             return new PulledOneEventArgs<T>
             {
                 Change = change,
-                Environment = environment,
+                Alias = alias,
                 Project = project,
                 Resource = resource,
                 Previous = previous
@@ -134,7 +136,7 @@
     public class PushedOneEventArgs<T> : EventArgs
     {
         public required Project Project { get; init; }
-        public required Environment Environment { get; init; }
+        public required string EnvironmentAlias { get; init; }
         public required T Resource { get; init; }
     }
 }

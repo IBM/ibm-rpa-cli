@@ -26,8 +26,9 @@ namespace Joba.IBM.RPA
 
         internal async Task SaveAsync(ProjectSettings projectSettings, CancellationToken cancellation)
         {
+            var serializer = JsonSerializerOptionsFactory.CreateForProject(rpaDir.Parent!);
             using var stream = new FileStream(FullPath, FileMode.Create);
-            await JsonSerializer.SerializeAsync(stream, projectSettings, JsonSerializerOptionsFactory.SerializerOptions, cancellation);
+            await JsonSerializer.SerializeAsync(stream, projectSettings, serializer, cancellation);
         }
 
         internal static async Task<(ProjectFile?, ProjectSettings?)> TryLoadAsync(DirectoryInfo workingDir, CancellationToken cancellation)
@@ -38,8 +39,9 @@ namespace Joba.IBM.RPA
             if (!file.Value.Exists || !file.Value.RpaDirectory.Exists)
                 return (file, null);
 
+            var serializer = JsonSerializerOptionsFactory.CreateForProject(workingDir);
             using var stream = File.OpenRead(file.Value.FullPath);
-            var settings = await JsonSerializer.DeserializeAsync<ProjectSettings>(stream, JsonSerializerOptionsFactory.SerializerOptions, cancellation)
+            var settings = await JsonSerializer.DeserializeAsync<ProjectSettings>(stream, serializer, cancellation)
                 ?? throw new Exception($"Could not load project '{file.Value.ProjectName}' from '{file}'");
 
             return (file, settings);
@@ -65,28 +67,23 @@ namespace Joba.IBM.RPA
 
     internal class ProjectSettings
     {
-        public ProjectSettings() { }
+        /// <summary>
+        /// NOTE: used by Json serializer. The 'workingDirectory' is set by our custom JsonConverter.
+        /// </summary>
+        internal ProjectSettings() { }
+        internal ProjectSettings(DirectoryInfo workingDirectory) => Packages = new PackageReferences(workingDirectory);
 
-        internal string? CurrentEnvironment { get; set; } = string.Empty;
         internal Dictionary<string, RemoteSettings> Environments { get; init; } = new Dictionary<string, RemoteSettings>();
-        internal INames Files { get; init; } = new NamePatternList();
-        internal ProjectDependencies Dependencies { get; init; } = new ProjectDependencies();
 
-        internal void Configure(NamePattern pattern)
-        {
-            Files.Add(pattern);
-            Dependencies.Configure(pattern);
-        }
+        /// <summary>
+        /// NOTE: polymorphic serialization/deserialization: https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/polymorphism?pivots=dotnet-7-0
+        /// </summary>
+        internal Robots Robots { get; init; } = new Robots();
+        internal PackageReferences Packages { get; init; }
+        internal ParameterRepository Parameters { get; init; } = new ParameterRepository();
 
         internal void MapEnvironment(string alias, RemoteSettings remote) => Environments.Add(alias, remote);
         internal bool EnvironmentExists(string alias) => Environments.ContainsKey(alias);
-        internal DirectoryInfo GetDirectory(string alias, DirectoryInfo workingDir)
-        {
-            if (!EnvironmentExists(alias))
-                throw new Exception($"The environment '{alias}' does not exist");
-
-            return new DirectoryInfo(Path.GetRelativePath(workingDir.FullName, Environments[alias].TenantName));
-        }
     }
 
     public class RemoteSettings

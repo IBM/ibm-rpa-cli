@@ -15,16 +15,15 @@
             };
             @default.Converters.Add(new WalVersionJsonConverter());
             @default.Converters.Add(new NamePatternJsonConverter());
-            @default.Converters.Add(new NamePatternListJsonConverterFactory());
             @default.Converters.Add(new ParameterLocalRepositoryJsonConverterFactory());
-            @default.Converters.Add(new PackageReferencesJsonConverterFactory());
+            @default.Converters.Add(new RobotsJsonConverterFactory());
             return @default;
         }
 
-        internal static JsonSerializerOptions CreateForEnvironmentDependencies(DirectoryInfo environmentDirectory)
+        internal static JsonSerializerOptions CreateForProject(DirectoryInfo workingDirectory)
         {
             var options = CreateDefault();
-            options.TypeInfoResolver = new EnvironmentDependenciesJsonTypeInfoResolver(environmentDirectory);
+            options.Converters.Add(new PackageReferencesJsonConverterFactory(workingDirectory));
             return options;
         }
 

@@ -4,7 +4,7 @@ namespace Joba.IBM.RPA.Cli
 {
     partial class PackageCommand
     {
-        [RequiresProject, RequiresEnvironment]
+        [RequiresProject]
         internal class InstallPackageCommand : Command
         {
             public const string CommandName = "install";
@@ -21,12 +21,11 @@ namespace Joba.IBM.RPA.Cli
                     Bind.FromLogger<InstallPackageCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
-                    Bind.FromServiceProvider<Environment>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
             private async Task HandleAsync(string name, int? version, string? sourceAlias, ILogger<InstallPackageCommand> logger, IRpaClientFactory clientFactory,
-                Project project, Environment environment, InvocationContext context)
+                Project project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
 
@@ -35,7 +34,7 @@ namespace Joba.IBM.RPA.Cli
                     throw new Exception($"You cannot specify the version if you're using '*' in the package name.");
 
                 var factory = new PackageManagerFactory(clientFactory);
-                var manager = factory.Create(project, environment, sourceAlias);
+                var manager = factory.Create(project, sourceAlias);
                 if (version.HasValue)
                 {
                     var package = await manager.InstallAsync(pattern.Name, new WalVersion(version.Value), cancellation);

@@ -4,29 +4,13 @@
       "commandName": "Project",
       "commandLineArgs": ""
     },
-    "rpa status": {
-      "commandName": "Project",
-      "commandLineArgs": "status"
-    },
-    "rpa --help": {
-      "commandName": "Project",
-      "commandLineArgs": "env --help"
-    },
     "rpa project new assistant": {
       "commandName": "Project",
       "commandLineArgs": "project new Assistant"
     },
-    "rpa project new assistant --env": {
+    "rpa bot new Assistant --type": {
       "commandName": "Project",
-      "commandLineArgs": "project new Assistant --env dev --url default"
-    },
-    "rpa project init": {
-      "commandName": "Project",
-      "commandLineArgs": "project init"
-    },
-    "rpa project deploy QA": {
-      "commandName": "Project",
-      "commandLineArgs": "project deploy QA --source dev"
+      "commandLineArgs": "bot new Assistant --type chatbot"
     },
     "rpa env add dev": {
       "commandName": "Project",
@@ -36,21 +20,17 @@
       "commandName": "Project 123@qwe123@QWE",
       "commandLineArgs": "env add QA --url https://ap1qaapi.wdgautomation.com/v1.0/ --region QA_AP1 --userName owner@wdgautomation.com --tenant 5000"
     },
-    "rpa switch dev": {
-      "commandName": "Project",
-      "commandLineArgs": "switch dev"
-    },
     "rpa pull": {
       "commandName": "Project",
-      "commandLineArgs": "pull -v"
+      "commandLineArgs": "pull Assistant* -v --env dev"
     },
     "rpa pull wal": {
       "commandName": "Project",
-      "commandLineArgs": "pull wal"
+      "commandLineArgs": "pull Assistant* --env dev --type wal"
     },
     "rpa pull parameter": {
       "commandName": "Project",
-      "commandLineArgs": "pull parameter"
+      "commandLineArgs": "pull Assistant* --env dev --type parameter"
     },
     "rpa package source joba": {
       "commandName": "Project",
@@ -95,6 +75,6 @@
     "rpa git config --remove": {
       "commandName": "Project",
       "commandLineArgs": "git config --remove"
-    },
+    }
   }
 }

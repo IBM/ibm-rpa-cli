@@ -16,7 +16,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-			<_Parameter1>Joba.IBM.RPA.Tests</_Parameter1>
+			<_Parameter1>$(AssemblyName).Tests</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
 
@@ -24,6 +24,12 @@
 	  <Compile Remove="nupkg\**" />
 	  <EmbeddedResource Remove="nupkg\**" />
 	  <None Remove="nupkg\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Templates\chatbot.wal">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>

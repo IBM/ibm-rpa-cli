@@ -1,47 +1,92 @@
 ﻿namespace Joba.IBM.RPA
 {
-    internal class PackageReferences : ILocalRepository<PackageMetadata>
+    internal class PackageReferences : IPackages
     {
-        private readonly IDictionary<string, PackageMetadata> mappings;
+        private readonly DirectoryInfo packageDirectory;
+        private readonly IDictionary<string, PackageMetadata> references;
 
-        internal PackageReferences()
-            : this(new Dictionary<string, WalVersion>()) { }
+        internal PackageReferences(DirectoryInfo workingDirectory)
+            : this(workingDirectory, new Dictionary<string, WalVersion>()) { }
 
-        internal PackageReferences(IDictionary<string, WalVersion> packages)
+        internal PackageReferences(DirectoryInfo workingDirectory, IDictionary<string, WalVersion> packages)
         {
-            mappings = packages.Select(p => new PackageMetadata(p.Key, p.Value)).ToDictionary(k => k.Name, v => v);
+            packageDirectory = new DirectoryInfo(Path.Combine(workingDirectory.FullName, "packages"));
+            references = packages.Select(p => new PackageMetadata(p.Key, p.Value)).ToDictionary(k => k.Name, v => v);
         }
 
-        void ILocalRepository<PackageMetadata>.AddOrUpdate(params PackageMetadata[] packages)
-        {
-            foreach (var package in packages)
-            {
-                if (mappings.ContainsKey(package.Name))
-                    mappings[package.Name] = package;
-                else
-                    mappings.Add(package.Name, package);
-            }
-        }
+        PackageMetadata? IPackages.Get(string name) => references.TryGetValue(name, out var value) ? value : null;
 
-        void ILocalRepository<PackageMetadata>.Update(PackageMetadata package)
+        WalFile IPackages.Install(Package package)
         {
-            if (mappings.ContainsKey(package.Name))
-                mappings[package.Name] = package;
+            EnsureDirectory();
+            if (references.ContainsKey(package.Metadata.Name))
+                references[package.Metadata.Name] = package.Metadata;
             else
-                throw new Exception($"Could not update the package '{package.Name}' because it does not exist.");
+                references.Add(package.Metadata.Name, package.Metadata);
+
+            return WalFileFactory.CreateAsPackage(GetFile(package.Metadata), package.Script);
         }
 
-        PackageMetadata? ILocalRepository<PackageMetadata>.Get(string name) =>
-            mappings.TryGetValue(name, out var value) ? value : null;
-        void ILocalRepository<PackageMetadata>.Remove(string name) => mappings.Remove(name);
-        void ILocalRepository<PackageMetadata>.Clear() => mappings.Clear();
+        void IPackages.Uninstall(PackageMetadata metadata)
+        {
+            var file = GetFile(metadata);
+            references.Remove(metadata.Name);
+            File.Delete(file.FullName);
+        }
 
-        public IEnumerator<PackageMetadata> GetEnumerator() => mappings.Values.GetEnumerator();
+        void IPackages.UninstallAll()
+        {
+            packageDirectory.Delete(true);
+            references.Clear();
+        }
+
+        WalFile IPackages.Restore(Package package)
+        {
+            EnsureDirectory();
+            return WalFileFactory.CreateAsPackage(GetFile(package.Metadata), package.Script);
+        }
+
+        UpdatePackageOperation IPackages.Update(Package package)
+        {
+            var previous = references[package.Metadata.Name];
+            references[package.Metadata.Name] = package.Metadata;
+            _ = WalFileFactory.CreateAsPackage(GetFile(package.Metadata), package.Script);
+            return new UpdatePackageOperation(previous, package.Metadata);
+        }
+
+        IEnumerable<WalFile> IPackages.EnumerateFiles()
+        {
+            EnsureDirectory();
+            return packageDirectory
+                .EnumerateFiles(WalFile.Extension, SearchOption.TopDirectoryOnly)
+                .Where(f => references.ContainsKey(Path.GetFileNameWithoutExtension(f.Name)))
+                .Select(WalFile.Read);
+        }
+
+        private void EnsureDirectory()
+        {
+            if (!packageDirectory.Exists)
+                packageDirectory.Create();
+        }
+        private FileInfo GetFile(PackageMetadata metadata) => new(Path.Combine(packageDirectory.FullName, $"{metadata.Name}{WalFile.Extension}"));
+
+        public IEnumerator<PackageMetadata> GetEnumerator() => references.Values.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    public record class PackageMetadata(string Name, WalVersion Version);
+    public interface IPackages : IEnumerable<PackageMetadata>
+    {
+        PackageMetadata? Get(string name);
+        WalFile Install(Package package);
+        void Uninstall(PackageMetadata metadata);
+        void UninstallAll();
+        UpdatePackageOperation Update(Package package);
+        WalFile Restore(Package package);
+        IEnumerable<WalFile> EnumerateFiles();
+    }
 
+    public record class PackageMetadata(string Name, WalVersion Version);
+    public record class InstalledPackage(PackageMetadata Metadata, WalFile Wal);
     public record class Package(PackageMetadata Metadata, ScriptVersion Script)
     {
         public static Package From(ScriptVersion version) =>

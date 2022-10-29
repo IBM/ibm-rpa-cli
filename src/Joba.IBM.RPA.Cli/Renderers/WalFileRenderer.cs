@@ -3,22 +3,21 @@
     class WalFileRenderer
     {
         private readonly IConsole console;
-        private readonly Project project;
+        private readonly int padding;
 
-        public WalFileRenderer(IConsole console, Project project)
+        public WalFileRenderer(IConsole console, int padding)
         {
             this.console = console;
-            this.project = project;
+            this.padding = padding;
         }
 
         public void Render(WalFile wal)
         {
-            var isTracked = project.Files.IsTracked(wal.Name);
-            var color = isTracked ? Console.ForegroundColor : ConsoleColor.Red;
+            var color = wal.IsFromServer ? Console.ForegroundColor : ConsoleColor.Red;
             var version = wal.Version.HasValue ? wal.Version.Value.ToString("D3") : "---";
 
             using (console.BeginForegroundColor(color))
-                console.WriteLineIndented($"{wal.Info.Name,-40} {version}");
+                console.WriteLineIndented($"{wal.Info.Name,-40} {version}", padding);
         }
     }
 }

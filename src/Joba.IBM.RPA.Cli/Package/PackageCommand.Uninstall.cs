@@ -4,7 +4,7 @@ namespace Joba.IBM.RPA.Cli
 {
     partial class PackageCommand
     {
-        [RequiresProject, RequiresEnvironment]
+        [RequiresProject]
         internal class UninstallPackageCommand : Command
         {
             public const string CommandName = "uninstall";
@@ -17,16 +17,15 @@ namespace Joba.IBM.RPA.Cli
                     Bind.FromLogger<UninstallPackageCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<Project>(),
-                    Bind.FromServiceProvider<Environment>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
             private async Task HandleAsync(string? name, ILogger<UninstallPackageCommand> logger, IRpaClientFactory clientFactory,
-                Project project, Environment environment, InvocationContext context)
+                Project project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
                 var factory = new PackageManagerFactory(clientFactory);
-                var manager = factory.Create(project, environment);
+                var manager = factory.Create(project);
 
                 IEnumerable<PackageMetadata> packages;
                 if (name == null)

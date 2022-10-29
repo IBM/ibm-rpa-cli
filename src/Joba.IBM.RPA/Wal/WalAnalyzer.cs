@@ -1,7 +1,30 @@
-﻿using System.Text.RegularExpressions;
+﻿using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 namespace Joba.IBM.RPA
 {
+    internal class WalBuilder
+    {
+        private readonly ILogger logger;
+        private readonly Project project;
+
+        internal WalBuilder(ILogger logger, Project project)
+        {
+            this.logger = logger;
+            this.project = project;
+        }
+
+        internal async Task<BuildResult> BuildAsync(WalFile wal, DirectoryInfo outputDirectory, CancellationToken cancellation)
+        {
+            //TODO: get installed packages
+            //TODO: get all the files except 'this one' - the one we're building
+            //TODO: find all package and files' references within the 'one' we're building and embed them within 1 file
+            throw new NotImplementedException();
+        }
+    }
+
+    public record struct BuildResult(WalFile[] Wals, TimeSpan Time);
+
     internal class WalAnalyzer
     {
         private readonly WalLines lines;

@@ -44,12 +44,19 @@ namespace Joba.IBM.RPA.Cli
             var logger = loggerFactory.CreateLogger<RpaCommand>();
             logger.LogError(exception, exception.Message);
 
+            EnvironmentException(exception);
             PackageAlreadyInstalledException(exception);
             PackageNotFoundException(exception);
             PackageException(exception);
 
             PackageSourceNotFoundException(exception);
             PackageSourceException(exception);
+
+            void EnvironmentException(Exception exception)
+            {
+                if (exception is EnvironmentException ex)
+                    logger.LogInformation("Use '{RpaCommandName} {EnvironmentCommand} {AddEnvironmentCommand} {Alias}' to configure it.", RpaCommand.CommandName, EnvironmentCommand.CommandName, EnvironmentCommand.AddEnvironmentCommand.CommandName, ex.Alias);
+            }
 
             void PackageAlreadyInstalledException(Exception exception)
             {
@@ -96,26 +103,28 @@ namespace Joba.IBM.RPA.Cli
         private static async Task TryLoadProjectAsync(InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
+            var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
             var commandType = context.ParseResult.CommandResult.Command.GetType();
-            var project = await ProjectFactory.TryLoadFromCurrentDirectoryAsync(cancellation);
+            var logger = loggerFactory.CreateLogger(commandType);
+            var project = await ProjectFactory.TryLoadFromCurrentDirectoryAsync(logger, cancellation);
             if (commandType.GetCustomAttribute<RequiresProjectAttribute>() != null && project == null)
                 throw ProjectException.ThrowRequired(System.Environment.CommandLine);
 
             if (project != null)
             {
                 context.BindingContext.AddService(s => project);
-                await TryLoadEnvironmentAsync(context, project, commandType, cancellation);
+                //await TryLoadEnvironmentAsync(context, project, commandType, cancellation);
             }
         }
 
-        private static async Task TryLoadEnvironmentAsync(InvocationContext context, Project project, Type commandType, CancellationToken cancellation)
-        {
-            var environment = await project.GetCurrentEnvironmentAsync(cancellation);
-            if (commandType.GetCustomAttribute<RequiresEnvironmentAttribute>() != null && environment == null)
-                throw EnvironmentException.ThrowRequired(System.Environment.CommandLine);
+        //private static async Task TryLoadEnvironmentAsync(InvocationContext context, Project project, Type commandType, CancellationToken cancellation)
+        //{
+        //    var environment = await project.GetCurrentEnvironmentAsync(cancellation);
+        //    if (commandType.GetCustomAttribute<RequiresEnvironmentAttribute>() != null && environment == null)
+        //        throw EnvironmentException.ThrowRequired(System.Environment.CommandLine);
 
-            if (environment != null)
-                context.BindingContext.AddService(s => environment);
-        }
+        //    if (environment != null)
+        //        context.BindingContext.AddService(s => environment);
+        //}
     }
 }

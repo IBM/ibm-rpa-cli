@@ -31,11 +31,11 @@ namespace Joba.IBM.RPA.Cli
         {
             AddGlobalOption(VerbosityOption);
             AddCommand(new ProjectCommand());
+            AddCommand(new RobotCommand());
             AddCommand(new EnvironmentCommand());
-            AddCommand(new StatusCommand());
+            //AddCommand(new StatusCommand());
             AddCommand(new PullCommand());
             AddCommand(new PushCommand());
-            AddCommand(new SwitchCommand());
             AddCommand(new PackageCommand());
             AddCommand(new GitCommand());
 

@@ -24,12 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Joba.IBM.RPA.Cli\Joba.IBM.RPA.Cli.csproj" />
     <ProjectReference Include="..\Joba.IBM.RPA\Joba.IBM.RPA.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="assets\Assistant_OrangeHRM.txt">
+    <None Update="assets\wal\Assistant_OrangeHRM.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="assets\gitattributes\AddPattern.txt">

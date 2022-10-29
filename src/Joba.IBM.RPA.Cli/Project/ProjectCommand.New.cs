@@ -8,36 +8,39 @@ namespace Joba.IBM.RPA.Cli
         {
             public NewProjectCommand() : base("new", "Creates a RPA project in the current directory")
             {
-                var name = new Argument<string>("name", "The project name. This will be used as the pattern to fetch wal files if '--pattern' is not specified.");
-                var pattern = new Option<string?>("--pattern", "Specifies the pattern to fetch files, e.g 'Assistant*'");
-                var serverUrl = new Option<string?>("--url", $"The server domain url. You can specify '{ServerAddress.DefaultOptionName}' to use {ServerAddress.DefaultUrl}");
-                var environmentName = new Option<string?>("--env", "Specifies the first environment to set up after the project is created.");
+                var name = new Argument<string>("name", "The project name.");
 
                 AddArgument(name);
-                AddOption(pattern);
-                AddOption(serverUrl);
-                AddOption(environmentName);
-                this.SetHandler(HandleAsync, name, pattern, serverUrl, environmentName,
+                this.SetHandler(HandleAsync, name,
                     Bind.FromLogger<NewProjectCommand>(),
-                    Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string name, string? pattern, string? serverUrl, string? environmentName,
-                ILogger<NewProjectCommand> logger, IRpaClientFactory clientFactory, InvocationContext context)
+            private async Task HandleAsync(string name, ILogger<NewProjectCommand> logger, InvocationContext context)
             {
-                var cancellation = context.GetCancellationToken();
-                var project = ProjectFactory.CreateFromCurrentDirectory(name, new NamePattern(pattern ?? name + "*"));
+                var handler = new NewProjectHandler(logger);
+                await handler.HandleAsync(new DirectoryInfo(System.Environment.CurrentDirectory), name, context.GetCancellationToken());
+            }
+        }
+
+        internal class NewProjectHandler
+        {
+            private readonly ILogger logger;
+
+            public NewProjectHandler(ILogger logger)
+            {
+                this.logger = logger;
+            }
+
+            internal async Task HandleAsync(DirectoryInfo workingDir, string name, CancellationToken cancellation)
+            {
+                var project = ProjectFactory.Create(logger, workingDir, name);
                 await project.SaveAsync(cancellation);
 
-                if (string.IsNullOrEmpty(environmentName))
-                    logger.LogInformation("Project '{ProjectName}' has been initialized. Use '{RpaCommandName} {EnvironmentCommandName} {AddEnvironmentCommandName}' to add environments.",
-                        project.Name, RpaCommand.CommandName, EnvironmentCommand.CommandName, EnvironmentCommand.AddEnvironmentCommand.CommandName);
-                else
-                {
-                    var command = new EnvironmentCommand.AddEnvironmentCommand();
-                    await command.HandleAsync(new RemoteOptions(environmentName, new ServerAddress(serverUrl)), logger, clientFactory, project, context);
-                }
+                //TODO: create "build" command
+                //logger.LogInformation("Project '{ProjectName}' has been initialized. Use '{RpaCommandName} {BuildCommand} <bot-name>' to build scripts into bots.",
+                //    project.Name, RpaCommand.CommandName, BuildCommand.CommandName);
+                logger.LogInformation("Project '{ProjectName}' has been initialized.", project.Name);
             }
         }
     }

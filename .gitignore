@@ -389,3 +389,6 @@ FodyWeavers.xsd
 
 # VerifyTests files
 *.received.*
+
+# IBM RPA files
+*.wad

@@ -5,8 +5,8 @@
         public ProjectCommand() : base("project", "Manages RPA projects")
         {
             AddCommand(new NewProjectCommand());
-            AddCommand(new InitializeProjectCommand());
-            AddCommand(new DeployCommand());
+            //AddCommand(new InitializeProjectCommand());
+            //AddCommand(new DeployCommand());
         }
     }
 }

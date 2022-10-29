@@ -6,7 +6,7 @@ namespace Joba.IBM.RPA.Tests
         [Fact]
         public Task FindAndReplaceTwoPackages_OneWithVersion_OneWithoutVersion()
         {
-            var directoryName = "assets";
+            var directoryName = "assets/wal";
             var fileName = "Assistant_OrangeHRM.txt";
             var packageVersion = new WalVersion(30);
             var wal = new WalContent(File.ReadAllText($"{directoryName}/{fileName}"));

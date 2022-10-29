@@ -1,24 +1,5 @@
 ﻿namespace Joba.IBM.RPA
 {
-    internal class EnvironmentDependencies : IEnvironmentDependencies
-    {
-        public EnvironmentDependencies(DirectoryInfo environmentDirectory)
-        {
-            var packagesDir = new DirectoryInfo(Path.Combine(environmentDirectory.FullName, "packages"));
-            Packages = new LocalPackageRepository(packagesDir);
-        }
-
-        public ILocalRepository<Parameter> Parameters { get; init; } = new ParameterRepository();
-        [JsonIgnore]
-        public ILocalRepository Packages { get; init; }
-    }
-
-    public interface IEnvironmentDependencies
-    {
-        ILocalRepository<Parameter> Parameters { get; }
-        ILocalRepository Packages { get; }
-    }
-
     internal class ParameterRepository : ILocalRepository<Parameter>
     {
         private readonly IDictionary<string, Parameter> mappings;

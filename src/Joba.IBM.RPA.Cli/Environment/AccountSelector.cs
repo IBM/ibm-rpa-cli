@@ -11,7 +11,7 @@
             this.resource = resource;
         }
 
-        public async Task<AccountCredentials> SelectAsync(string? userName, int? tenantCode, CancellationToken cancellation)
+        public async Task<AccountCredentials> SelectAsync(string? userName, int? tenantCode, string? password, CancellationToken cancellation)
         {
             if (string.IsNullOrEmpty(userName))
             {
@@ -22,8 +22,11 @@
             if (!tenantCode.HasValue)
                 tenantCode = await PromptToSelectTenantAsync(userName, cancellation);
 
-            console.Write("Password: ");
-            var password = console.Password();
+            if (string.IsNullOrEmpty(password))
+            {
+                console.Write("Password: ");
+                password = console.Password();
+            }
 
             return new AccountCredentials(tenantCode.Value, userName, password);
         }

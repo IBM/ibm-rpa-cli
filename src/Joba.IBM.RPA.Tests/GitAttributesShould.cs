@@ -1,4 +1,4 @@
-﻿using static Joba.IBM.RPA.Cli.GitConfigurator;
+﻿using static Joba.IBM.RPA.GitConfigurator;
 
 namespace Joba.IBM.RPA.Tests
 {
@@ -9,9 +9,10 @@ namespace Joba.IBM.RPA.Tests
         public async Task UpdatePattern()
         {
             //arrange
+            var cliName = "rpa";
             var directoryName = "assets/gitattributes";
             var file = new FileInfo($"{directoryName}/{nameof(UpdatePattern)}.txt");
-            var gitAttributes = new GitAttributes(file);
+            var gitAttributes = new GitAttributes(file, cliName);
 
             //act
             await gitAttributes.ConfigureAsync(CancellationToken.None);
@@ -26,9 +27,10 @@ namespace Joba.IBM.RPA.Tests
         public async Task AddPattern()
         {
             //arrange
+            var cliName = "rpa";
             var directoryName = "assets/gitattributes";
             var file = new FileInfo($"{directoryName}/{nameof(AddPattern)}.txt");
-            var gitAttributes = new GitAttributes(file);
+            var gitAttributes = new GitAttributes(file, cliName);
 
             //act
             await gitAttributes.ConfigureAsync(CancellationToken.None);

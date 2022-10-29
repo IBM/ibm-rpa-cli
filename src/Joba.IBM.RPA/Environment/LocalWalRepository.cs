@@ -8,7 +8,7 @@
 
         DirectoryInfo ILocalRepository.Directory => directory;
 
-        WalFile? ILocalRepository.Get(string name)
+        WalFile? ILocalRepository.Get(string name) //TODO: WalFileName
         {
             if (!name.EndsWith(WalFile.Extension))
                 name = $"{name}{WalFile.Extension}";

@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -211,6 +212,32 @@ namespace Joba.IBM.RPA
         public static bool operator <(WalVersion left, WalVersion right) => left.version < right.version;
         public static bool operator >=(WalVersion left, WalVersion right) => left.version >= right.version;
         public static bool operator <=(WalVersion left, WalVersion right) => left.version <= right.version;
+    }
+
+    public struct WalFileName
+    {
+        private readonly string name;
+
+        public WalFileName(string name)
+        {
+            if (!name.EndsWith(WalFile.Extension))
+                this.name = name + WalFile.Extension;
+            else
+                this.name = name;
+        }
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+        {
+            if (obj is null) return false;
+            if (obj is WalFileName wal)
+                return wal.name == name;
+            return false;
+        }
+        public override int GetHashCode() => name.GetHashCode();
+        public override string ToString() => name;
+        public static implicit operator string(WalFileName source) => source.name;
+        public static bool operator ==(WalFileName left, WalFileName right) => left.Equals(right);
+        public static bool operator !=(WalFileName left, WalFileName right) => !(left == right);
     }
 
     /// <summary>

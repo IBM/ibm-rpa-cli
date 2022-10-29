@@ -2,13 +2,21 @@
 {
     public class EnvironmentException : Exception
     {
-        public EnvironmentException(string message)
-            : base(message) { }
+        public EnvironmentException(string alias, string message)
+            : base(message)
+        {
+            Alias = alias;
+        }
 
-        public EnvironmentException(string message, Exception innerException)
-        : base(message, innerException) { }
+        public EnvironmentException(string alias, string message, Exception innerException)
+        : base(message, innerException)
+        {
+            Alias = alias;
+        }
 
-        public static EnvironmentException ThrowRequired(string commandLine) =>
-            new($"No environment is loaded. The command '{commandLine}' requires an environment.");
+        public static EnvironmentException NotConfigured(string alias) =>
+            new(alias, $"The environment alias {alias} is not configured.");
+
+        public string Alias { get; }
     }
 }

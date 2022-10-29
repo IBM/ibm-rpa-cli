@@ -1,54 +1,35 @@
 ﻿using Microsoft.Extensions.Logging;
+using Polly;
+using System;
+using System.Xml.Linq;
 
 namespace Joba.IBM.RPA.Cli
 {
-    [RequiresProject, RequiresEnvironment]
+    [RequiresProject]
     internal partial class PullCommand : Command
     {
         public PullCommand() : base("pull", "Pulls all the project files")
         {
-            AddCommand(new PullWalCommand());
-            AddCommand(new PullParameterCommand());
+            var name = new Argument<string>("name", "The asset name. To pull several at once, use '*' at the end, e.g 'MyParam*'.");
+            var environmentName = new Option<string>("--env", "The alias of the environment to pull parameters from.") { Arity = ArgumentArity.ExactlyOne };
+            var assetType = new Option<string?>("--type", "The type of the asset to pull. If not provided, assets from all types will be pulled.") { Arity = ArgumentArity.ZeroOrOne }
+                .FromAmong("wal", "parameter");
 
-            this.SetHandler(HandleAsync,
+            AddArgument(name);
+            AddOption(environmentName);
+            AddOption(assetType);
+
+            this.SetHandler(HandleAsync, name, environmentName, assetType,
                 Bind.FromLogger<PullCommand>(),
                 Bind.FromServiceProvider<IRpaClientFactory>(),
                 Bind.FromServiceProvider<Project>(),
-                Bind.FromServiceProvider<Environment>(),
                 Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private async Task HandleAsync(ILogger<PullCommand> logger, IRpaClientFactory clientFactory, Project project, Environment environment, InvocationContext context)
+        private async Task HandleAsync(string name, string environmentName, string? assetType, ILogger<PullCommand> logger, IRpaClientFactory clientFactory, Project project, InvocationContext context)
         {
-            var cancellation = context.GetCancellationToken();
-            var console = context.Console;
-            var client = clientFactory.CreateFromEnvironment(environment);
-            var pullService = new PullService(project, environment, new ParameterPullService(client, project, environment).Many, new WalPullService(client, project, environment).Many);
-            pullService.ShouldContinueOperation += OnShouldPullingFiles;
-            pullService.Pulling += OnPulling;
-            
-            logger.LogInformation("Pulling from '{ProjectName}' project...", project.Name);
-            await pullService.PullAsync(cancellation);
-
-            await project.SaveAsync(cancellation);
-            await environment.SaveAsync(cancellation);
-            
-            StatusCommand.Handle(project, environment, context);
-
-            void OnShouldPullingFiles(object? sender, ContinueOperationEventArgs e)
-            {
-                using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
-                e.Continue = console.YesOrNo(
-                    $"This operation will pull all the '{e.Project.Name}' project files and dependencies from the server. " +
-                    $"This will overwrite every local file copy and dependencies. This is irreversible. " +
-                    $"Are you sure you want to continue? [y/n]");
-            }
-
-            void OnPulling(object? sender, PullingEventArgs e)
-            {
-                if (e.Current.HasValue && e.Total.HasValue && !string.IsNullOrEmpty(e.ResourceName))
-                    logger.LogDebug("({Current}/{Total}) pulling {ResourceName}", e.Current, e.Total, e.ResourceName);
-            }
+            var handler = new PullHandler(logger, clientFactory, context.Console, project);
+            await handler.HandleAsync(new NamePattern(name), environmentName, assetType, context.GetCancellationToken());
         }
     }
 }
