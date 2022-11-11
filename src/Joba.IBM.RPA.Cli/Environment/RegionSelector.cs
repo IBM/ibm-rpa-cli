@@ -4,9 +4,9 @@
     {
         private readonly IConsole console;
         private readonly IRpaClientFactory clientFactory;
-        private readonly Project project;
+        private readonly IProject project;
 
-        public RegionSelector(IConsole console, IRpaClientFactory clientFactory, Project project)
+        public RegionSelector(IConsole console, IRpaClientFactory clientFactory, IProject project)
         {
             this.console = console;
             this.clientFactory = clientFactory;

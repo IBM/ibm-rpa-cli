@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA", "src\Joba.IB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA.Tests", "src\Joba.IBM.RPA.Tests\Joba.IBM.RPA.Tests.csproj", "{3BC3EC59-576D-4926-B38C-028A02283282}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joba.IBM.RPA.Cli.Tests", "src\Joba.IBM.RPA.Cli.Tests\Joba.IBM.RPA.Cli.Tests.csproj", "{D4F09421-274A-42E8-95D9-FEAC5EC99719}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{3BC3EC59-576D-4926-B38C-028A02283282}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BC3EC59-576D-4926-B38C-028A02283282}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BC3EC59-576D-4926-B38C-028A02283282}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D4F09421-274A-42E8-95D9-FEAC5EC99719}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D4F09421-274A-42E8-95D9-FEAC5EC99719}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D4F09421-274A-42E8-95D9-FEAC5EC99719}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D4F09421-274A-42E8-95D9-FEAC5EC99719}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

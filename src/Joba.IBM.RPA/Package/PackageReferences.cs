@@ -24,7 +24,7 @@
             else
                 references.Add(package.Metadata.Name, package.Metadata);
 
-            return WalFileFactory.CreateAsPackage(GetFile(package.Metadata), package.Script);
+            return WalFileFactory.Create(GetFile(package.Metadata), package.Script);
         }
 
         void IPackages.Uninstall(PackageMetadata metadata)
@@ -43,15 +43,24 @@
         WalFile IPackages.Restore(Package package)
         {
             EnsureDirectory();
-            return WalFileFactory.CreateAsPackage(GetFile(package.Metadata), package.Script);
+            return WalFileFactory.Create(GetFile(package.Metadata), package.Script);
         }
 
         UpdatePackageOperation IPackages.Update(Package package)
         {
             var previous = references[package.Metadata.Name];
             references[package.Metadata.Name] = package.Metadata;
-            _ = WalFileFactory.CreateAsPackage(GetFile(package.Metadata), package.Script);
+            _ = WalFileFactory.Create(GetFile(package.Metadata), package.Script);
             return new UpdatePackageOperation(previous, package.Metadata);
+        }
+
+        WalFile? IPackages.Get(PackageMetadata metadata)
+        {
+            EnsureDirectory();
+            return packageDirectory
+                .EnumerateFiles($"{metadata.Name}{WalFile.Extension}", SearchOption.TopDirectoryOnly)
+                .Select(WalFile.Read)
+                .FirstOrDefault();
         }
 
         IEnumerable<WalFile> IPackages.EnumerateFiles()
@@ -77,6 +86,7 @@
     public interface IPackages : IEnumerable<PackageMetadata>
     {
         PackageMetadata? Get(string name);
+        WalFile? Get(PackageMetadata metadata);
         WalFile Install(Package package);
         void Uninstall(PackageMetadata metadata);
         void UninstallAll();

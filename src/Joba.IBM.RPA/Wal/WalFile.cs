@@ -1,18 +1,18 @@
 ﻿using ProtoBuf;
-using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Joba.IBM.RPA
 {
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-    public class WalFile
+    public sealed class WalFile
     {
         public const string Extension = ".wal";
 
-        protected WalFile(FileInfo file, WalFileProto proto)
+        private WalFile(FileInfo file, WalFileProto proto)
         {
             Info = file;
+            Name = new WalFileName(Info.Name);
             Content = new WalContent(proto.Content);
             Id = proto.Id;
             VersionId = proto.VersionId;
@@ -24,17 +24,18 @@ namespace Joba.IBM.RPA
         internal WalFile(FileInfo file, ScriptVersion version)
         {
             Info = file;
+            Name = new WalFileName(Info.Name);
             UpdateWith(version);
         }
 
         public FileInfo Info { get; }
-        public string Name => Path.GetFileNameWithoutExtension(Info.Name);
+        public WalFileName Name { get; }
         public bool IsFromServer => Id.HasValue;
-        protected internal WalContent Content { get; private set; }
-        protected Guid? Id { get; set; }
-        protected Guid? VersionId { get; set; }
+        internal WalContent Content { get; private set; }
+        internal Guid? Id { get; set; }
+        internal Guid? VersionId { get; set; }
         public WalVersion? Version { get; set; }
-        protected Version? ProductVersion { get; set; }
+        internal Version? ProductVersion { get; set; }
         internal WalVersion NextVersion => Version.HasValue ? new WalVersion(Version.Value.ToInt32() + 1) : new WalVersion(1);
 
         public async Task UpdateToLatestAsync(IScriptResource resource, CancellationToken cancellation)
@@ -95,7 +96,7 @@ namespace Joba.IBM.RPA
         internal PublishScript PrepareToPublish(string message) =>
             new(Id, VersionId, Name, message, Content.ToString(), ProductVersion?.ToString(), false, 300, 300, 300);
 
-        internal protected virtual void Save()
+        internal void Save()
         {
             using var stream = new FileStream(Info.FullName, FileMode.Create);
             var proto = new WalFileProto
@@ -109,7 +110,7 @@ namespace Joba.IBM.RPA
             Serializer.Serialize(stream, proto);
         }
 
-        internal virtual WalFile Clone() => CloneTo(Info);
+        internal WalFile Clone() => CloneTo(Info);
 
         public WalFile CloneTo(FileInfo file)
         {
@@ -117,16 +118,18 @@ namespace Joba.IBM.RPA
             return new WalFile(file, proto);
         }
 
-        internal WalFile CopyContentsTo(DirectoryInfo info)
-        {
-            var file = new FileInfo(Path.Combine(info.FullName, $"{Name}{Extension}"));
-            var proto = new WalFileProto { Content = Content.ToString(), ProductVersion = ProductVersion?.ToString() };
-            var wal = new WalFile(file, proto);
-            wal.Save();
-            return wal;
-        }
-
         public override string ToString() => Content.ToString();
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+        {
+            if (obj is null) return false;
+            if (obj is WalFile wal)
+                return wal.Info.FullName == Info.FullName;
+            return false;
+        }
+        public override int GetHashCode() => Info.FullName.GetHashCode();
+        public static bool operator ==(WalFile? left, WalFile? right) => left.Equals(right);
+        public static bool operator !=(WalFile? left, WalFile? right) => !(left == right);
 
         public static WalFile Read(FileInfo file)
         {
@@ -140,7 +143,7 @@ namespace Joba.IBM.RPA
             var wal = Read(file);
             return wal.Content;
         }
-        private string GetDebuggerDisplay() => $"{Name} {Version ?? new WalVersion(0)} => {NextVersion}";
+        private string GetDebuggerDisplay() => $"{Name} v{Version ?? new WalVersion(0)} => v{NextVersion}";
 
         [ProtoContract]
         protected class WalFileProto
@@ -171,6 +174,9 @@ namespace Joba.IBM.RPA
             ArgumentNullException.ThrowIfNull(content);
             this.content = content;
         }
+
+        public static WalContent Build(IEnumerable<string> lines) =>
+            new WalContent(string.Join(System.Environment.NewLine, lines));
 
         public override bool Equals([NotNullWhen(true)] object? obj)
         {
@@ -226,6 +232,8 @@ namespace Joba.IBM.RPA
                 this.name = name;
         }
 
+        public string WithoutExtension => name.Replace(WalFile.Extension, null);
+
         public override bool Equals([NotNullWhen(true)] object? obj)
         {
             if (obj is null) return false;
@@ -240,43 +248,6 @@ namespace Joba.IBM.RPA
         public static bool operator !=(WalFileName left, WalFileName right) => !(left == right);
     }
 
-    /// <summary>
-    /// TODO: this doesn't seem to be working
-    /// </summary>
-    public class PackageFile : WalFile
-    {
-        internal PackageFile(FileInfo file, ScriptVersion version)
-            : base(file, version) { }
-
-        protected PackageFile(FileInfo file, WalFileProto proto)
-            : base(file, proto) { }
-
-        internal protected override void Save()
-        {
-            try
-            {
-                //TODO: hide file (not working)
-                //if (Info.Exists)
-                //{
-                //    Info.IsReadOnly = false;
-                //    Info.Refresh();
-                //}
-                base.Save();
-            }
-            //catch (Exception ex) { }
-            finally
-            {
-                //Info.IsReadOnly = true;
-            }
-        }
-
-        internal override WalFile Clone()
-        {
-            var proto = new WalFileProto { Content = Content.ToString(), Id = Id, ProductVersion = ProductVersion?.ToString(), Version = Version?.ToInt32(), VersionId = VersionId };
-            return new PackageFile(Info, proto);
-        }
-    }
-
     public static class WalFileFactory
     {
         public static WalFile Create(FileInfo file, ScriptVersion version)
@@ -284,22 +255,6 @@ namespace Joba.IBM.RPA
             var wal = new WalFile(file, version);
             wal.Save();
             return wal;
-        }
-
-        public static PackageFile CreateAsPackage(FileInfo file, ScriptVersion version)
-        {
-            var wal = new PackageFile(file, version);
-            wal.Save();
-            return wal;
-        }
-
-        public static WalFile Create(DirectoryInfo directory, ScriptVersion version)
-        {
-            if (!directory.Exists)
-                directory.Create();
-
-            var file = new FileInfo(Path.Combine(directory.FullName, $"{version.Name}{WalFile.Extension}"));
-            return Create(file, version);
         }
     }
 }

@@ -92,6 +92,7 @@ namespace Joba.IBM.RPA.Cli
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
             context.BindingContext.AddService<IRpaClientFactory>(s => new RpaClientFactory(context.Console));
+            context.BindingContext.AddService<ICompiler>(s => new Bluewasher(s.GetRequiredService<ILogger<Bluewasher>>()));
 
             if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult &&
                 context.ParseResult.CommandResult.Command != null)
@@ -111,20 +112,7 @@ namespace Joba.IBM.RPA.Cli
                 throw ProjectException.ThrowRequired(System.Environment.CommandLine);
 
             if (project != null)
-            {
                 context.BindingContext.AddService(s => project);
-                //await TryLoadEnvironmentAsync(context, project, commandType, cancellation);
-            }
         }
-
-        //private static async Task TryLoadEnvironmentAsync(InvocationContext context, Project project, Type commandType, CancellationToken cancellation)
-        //{
-        //    var environment = await project.GetCurrentEnvironmentAsync(cancellation);
-        //    if (commandType.GetCustomAttribute<RequiresEnvironmentAttribute>() != null && environment == null)
-        //        throw EnvironmentException.ThrowRequired(System.Environment.CommandLine);
-
-        //    if (environment != null)
-        //        context.BindingContext.AddService(s => environment);
-        //}
     }
 }

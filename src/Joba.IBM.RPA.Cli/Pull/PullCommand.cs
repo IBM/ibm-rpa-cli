@@ -22,11 +22,11 @@ namespace Joba.IBM.RPA.Cli
             this.SetHandler(HandleAsync, name, environmentName, assetType,
                 Bind.FromLogger<PullCommand>(),
                 Bind.FromServiceProvider<IRpaClientFactory>(),
-                Bind.FromServiceProvider<Project>(),
+                Bind.FromServiceProvider<IProject>(),
                 Bind.FromServiceProvider<InvocationContext>());
         }
 
-        private async Task HandleAsync(string name, string environmentName, string? assetType, ILogger<PullCommand> logger, IRpaClientFactory clientFactory, Project project, InvocationContext context)
+        private async Task HandleAsync(string name, string environmentName, string? assetType, ILogger<PullCommand> logger, IRpaClientFactory clientFactory, IProject project, InvocationContext context)
         {
             var handler = new PullHandler(logger, clientFactory, context.Console, project);
             await handler.HandleAsync(new NamePattern(name), environmentName, assetType, context.GetCancellationToken());

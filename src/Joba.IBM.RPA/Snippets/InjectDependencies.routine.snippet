@@ -1,0 +1,9 @@
+beginSub --name __ExportDependenciesAndSetWorkingDirectory
+	export --asset "${asset.__dependencies}" __dependenciesFilePath=value
+	getEnvVar --name TEMP --target "User" __tempPath=value
+	setVar --name "${__dependenciesDir}" --value "${__tempPath}\\${rpa:scriptName}\\"
+	replaceText --texttoparse "${__dependenciesDir}" --textpattern ".wal" __dependenciesDir=value
+	createDir --path "${__dependenciesDir}" __dependenciesDir=value
+	unzip --file "${__dependenciesFilePath}" --destinationfolder "${__dependenciesDir}"
+	setVar --name "${workingDirectory}" --value "${__dependenciesDir}"
+endSub

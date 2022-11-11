@@ -4,7 +4,7 @@ namespace Joba.IBM.RPA
 {
     public static class ProjectFactory
     {
-        public static Project Create(ILogger logger, DirectoryInfo workingDir, string name)
+        public static IProject Create(ILogger logger, DirectoryInfo workingDir, string name)
         {
             var projectFile = new ProjectFile(workingDir, name);
             if (projectFile.RpaDirectory.Exists)
@@ -18,10 +18,10 @@ namespace Joba.IBM.RPA
             return new Project(logger, projectFile, projectSettings, userFile, new UserSettings(), packageSourcesFile);
         }
 
-        public static Project CreateFromCurrentDirectory(ILogger logger, string name)
+        public static IProject CreateFromCurrentDirectory(ILogger logger, string name)
             => Create(logger, new DirectoryInfo(System.Environment.CurrentDirectory), name);
 
-        public static async Task<Project?> TryLoadAsync(ILogger logger, DirectoryInfo workingDir, CancellationToken cancellation)
+        public static async Task<IProject?> TryLoadAsync(ILogger logger, DirectoryInfo workingDir, CancellationToken cancellation)
         {
             var (projectFile, projectSettings) = await ProjectFile.TryLoadAsync(workingDir, cancellation);
             if (projectFile == null || projectSettings == null)
@@ -35,7 +35,7 @@ namespace Joba.IBM.RPA
                 userFile, userSettings, packageSourcesFile, packageSources);
         }
 
-        public static Task<Project?> TryLoadFromCurrentDirectoryAsync(ILogger logger, CancellationToken cancellation)
+        public static Task<IProject?> TryLoadFromCurrentDirectoryAsync(ILogger logger, CancellationToken cancellation)
             => TryLoadAsync(logger, new DirectoryInfo(System.Environment.CurrentDirectory), cancellation);
     }
 }

@@ -1,4 +1,7 @@
-﻿namespace Joba.IBM.RPA
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
+
+namespace Joba.IBM.RPA
 {
     internal class Robots : IRobots
     {
@@ -12,6 +15,7 @@
             this.bots = bots;
         }
 
+        Robot IRobots.this[string name] => new(name, bots[name]);
         bool IRobots.Exists(string name) => bots.ContainsKey(name);
         void IRobots.Add(string name, RobotSettings settings) => bots.Add(name, settings);
         public IEnumerator<Robot> GetEnumerator() => bots.Select(b => new Robot(b.Key, b.Value)).GetEnumerator();
@@ -22,6 +26,7 @@
     {
         bool Exists(string name);
         void Add(string name, RobotSettings settings);
+        Robot this[string name] { get; }
     }
 
     public static class RobotSettingsFactory
@@ -38,7 +43,30 @@
         }
     }
 
-    public record struct Robot(string Name, RobotSettings Settings);
+    public readonly struct Robot
+    {
+        public Robot(string name, RobotSettings settings)
+        {
+            Name = name;
+            Settings = settings;
+        }
+
+        public string Name { get; init; }
+        public RobotSettings Settings { get; init; }
+
+        public override bool Equals([NotNullWhen(true)] object? obj)
+        {
+            if (obj is null) return false;
+            if (obj is Robot robot)
+                return robot.Name == Name;
+            return false;
+        }
+
+        public override int GetHashCode() => Name.GetHashCode();
+        public override string ToString() => Name;
+        public static bool operator ==(Robot left, Robot right) => left.Equals(right);
+        public static bool operator !=(Robot left, Robot right) => !(left == right);
+    }
 
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
     [JsonDerivedType(typeof(ChatbotSettings), typeDiscriminator: ChatbotSettings.TypeName)]

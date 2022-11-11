@@ -2,7 +2,7 @@
 {
     public class WalPushService
     {
-        public WalPushService(IRpaClient client, Project project, string alias)
+        public WalPushService(IRpaClient client, IProject project, string alias)
         {
             One = new PushOne(client, project, alias);
             //Many = new PullMany(client, project, environment);
@@ -12,11 +12,11 @@
 
         class PushOne : IPushOne<WalFile>
         {
-            private readonly Project project;
+            private readonly IProject project;
             private readonly string alias;
             private readonly IRpaClient client;
 
-            internal PushOne(IRpaClient client, Project project, string alias)
+            internal PushOne(IRpaClient client, IProject project, string alias)
             {
                 this.client = client;
                 this.project = project;
@@ -28,7 +28,7 @@
 
             public async Task PushAsync(string name, CancellationToken cancellation)
             {
-                var wal = project.Files.Get(name);
+                var wal = project.Scripts.Get(name);
                 if (wal == null)
                     throw new Exception($"Could not push '{name}' because it doesn't exist.");
 

@@ -20,12 +20,12 @@ namespace Joba.IBM.RPA.Cli
                 this.SetHandler(HandleAsync, name, version, source,
                     Bind.FromLogger<InstallPackageCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
-                    Bind.FromServiceProvider<Project>(),
+                    Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
             private async Task HandleAsync(string name, int? version, string? sourceAlias, ILogger<InstallPackageCommand> logger, IRpaClientFactory clientFactory,
-                Project project, InvocationContext context)
+                IProject project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
 

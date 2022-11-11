@@ -1,0 +1,5 @@
+
+	^æu{½N¬\`„b{ÇdefVar --name left --type Numeric --parameter 
+defVar --name right --type Numeric --parameter 
+defVar --name result --type Numeric --output 
+evaluate --expression "${left} * ${right}" result=value"	¦ïc¾DwD¥Û]¼‚.ñ¾*23.0.3.0

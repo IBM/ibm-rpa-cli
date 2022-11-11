@@ -2,11 +2,11 @@
 {
     public class PullService
     {
-        private readonly Project project;
+        private readonly IProject project;
         private readonly string alias;
         private readonly IEnumerable<IPullMany> services;
 
-        public PullService(Project project, string alias, params IPullMany[] services)
+        public PullService(IProject project, string alias, params IPullMany[] services)
         {
             this.project = project;
             this.alias = alias;
@@ -70,7 +70,7 @@
 
     public class ContinueOperationEventArgs : EventArgs
     {
-        public required Project Project { get; init; }
+        public required IProject Project { get; init; }
         public required NamePattern Pattern { get; init; }
         public required string Alias { get; init; }
         public bool? Continue { get; set; }
@@ -85,7 +85,7 @@
 
     public class DownloadingEventArgs : EventArgs
     {
-        public required Project Project { get; init; }
+        public required IProject Project { get; init; }
         public string? ResourceName { get; init; }
     }
 
@@ -97,28 +97,28 @@
 
     public class DownloadedEventArgs : EventArgs
     {
-        public required Project Project { get; init; }
+        public required IProject Project { get; init; }
         public required int Total { get; init; }
     }
 
     public class PulledOneEventArgs<T> : EventArgs
     {
-        public required Project Project { get; init; }
+        public required IProject Project { get; init; }
         public required string Alias { get; init; }
         public required ChangeType Change { get; init; }
         public required T Resource { get; init; }
         public T? Previous { get; init; }
 
-        public static PulledOneEventArgs<T> Created(string alias, Project project, T resource) =>
+        public static PulledOneEventArgs<T> Created(string alias, IProject project, T resource) =>
             Factory(ChangeType.Created, alias, project, resource, default);
 
-        public static PulledOneEventArgs<T> Updated(string alias, Project project, T resource, T previous) =>
+        public static PulledOneEventArgs<T> Updated(string alias, IProject project, T resource, T previous) =>
             Factory(ChangeType.Updated, alias, project, resource, previous);
 
-        public static PulledOneEventArgs<T> NoChange(string alias, Project project, T resource) =>
+        public static PulledOneEventArgs<T> NoChange(string alias, IProject project, T resource) =>
             Factory(ChangeType.NoChange, alias, project, resource, default);
 
-        private static PulledOneEventArgs<T> Factory(ChangeType change, string alias, Project project, T resource, T? previous)
+        private static PulledOneEventArgs<T> Factory(ChangeType change, string alias, IProject project, T resource, T? previous)
         {
             return new PulledOneEventArgs<T>
             {
@@ -135,7 +135,7 @@
 
     public class PushedOneEventArgs<T> : EventArgs
     {
-        public required Project Project { get; init; }
+        public required IProject Project { get; init; }
         public required string EnvironmentAlias { get; init; }
         public required T Resource { get; init; }
     }

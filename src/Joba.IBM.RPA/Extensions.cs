@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 
 namespace Joba.IBM.RPA
 {

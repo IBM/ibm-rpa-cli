@@ -1,14 +1,14 @@
 ﻿namespace Joba.IBM.RPA
 {
-    class LocalWalRepository : ILocalRepository
+    class ScriptRepository : IScriptRepository
     {
         protected readonly DirectoryInfo directory;
 
-        public LocalWalRepository(DirectoryInfo directory) => this.directory = directory;
+        public ScriptRepository(DirectoryInfo directory) => this.directory = directory;
 
-        DirectoryInfo ILocalRepository.Directory => directory;
+        DirectoryInfo IScriptRepository.Directory => directory;
 
-        WalFile? ILocalRepository.Get(string name) //TODO: WalFileName
+        WalFile? IScriptRepository.Get(string name) //TODO: WalFileName?
         {
             if (!name.EndsWith(WalFile.Extension))
                 name = $"{name}{WalFile.Extension}";
@@ -17,7 +17,12 @@
             return walFile.Exists ? WalFile.Read(walFile) : null;
         }
 
-        async Task<WalFile> ILocalRepository.DownloadLatestAsync(IScriptResource resource, string name, CancellationToken cancellation)
+        WalFile? IScriptRepository.Get(FileInfo file)
+        {
+            return file.Exists ? WalFile.Read(file) : null;
+        }
+
+        async Task<WalFile> IScriptRepository.DownloadLatestAsync(IScriptResource resource, string name, CancellationToken cancellation)
         {
             var version = await resource.GetLatestVersionAsync(name, cancellation);
             if (version == null)
@@ -26,7 +31,7 @@
             return Create(version);
         }
 
-        async Task<WalFile> ILocalRepository.DownloadAsync(IScriptResource resource, string name, WalVersion version, CancellationToken cancellation)
+        async Task<WalFile> IScriptRepository.DownloadAsync(IScriptResource resource, string name, WalVersion version, CancellationToken cancellation)
         {
             var scriptVersion = await resource.GetAsync(name, version, cancellation);
             if (scriptVersion == null)
@@ -35,7 +40,7 @@
             return Create(scriptVersion);
         }
 
-        void ILocalRepository.Delete(string name)
+        void IScriptRepository.Delete(string name)
         {
             if (!name.EndsWith(WalFile.Extension))
                 name = $"{name}{WalFile.Extension}";
@@ -62,18 +67,19 @@
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    class LocalPackageRepository : LocalWalRepository
+    class LocalPackageRepository : ScriptRepository
     {
         public LocalPackageRepository(DirectoryInfo directory)
             : base(directory) { }
 
-        protected override WalFile Create(FileInfo walFile, ScriptVersion version) => WalFileFactory.CreateAsPackage(walFile, version);
+        protected override WalFile Create(FileInfo walFile, ScriptVersion version) => WalFileFactory.Create(walFile, version);
     }
 
-    public interface ILocalRepository : IEnumerable<WalFile>
+    public interface IScriptRepository : IEnumerable<WalFile>
     {
         DirectoryInfo Directory { get; }
         WalFile? Get(string name);
+        WalFile? Get(FileInfo file);
         WalFile Create(ScriptVersion script);
         Task<WalFile> DownloadLatestAsync(IScriptResource resource, string name, CancellationToken cancellation);
         Task<WalFile> DownloadAsync(IScriptResource resource, string name, WalVersion version, CancellationToken cancellation);

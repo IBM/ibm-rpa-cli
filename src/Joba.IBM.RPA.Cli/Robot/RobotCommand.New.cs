@@ -19,11 +19,11 @@ namespace Joba.IBM.RPA.Cli
                 AddOption(type);
                 this.SetHandler(HandleAsync, name, type,
                     Bind.FromLogger<RobotCommand>(),
-                    Bind.FromServiceProvider<Project>(),
+                    Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(WalFileName name, string type, ILogger<RobotCommand> logger, Project project, InvocationContext context)
+            private async Task HandleAsync(WalFileName name, string type, ILogger<RobotCommand> logger, IProject project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
 

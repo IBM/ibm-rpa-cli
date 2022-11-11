@@ -2,7 +2,7 @@
 {
     public class ParameterPullService
     {
-        public ParameterPullService(IRpaClient client, Project project, string alias)
+        public ParameterPullService(IRpaClient client, IProject project, string alias)
         {
             One = new PullOne(client, project, alias);
             Many = new PullMany(client, project, alias);
@@ -13,11 +13,11 @@
 
         class PullOne : IPullOne<Parameter>
         {
-            private readonly Project project;
+            private readonly IProject project;
             private readonly string alias;
             private readonly IRpaClient client;
 
-            internal PullOne(IRpaClient client, Project project, string alias)
+            internal PullOne(IRpaClient client, IProject project, string alias)
             {
                 this.client = client;
                 this.project = project;
@@ -70,11 +70,11 @@
 
         class PullMany : IPullMany
         {
-            private readonly Project project;
+            private readonly IProject project;
             private readonly string alias;
             private readonly IRpaClient client;
 
-            internal PullMany(IRpaClient client, Project project, string alias)
+            internal PullMany(IRpaClient client, IProject project, string alias)
             {
                 this.client = client;
                 this.project = project;

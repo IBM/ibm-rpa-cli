@@ -1,0 +1,4 @@
+šdefVar --name workingDirectory --type String
+setVarIf --variablename "${workingDirectory}" --value "C:\\Users\\002742631\\Desktop\\ibm-rpa-cli-test-scripts" --left "${workingDirectory}" --operator "Is_Null_Or_Empty"
+logMessage --message "${rpa:scriptName}: ${workingDirectory}" --type "Info"
+executeScript --name "${workingDirectory}\\utils.wal" --parameters "{\"workingDirectory\":\"${workingDirectory}\"}"*23.0.3.0

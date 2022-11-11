@@ -27,12 +27,12 @@ namespace Joba.IBM.RPA.Cli
                     new RemoteOptionsBinder(alias, url, region, userName, tenant, password),
                     Bind.FromLogger<PackageSourceCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
-                    Bind.FromServiceProvider<Project>(),
+                    Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
             private async Task HandleAsync(RemoteOptions options, ILogger<PackageSourceCommand> logger, IRpaClientFactory clientFactory,
-                Project project, InvocationContext context)
+                IProject project, InvocationContext context)
             {
                 project.EnsureCanConfigure(options.Alias);
                 var cancellation = context.GetCancellationToken();

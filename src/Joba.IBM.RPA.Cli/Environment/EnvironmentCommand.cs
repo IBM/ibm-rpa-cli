@@ -11,11 +11,11 @@ namespace Joba.IBM.RPA.Cli
             AddCommand(new AddEnvironmentCommand());
 
             this.SetHandler(HandleAsync,
-                Bind.FromServiceProvider<Project>(),
+                Bind.FromServiceProvider<IProject>(),
                 Bind.FromServiceProvider<InvocationContext>());
         }
 
-        public Task HandleAsync(Project project, InvocationContext context)
+        public Task HandleAsync(IProject project, InvocationContext context)
         {
             //TODO: status of environments
             //TODO: get all environment files
@@ -46,16 +46,16 @@ namespace Joba.IBM.RPA.Cli
                     new RemoteOptionsBinder(alias, url, region, userName, tenant, password),
                     Bind.FromLogger<EnvironmentCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
-                    Bind.FromServiceProvider<Project>(),
+                    Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
             private async Task HandleAsync(RemoteOptions options, ILogger<EnvironmentCommand> logger,
-                IRpaClientFactory clientFactory, Project project, InvocationContext context) =>
+                IRpaClientFactory clientFactory, IProject project, InvocationContext context) =>
                 await HandleAsync(options, (ILogger)logger, clientFactory, project, context);
 
             public async Task HandleAsync(RemoteOptions options, ILogger logger,
-                IRpaClientFactory clientFactory, Project project, InvocationContext context)
+                IRpaClientFactory clientFactory, IProject project, InvocationContext context)
             {
                 project.EnsureCanConfigure(options.Alias);
 

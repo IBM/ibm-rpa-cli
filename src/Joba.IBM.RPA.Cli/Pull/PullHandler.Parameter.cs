@@ -7,9 +7,9 @@ namespace Joba.IBM.RPA.Cli
         private readonly ILogger logger;
         private readonly IRpaClientFactory clientFactory;
         private readonly IConsole console;
-        private readonly Project project;
+        private readonly IProject project;
 
-        public ParameterPullHandler(ILogger logger, IRpaClientFactory clientFactory, IConsole console, Project project)
+        public ParameterPullHandler(ILogger logger, IRpaClientFactory clientFactory, IConsole console, IProject project)
         {
             this.logger = logger;
             this.clientFactory = clientFactory;

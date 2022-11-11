@@ -1,4 +1,5 @@
-﻿defVar --name nextSentence --type String --parameter  --output
+﻿import --name Joba_OrangeHRM --type "File" --content
+defVar --name nextSentence --type String --parameter  --output
 defVar --name kbAnswer --type String --parameter
 defVar --name chat --type ChatData --parameter
 defVar --name kbTags --type String --parameter  --output
@@ -37,6 +38,8 @@ defVar --name isDebug --type Boolean --parameter
 defVar --name orangeHrmUserName --type String
 defVar --name orangeHrmUserPassword --type String
 defVar --name orangeHrmUrl --type String
+defVar --name workingDir --type String
+defVar --name filePath_Joba_OrangeHRM --type String
 setTimeout --timeout 00:00:45
 botAttach --chat ${chat}
 
@@ -89,7 +92,8 @@ endSub
 beginSub --name HandleLeaves
 	label --name RetryLeaves
 	botStartOnHold --message "Okay **${userName}**, working on it, this could take a few seconds..." --textformat "Markdown"
-		executeScript --handleError  --name Joba_OrangeHRM --parameters "employeeName=${userName},browser=${browser},methodName=LeavesReport,userName=${orangeHrmUserName},userPassword=${orangeHrmUserPassword},url=${orangeHrmUrl}" --output "leavesReport=${leavesReport},leavesReportImage=${leavesReportImage}" --version 30 success=value error=error
+		executeScript --handleError  --name "${filePath_Joba_OrangeHRM}" --parameters "employeeName=${userName},browser=${browser},methodName=LeavesReport,userName=${orangeHrmUserName},userPassword=${orangeHrmUserPassword},url=${orangeHrmUrl}" --output "leavesReport=${leavesReport},leavesReportImage=${leavesReportImage}" success=value error=error
+		executeScript --handleError  --name "${filePath_Joba_OrangeHRM}" --parameters "employeeName=${userName},browser=${browser},methodName=LeavesReport,userName=${orangeHrmUserName},userPassword=${orangeHrmUserPassword},url=${orangeHrmUrl}" --output "leavesReport=${leavesReport},leavesReportImage=${leavesReportImage}" success=value error=error
 	botStopOnHold
 	
 	if --left "${error.Message}" --operator "Contains" --right "Employee does not exist"
@@ -118,7 +122,8 @@ endSub
 beginSub --name HandleTimesheets
 	label --name RetryTimesheet
 	botStartOnHold --message "Okay **${userName}** , working on it, this could take a few seconds..." --textformat "0"
-		executeScript --handleError  --name Joba_OrangeHRM --version 30 --parameters "employeeName=${userName},browser=${browser},methodName=Timesheet,userName=${orangeHrmUserName},userPassword=${orangeHrmUserPassword},url=${orangeHrmUrl}" --output "timesheetStatus=${timesheetStatus},timesheetReport=${timesheetReport}" success=value error=error
+		executeScript --handleError  --name "${workingDir}\\Joba_Security.wal" --parameters "employeeName=${userName},browser=${browser},methodName=Timesheet,userName=${orangeHrmUserName},userPassword=${orangeHrmUserPassword},url=${orangeHrmUrl}" --output "timesheetStatus=${timesheetStatus},timesheetReport=${timesheetReport}" success=value error=error
+		executeScript --handleError  --name Joba_Security --parameters "employeeName=${userName},browser=${browser},methodName=Timesheet,userName=${orangeHrmUserName},userPassword=${orangeHrmUserPassword},url=${orangeHrmUrl}" --output "timesheetStatus=${timesheetStatus},timesheetReport=${timesheetReport}" --version 3 success=value error=error
 	botStopOnHold
 	
 	if --left "${error.Message}" --operator "Contains" --right "Employee does not exist"

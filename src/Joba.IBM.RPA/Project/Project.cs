@@ -2,7 +2,7 @@
 
 namespace Joba.IBM.RPA
 {
-    public class Project
+    internal class Project : IProject
     {
         private readonly ILogger logger;
         private readonly ProjectFile projectFile;
@@ -10,7 +10,7 @@ namespace Joba.IBM.RPA
         private readonly UserSettingsFile userFile;
         private readonly UserSettings userSettings;
         private readonly PackageSourcesFile packageSourcesFile;
-        private readonly ILocalRepository repository;
+        private readonly IScriptRepository repository;
         private readonly Environments environments;
         private PackageSources? packageSources;
 
@@ -28,7 +28,7 @@ namespace Joba.IBM.RPA
             this.userSettings = userSettings;
             this.packageSourcesFile = packageSourcesFile;
             this.packageSources = packageSources;
-            repository = new LocalWalRepository(projectFile.WorkingDirectory);
+            repository = new ScriptRepository(projectFile.WorkingDirectory);
             environments = new Environments(projectSettings, userFile, userSettings);
         }
 
@@ -38,7 +38,7 @@ namespace Joba.IBM.RPA
         public IPackageSources PackageSources => packageSources ??= new PackageSources(projectSettings, userFile, userSettings);
         public IPackages Packages => projectSettings.Packages;
         public IRobots Robots => projectSettings.Robots;
-        public ILocalRepository Files => repository;
+        public IScriptRepository Scripts => repository;
         public IEnvironments Environments => environments;
         public ILocalRepository<Parameter> Parameters => projectSettings.Parameters;
         public IEnumerable<Uri> GetConfiguredRemoteAddresses() => projectSettings.Environments.Values.Select(v => v.Address).Distinct();
@@ -66,15 +66,24 @@ namespace Joba.IBM.RPA
             if (packageSources != null)
                 await packageSourcesFile.SaveAsync(packageSources, cancellation);
         }
+    }
 
-        public async Task<BuildResult> BuildAsync(WalFileName fileName, DirectoryInfo outputDirectory, CancellationToken cancellation)
-        {
-            var wal = repository.Get(fileName);
-            if (wal == null)
-                throw new ProjectException($"Could not find the file named '{fileName}'");
+    public interface IProject
+    {
+        DirectoryInfo RpaDirectory { get; }
+        DirectoryInfo WorkingDirectory { get; }
+        string Name { get; }
+        IPackageSources PackageSources { get; }
+        IPackages Packages { get; }
+        IRobots Robots { get; }
+        IScriptRepository Scripts { get; }
+        IEnvironments Environments { get; }
+        ILocalRepository<Parameter> Parameters { get; }
 
-            var builder = new WalBuilder(logger, this);
-            return await builder.BuildAsync(wal, outputDirectory, cancellation);
-        }
+        IEnumerable<Uri> GetConfiguredRemoteAddresses();
+        void EnsureCanConfigure(string alias);
+        Task<Environment> ConfigureEnvironment(IAccountResource resource, string alias,
+            Region region, AccountCredentials credentials, CancellationToken cancellation);
+        Task SaveAsync(CancellationToken cancellation);
     }
 }

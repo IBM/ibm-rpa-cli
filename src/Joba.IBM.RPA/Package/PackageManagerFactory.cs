@@ -8,20 +8,20 @@ namespace Joba.IBM.RPA
 
         public PackageManagerFactory(IRpaClientFactory clientFactory) => this.clientFactory = clientFactory;
 
-        public PackageManager Create(Project project, string? sourceAlias = null)
+        public PackageManager Create(IProject project, string? sourceAlias = null)
         {
             if (sourceAlias == null)
                 return new PackageManager(project, new MultiplePackageSourceResource(CreateSources(project).ToArray()));
             return new PackageManager(project, CreateSource(project, sourceAlias));
         }
 
-        private IEnumerable<IPackageSourceResource> CreateSources(Project project)
+        private IEnumerable<IPackageSourceResource> CreateSources(IProject project)
         {
             foreach (var source in project.PackageSources)
                 yield return CreateSource(source);
         }
 
-        private IPackageSourceResource CreateSource(Project project, string sourceAlias)
+        private IPackageSourceResource CreateSource(IProject project, string sourceAlias)
         {
             var source = project.PackageSources.Get(sourceAlias);
             if (source == null)

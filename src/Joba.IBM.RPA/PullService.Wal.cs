@@ -2,7 +2,7 @@
 {
     public class WalPullService
     {
-        public WalPullService(IRpaClient client, Project project, string alias)
+        public WalPullService(IRpaClient client, IProject project, string alias)
         {
             One = new PullOne(client, project, alias);
             Many = new PullMany(client, project, alias);
@@ -13,11 +13,11 @@
 
         class PullMany : IPullMany
         {
-            private readonly Project project;
+            private readonly IProject project;
             private readonly string alias;
             private readonly IRpaClient client;
 
-            internal PullMany(IRpaClient client, Project project, string alias)
+            internal PullMany(IRpaClient client, IProject project, string alias)
             {
                 this.client = client;
                 this.project = project;
@@ -47,9 +47,9 @@
                     var script = scripts[index];
                     Pulling?.Invoke(this, new PullingEventArgs { Current = index + 1, Total = scripts.Length, ResourceName = script.Name, Project = project, Alias = alias });
 
-                    var wal = project.Files.Get(script.Name);
+                    var wal = project.Scripts.Get(script.Name);
                     if (wal == null)
-                        wal = await project.Files.DownloadLatestAsync(client.Script, script.Name, cancellation);
+                        wal = await project.Scripts.DownloadLatestAsync(client.Script, script.Name, cancellation);
                     else
                         await wal.OverwriteToLatestAsync(client.Script, script.Name, cancellation);
 
@@ -75,11 +75,11 @@
 
         class PullOne : IPullOne<WalFile>
         {
-            private readonly Project project;
+            private readonly IProject project;
             private readonly string alias;
             private readonly IRpaClient client;
 
-            internal PullOne(IRpaClient client, Project project, string alias)
+            internal PullOne(IRpaClient client, IProject project, string alias)
             {
                 this.client = client;
                 this.project = project;
@@ -91,10 +91,10 @@
 
             public async Task PullAsync(string name, CancellationToken cancellation)
             {
-                var wal = project.Files.Get(name);
+                var wal = project.Scripts.Get(name);
                 if (wal == null)
                 {
-                    wal = await project.Files.DownloadLatestAsync(client.Script, name, cancellation);
+                    wal = await project.Scripts.DownloadLatestAsync(client.Script, name, cancellation);
                     Pulled?.Invoke(this, PulledOneEventArgs<WalFile>.Created(alias, project, wal));
                 }
                 else if (!wal.IsFromServer)

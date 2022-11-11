@@ -5,7 +5,6 @@
 		<TargetFramework>net7.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<LangVersion>preview</LangVersion>
 		<Company>Joba</Company>
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>rpa</ToolCommandName>

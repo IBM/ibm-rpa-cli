@@ -1,0 +1,3 @@
+†defVar --name workingDirectory --type String --parameter 
+logMessage --message "${rpa:scriptName}: ${workingDirectory}" --type "Info"
+executeScript --name "${workingDirectory}\\packages\\system.wal" --parameters "{\"workingDirectory\":\"${workingDirectory}\"}"*23.0.3.0

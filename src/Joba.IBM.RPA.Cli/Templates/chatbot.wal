@@ -1,4 +1,4 @@
-ædefVar --name language --type Language
+í!defVar --name language --type Language
 defVar --name chat --type ChatData
 defVar --name messages --type Stack --innertype String
 defVar --name success --type Boolean
@@ -13,18 +13,20 @@ defVar --name timedOut --type Boolean
 defVar --name workingDirectory --type String
 //************************************
 //Template for a chatbot
-//- Continue you logic from line 49, within 'Core' routine.
+//- Continue you logic from line 51, within 'Core' routine.
 //************************************
-//Set the working directory where all local .wal files are located. Use 'workingDirectory' variable in the 'executeScript' to reference the scripts.
-//- This will ensure your dev team only have to change one variable (workingDirectory) to run the project.
+//Set the working directory where all local .wal files are located. Always use 'workingDirectory' variable in the 'executeScript' to reference the scripts.
+//- The build process will ignore 'executeScripts' that do not reference local .wal files using 'workingDirectory'.
 //- DO NOT publish or use published scripts in the 'executeScript'. The build process will buil ONE script with all the local referenced dependencies.
+//- Also, this will ensure your dev team only has to change one variable (workingDirectory) to run the project.
+//- If you call an 'executeScript', always pass the 'workingDirectory' variable as a parameter, so you do not need to set in every script.
 //- To store the source code .wal files, use GIT. Do not use the Control Center to store the .wal files.
-setVar --name "${workingDirectory}" --value "C:\\Users"
+setVarIf --variablename "${workingDirectory}" --value "C:\\Users" --left "${workingDirectory}" --operator "Is_Null_Or_Empty" --comment "The build process will inject the correct value for \'workingDirectory\' at runtime."
 //************************************
 onError --label HandleErrorWrapper
 setTimeout --timeout 00:00:45
 createLanguage --culture "en-US" language=value
-botConnect --type "Chat" --language ${language} --messages ${messages} --autoanswer  --timeout "00:00:30" chat=chat
+botConnect --language ${language} --messages ${messages} --timeout "00:00:30" chat=chat
 	setVar --name "${userName}" --value "${chat.From.Name}"
 	setVar --name "${nextSentence}" --value "How may I assist you today, **${userName}**?"
 	repeat
@@ -35,9 +37,9 @@ beginSub --name Core
 pop --collection "${messages}" --handleerror  success=success userAnswer=value
 if --left "${success}" --operator "Is_True"
 	//TODO: the user said something before the chat was loaded, so you need to provide the answer here. The 'userAnswer' holds what the user said.
-	botAsk --timeoutsub TimeoutWaitingForAnswer --beep  --text "You said **${userAnswer}**" --textformat "Markdown" userAnswer=value utterance=utterance timedOut=timedout success=success
+	botAsk --timeoutsub TimeoutWaitingForAnswer --text "You said **${userAnswer}**" --textformat "Markdown" userAnswer=value utterance=utterance timedOut=timedout success=success
 else
-	botAsk --timeoutsub TimeoutWaitingForAnswer --beep  --text "${nextSentence}" --textformat "Markdown" userAnswer=value utterance=utterance timedOut=timedout success=success
+	botAsk --timeoutsub TimeoutWaitingForAnswer --text "${nextSentence}" --textformat "Markdown" userAnswer=value utterance=utterance timedOut=timedout success=success
 	if --left "${success}" --operator "Is_True" --negate 
 		return
 	endIf
@@ -66,4 +68,4 @@ recover
 endSub
 beginSub --name HandleError
 setVar --name "${nextSentence}" --value "Sorry, it looks like my programming is broken.\r\nHere\'s the information to pass to my creators:\r\n\r\nError ${rpa:error.Message} in ${rpa:error.LineNumber} ${rpa:error.Command}"
-endSub*21.0.5.0
+endSub*23.0.3.0

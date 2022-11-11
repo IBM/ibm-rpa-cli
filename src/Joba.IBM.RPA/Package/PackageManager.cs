@@ -2,10 +2,10 @@
 {
     public class PackageManager
     {
-        private readonly Project project;
+        private readonly IProject project;
         private readonly IPackageSourceResource source;
 
-        internal PackageManager(Project project, IPackageSourceResource source)
+        internal PackageManager(IProject project, IPackageSourceResource source)
         {
             this.project = project;
             this.source = source;
