@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA.Cli", "src\Joba.IBM.RPA.Cli\Joba.IBM.RPA.Cli.csproj", "{1EA95807-56D4-4F02-AD97-916066775ECF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA.Cli", "Joba.IBM.RPA.Cli\Joba.IBM.RPA.Cli.csproj", "{1EA95807-56D4-4F02-AD97-916066775ECF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA", "src\Joba.IBM.RPA\Joba.IBM.RPA.csproj", "{F21309FD-B918-463F-B3DE-28F83E64B946}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA", "Joba.IBM.RPA\Joba.IBM.RPA.csproj", "{F21309FD-B918-463F-B3DE-28F83E64B946}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA.Tests", "src\Joba.IBM.RPA.Tests\Joba.IBM.RPA.Tests.csproj", "{3BC3EC59-576D-4926-B38C-028A02283282}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA.Tests", "Joba.IBM.RPA.Tests\Joba.IBM.RPA.Tests.csproj", "{3BC3EC59-576D-4926-B38C-028A02283282}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

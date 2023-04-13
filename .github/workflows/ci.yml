@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  check-commit-message:
+    name: check commit message
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check message against regex
+      uses: gsactions/commit-message-checker@v2
+      with:
+        pattern: '(?:build|docs|refactor|test|fix|perf|chore|feat)(?:\(\w+\))?:\s[a-z]{1,2}.+'
+        error: "The commit message must follow the commit messages guidelines"
+        excludeDescription: 'true' # optional: this excludes the description body of a pull request
+        excludeTitle: 'true' # optional: this excludes the title of a pull request
+        checkAllCommitMessages: 'true' # optional: this checks all commits associated with a pull request
+        accessToken: ${{ secrets.GITHUB_TOKEN }} # github access token is only required if checkAllCommitMessages is true
+  build:
+    needs: [check-commit-message]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+    - name: Restore dependencies
+      run: dotnet restore ./src
+    - name: Build
+      run: dotnet build ./src --no-restore
+    - name: Test
+      run: dotnet test ./src --no-build --verbosity normal

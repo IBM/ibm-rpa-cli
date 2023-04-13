@@ -139,14 +139,7 @@ namespace Joba.IBM.RPA
              *   - "${workingDir}\packages\sum.wal" -> "packages\sum.wal"
              */
 
-            return path;
-
-            //NOTE: if the relative path "goes back" folders, we need to skip this 'executeScript' reference.
-            // - example: ../../c:/some-folder/mywal.wal
-            //if (relativePath.StartsWith(@"..\") || relativePath == ".")
-            //    return null;
-
-            //return relativePath;
+            return path.Replace('\\', Path.DirectorySeparatorChar);
         }
 
         [GeneratedRegex(@"^\$\{[a-z_0-9]+\}(?=\\)", RegexOptions.IgnoreCase)]

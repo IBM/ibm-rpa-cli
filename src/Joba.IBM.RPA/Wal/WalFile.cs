@@ -128,7 +128,16 @@ namespace Joba.IBM.RPA
             return false;
         }
         public override int GetHashCode() => Info.FullName.GetHashCode();
-        public static bool operator ==(WalFile? left, WalFile? right) => left.Equals(right);
+        public static bool operator ==(WalFile? left, WalFile? right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+            if (ReferenceEquals(left, null))
+                return false;
+            if (ReferenceEquals(right, null))
+                return false;
+            return left.Equals(right);
+        }
         public static bool operator !=(WalFile? left, WalFile? right) => !(left == right);
 
         public static WalFile Read(FileInfo file)

@@ -101,9 +101,4 @@
       <DependentUpon>BluewasherShould.cs</DependentUpon>
     </None>
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="assets\build\01\" />
-  </ItemGroup>
-
 </Project>
