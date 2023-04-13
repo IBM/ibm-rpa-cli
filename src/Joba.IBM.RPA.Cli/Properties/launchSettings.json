@@ -68,13 +68,21 @@
       "commandName": "Project",
       "commandLineArgs": "package uninstall"
     },
+    "rpa build --name": {
+      "commandName": "Project",
+      "commandLineArgs": "rpa build --name main"
+    },
+    "rpa build": {
+      "commandName": "Project",
+      "commandLineArgs": "rpa build"
+    },
     "rpa git config": {
       "commandName": "Project",
-      "commandLineArgs": "git config"
+      "commandLineArgs": "rpa git config"
     },
     "rpa git config --remove": {
       "commandName": "Project",
-      "commandLineArgs": "git config --remove"
+      "commandLineArgs": "rpa git config --remove"
     }
   }
 }

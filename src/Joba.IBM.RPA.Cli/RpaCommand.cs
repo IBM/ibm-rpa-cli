@@ -33,7 +33,6 @@ namespace Joba.IBM.RPA.Cli
             AddCommand(new ProjectCommand());
             AddCommand(new RobotCommand());
             AddCommand(new EnvironmentCommand());
-            //AddCommand(new StatusCommand());
             AddCommand(new PullCommand());
             AddCommand(new PushCommand());
             AddCommand(new PackageCommand());
