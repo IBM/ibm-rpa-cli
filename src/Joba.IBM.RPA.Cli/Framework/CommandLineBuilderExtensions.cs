@@ -57,10 +57,12 @@ namespace Joba.IBM.RPA.Cli
                 var verbosity = context.ParseResult.GetValueForOption(RpaCommand.VerbosityOption);
                 var loggerFactory = LoggerFactory.Create(builder =>
                 {
-                    builder.AddOpenTelemetry(o => o
-                        .SetIncludeFormattedMessage(true) //TODO: for some unknown reason, the 'Message' of the LogRecord is empty and not showing in the Jaeger UI. (https://github.com/open-telemetry/opentelemetry-dotnet/discussions/3696)
-                        .ConfigureResource(r => r.AddService(RpaCommand.ServiceName, serviceVersion: RpaCommand.AssemblyVersion))
-                        .AttachLogsToActivityEvent())
+                    builder.AddOpenTelemetry(o =>
+                    {
+                        o.IncludeFormattedMessage = true;
+                        o.AttachLogsToActivityEvent();
+                    //    .ConfigureResource(r => r.AddService(RpaCommand.ServiceName, serviceVersion: RpaCommand.AssemblyVersion))
+                    })
                     .SetMinimumLevel(verbosity.ToLogLevel());
 
                     //configuring custom console logging
