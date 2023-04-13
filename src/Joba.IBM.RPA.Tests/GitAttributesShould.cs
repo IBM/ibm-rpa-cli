@@ -2,7 +2,7 @@
 
 namespace Joba.IBM.RPA.Tests
 {
-    TODO: these tests require GIT and do not run on CI envs...
+    //TODO: these tests require GIT and do not run on CI envs...
     [UsesVerify]
     public class GitAttributesShould
     {
