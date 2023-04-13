@@ -17,23 +17,33 @@ namespace Joba.IBM.RPA
     public sealed partial class Bluewasher : ICompiler
     {
         private readonly ILogger logger;
+        private readonly IPackageManagerFactory packageManagerFactory;
         private readonly ISnippetFactory snippetFactory;
 
-        public Bluewasher(ILogger logger)
+        public Bluewasher(ILogger logger, IPackageManagerFactory packageManagerFactory)
         {
             this.logger = logger;
+            this.packageManagerFactory = packageManagerFactory;
             snippetFactory = new CurrentAssemblySnippetFactory();
         }
 
         async Task<BuildResult> ICompiler.BuildAsync(BuildArguments arguments, CancellationToken cancellation)
         {
+            await RestorePackagesAsync(arguments.Project, cancellation);
             if (arguments.Robot != null)
                 return await BuildRobotAsync(arguments.Project, arguments.Robot.Value, arguments.OutputDirectory, cancellation);
 
-            return await BuildRobotAsync(arguments.Project, arguments.OutputDirectory, cancellation);
+            return await BuildProjectAsync(arguments.Project, arguments.OutputDirectory, cancellation);
         }
 
-        private async Task<BuildResult> BuildRobotAsync(IProject project, DirectoryInfo outputDirectory, CancellationToken cancellation)
+        private async Task RestorePackagesAsync(IProject project, CancellationToken cancellation)
+        {
+            logger.LogInformation("Restoring packages for project '{Project}'", project.Name);
+            var manager = packageManagerFactory.Create(project);
+            await manager.RestoreAsync(cancellation);
+        }
+
+        private async Task<BuildResult> BuildProjectAsync(IProject project, DirectoryInfo outputDirectory, CancellationToken cancellation)
         {
             var stopwatch = Stopwatch.StartNew();
             try
@@ -53,8 +63,36 @@ namespace Joba.IBM.RPA
             }
         }
 
+        private async Task<BuildResult> BuildRobotAsync(IProject project, Robot robot, DirectoryInfo outputDirectory, CancellationToken cancellation)
+        {
+            var context = new BuildRobotContext(project, robot, outputDirectory);
+            var pipeline = AsyncPipeline<BuildRobotContext>.Create()
+                .Add(new CopyOriginalFile(logger))
+                .Add(new ScanReferences(logger))
+                .Add(new InjectDependencies(logger, snippetFactory))
+                .Catch((ctx, source, c) =>
+                {
+                    ctx.SetError(source.Exception);
+                    source.MarkAsHandled();
+                    return Task.CompletedTask;
+                })
+                .Finally((ctx, c) =>
+                {
+                    ctx.Stop();
+                    return Task.CompletedTask;
+                });
+
+            logger.LogInformation("Build started for: {File}", context.OriginalFile.Info.FullName);
+            await pipeline.ExecuteAsync(context, cancellation);
+
+            if (context.Error == null)
+                return BuildResult.Succeed(context.ElapsedTime, robot, context.File!);
+
+            return BuildResult.Failed(context.ElapsedTime, context.Error);
+        }
+
         /// <summary>
-        /// Fails the <see cref="Task.WhenAll(Task[])"/> when one of the them fails.
+        /// Fails the <see cref="Task.WhenAll(Task[])"/> when one of the tasks fails.
         /// From https://stackoverflow.com/a/69338551/1830639
         /// </summary>
         private static Task<TResult[]> WhenAllFailFast<TResult>(Task<TResult>[] tasks, CancellationToken cancellation)
@@ -86,35 +124,6 @@ namespace Joba.IBM.RPA
             }, default, flags, TaskScheduler.Default).Unwrap();
         }
 
-        private async Task<BuildResult> BuildRobotAsync(IProject project, Robot robot, DirectoryInfo outputDirectory, CancellationToken cancellation)
-        {
-            //TODO: restore packages before building...
-            var context = new BuildRobotContext(project, robot, outputDirectory);
-            var pipeline = AsyncPipeline<BuildRobotContext>.Create()
-                .Add(new CopyOriginalFile(logger))
-                .Add(new ScanReferences(logger))
-                .Add(new InjectDependencies(logger, snippetFactory))
-                .Catch((ctx, source, c) =>
-                {
-                    ctx.SetError(source.Exception);
-                    source.MarkAsHandled();
-                    return Task.CompletedTask;
-                })
-                .Finally((ctx, c) =>
-                {
-                    ctx.Stop();
-                    return Task.CompletedTask;
-                });
-
-            logger.LogInformation("Build started for: {File}", context.OriginalFile.Info.FullName);
-            await pipeline.ExecuteAsync(context, cancellation);
-
-            if (context.Error == null)
-                return BuildResult.Succeed(context.ElapsedTime, robot, context.File!);
-
-            return BuildResult.Failed(context.ElapsedTime, context.Error);
-        }
-        
         class BuildRobotContext
         {
             private readonly Stopwatch stopwatch;

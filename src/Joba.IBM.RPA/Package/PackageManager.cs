@@ -1,6 +1,17 @@
 ﻿namespace Joba.IBM.RPA
 {
-    public class PackageManager
+    public interface IPackageManager
+    {
+        Task<IEnumerable<PackageMetadata>> InstallAsync(NamePattern pattern, CancellationToken cancellation);
+        Task<PackageMetadata> InstallAsync(string name, WalVersion version, CancellationToken cancellation);
+        Task<UpdatePackageOperation> UpdateAsync(string name, WalVersion? version, CancellationToken cancellation);
+        Task<UpdateAllPackagesOperation> UpdateAllAsync(CancellationToken cancellation);
+        Task<IEnumerable<PackageMetadata>> RestoreAsync(CancellationToken cancellation);
+        Task<IEnumerable<PackageMetadata>> UninstallAsync(NamePattern pattern, CancellationToken cancellation);
+        Task<IEnumerable<PackageMetadata>> UninstallAllAsync(CancellationToken cancellation);
+    }
+
+    internal class PackageManager : IPackageManager
     {
         private readonly IProject project;
         private readonly IPackageSourceResource source;
@@ -11,7 +22,7 @@
             this.source = source;
         }
 
-        public async Task<IEnumerable<PackageMetadata>> InstallAsync(NamePattern pattern, CancellationToken cancellation)
+        async Task<IEnumerable<PackageMetadata>> IPackageManager.InstallAsync(NamePattern pattern, CancellationToken cancellation)
         {
             var packages = await source.SearchAsync(pattern, cancellation);
             if (!packages.Any())
@@ -25,7 +36,7 @@
             return metadata;
         }
 
-        public async Task<PackageMetadata> InstallAsync(string name, WalVersion version, CancellationToken cancellation)
+        async Task<PackageMetadata> IPackageManager.InstallAsync(string name, WalVersion version, CancellationToken cancellation)
         {
             var current = project.Packages.Get(name);
             if (current != null)
@@ -40,7 +51,7 @@
             return package.Metadata;
         }
 
-        public async Task<UpdatePackageOperation> UpdateAsync(string name, WalVersion? version, CancellationToken cancellation)
+        async Task<UpdatePackageOperation> IPackageManager.UpdateAsync(string name, WalVersion? version, CancellationToken cancellation)
         {
             var metadata = project.Packages.Get(name);
             if (metadata == null)
@@ -70,7 +81,7 @@
             return new UpdatePackageOperation(metadata, package.Metadata);
         }
 
-        public async Task<UpdateAllPackagesOperation> UpdateAllAsync(CancellationToken cancellation)
+        async Task<UpdateAllPackagesOperation> IPackageManager.UpdateAllAsync(CancellationToken cancellation)
         {
             var allOperation = new UpdateAllPackagesOperation();
             var packages = project.Packages.ToList();
@@ -88,22 +99,19 @@
             return allOperation;
         }
 
-        public async Task<IEnumerable<PackageMetadata>> RestoreAsync(CancellationToken cancellation)
+        async Task<IEnumerable<PackageMetadata>> IPackageManager.RestoreAsync(CancellationToken cancellation)
         {
             var packages = project.Packages.ToList();
             foreach (var metadata in packages)
             {
-                var package = await source.GetAsync(metadata.Name, metadata.Version, cancellation);
-                if (package == null)
-                    throw new PackageNotFoundException(metadata.Name, metadata.Version);
-
+                var package = await source.GetAsync(metadata.Name, metadata.Version, cancellation) ?? throw new PackageNotFoundException(metadata.Name, metadata.Version);
                 _ = project.Packages.Restore(package);
             }
 
             return packages;
         }
 
-        public async Task<IEnumerable<PackageMetadata>> UninstallAsync(NamePattern pattern, CancellationToken cancellation)
+        async Task<IEnumerable<PackageMetadata>> IPackageManager.UninstallAsync(NamePattern pattern, CancellationToken cancellation)
         {
             var packages = project.Packages.Where(p => pattern.Matches(p.Name)).ToList();
             if (packages.Any())
@@ -117,7 +125,7 @@
             return packages;
         }
 
-        public async Task<IEnumerable<PackageMetadata>> UninstallAllAsync(CancellationToken cancellation)
+        async Task<IEnumerable<PackageMetadata>> IPackageManager.UninstallAllAsync(CancellationToken cancellation)
         {
             var packages = project.Packages.ToList();
             project.Packages.UninstallAll();

@@ -15,17 +15,16 @@ namespace Joba.IBM.RPA.Cli
                 AddArgument(name);
                 this.SetHandler(HandleAsync, name,
                     Bind.FromLogger<UninstallPackageCommand>(),
-                    Bind.FromServiceProvider<IRpaClientFactory>(),
+                    Bind.FromServiceProvider<IPackageManagerFactory>(),
                     Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string? name, ILogger<UninstallPackageCommand> logger, IRpaClientFactory clientFactory,
+            private async Task HandleAsync(string? name, ILogger<UninstallPackageCommand> logger, IPackageManagerFactory packageManagerFactory,
                 IProject project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var factory = new PackageManagerFactory(clientFactory);
-                var manager = factory.Create(project);
+                var manager = packageManagerFactory.Create(project);
 
                 IEnumerable<PackageMetadata> packages;
                 if (name == null)

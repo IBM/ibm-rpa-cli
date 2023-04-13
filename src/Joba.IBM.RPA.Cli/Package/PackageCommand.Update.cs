@@ -19,18 +19,17 @@ namespace Joba.IBM.RPA.Cli
                 AddOption(source);
                 this.SetHandler(HandleAsync, name, version, source,
                     Bind.FromLogger<UpdatePackageCommand>(),
-                    Bind.FromServiceProvider<IRpaClientFactory>(),
+                    Bind.FromServiceProvider<IPackageManagerFactory>(),
                     Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
             private async Task HandleAsync(string? name, int? version, string? sourceAlias,
-                ILogger<UpdatePackageCommand> logger, IRpaClientFactory clientFactory,
+                ILogger<UpdatePackageCommand> logger, IPackageManagerFactory packageManagerFactory,
                 IProject project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var factory = new PackageManagerFactory(clientFactory);
-                var manager = factory.Create(project, sourceAlias);
+                var manager = packageManagerFactory.Create(project, sourceAlias);
 
                 if (version.HasValue && name == null)
                     throw new InvalidOperationException($"You cannot specify the version without specifying the package name.");

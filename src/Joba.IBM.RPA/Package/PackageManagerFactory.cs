@@ -1,12 +1,17 @@
 ﻿namespace Joba.IBM.RPA
 {
-    public class PackageManagerFactory
+    public interface IPackageManagerFactory
+    {
+        IPackageManager Create(IProject project, string? sourceAlias = null);
+    }
+    
+    public sealed class PackageManagerFactory : IPackageManagerFactory
     {
         private readonly IRpaClientFactory clientFactory;
 
         public PackageManagerFactory(IRpaClientFactory clientFactory) => this.clientFactory = clientFactory;
 
-        public PackageManager Create(IProject project, string? sourceAlias = null)
+        IPackageManager IPackageManagerFactory.Create(IProject project, string? sourceAlias = null)
         {
             if (sourceAlias == null)
                 return new PackageManager(project, new MultiplePackageSourceResource(CreateSources(project).ToArray()));

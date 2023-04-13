@@ -19,13 +19,13 @@ namespace Joba.IBM.RPA.Cli
                 AddOption(source);
                 this.SetHandler(HandleAsync, name, version, source,
                     Bind.FromLogger<InstallPackageCommand>(),
-                    Bind.FromServiceProvider<IRpaClientFactory>(),
+                    Bind.FromServiceProvider<IPackageManagerFactory>(),
                     Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string name, int? version, string? sourceAlias, ILogger<InstallPackageCommand> logger, IRpaClientFactory clientFactory,
-                IProject project, InvocationContext context)
+            private async Task HandleAsync(string name, int? version, string? sourceAlias, ILogger<InstallPackageCommand> logger,
+                IPackageManagerFactory packageManagerFactory, IProject project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
 
@@ -33,8 +33,7 @@ namespace Joba.IBM.RPA.Cli
                 if (pattern.HasWildcard && version.HasValue)
                     throw new Exception($"You cannot specify the version if you're using '*' in the package name.");
 
-                var factory = new PackageManagerFactory(clientFactory);
-                var manager = factory.Create(project, sourceAlias);
+                var manager = packageManagerFactory.Create(project, sourceAlias);
                 if (version.HasValue)
                 {
                     var package = await manager.InstallAsync(pattern.Name, new WalVersion(version.Value), cancellation);

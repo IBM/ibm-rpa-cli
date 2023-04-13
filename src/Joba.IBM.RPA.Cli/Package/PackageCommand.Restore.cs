@@ -11,16 +11,15 @@ namespace Joba.IBM.RPA.Cli
             {
                 this.SetHandler(HandleAsync,
                     Bind.FromLogger<RestorePackageCommand>(),
-                    Bind.FromServiceProvider<IRpaClientFactory>(),
+                    Bind.FromServiceProvider<IPackageManagerFactory>(),
                     Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(ILogger<RestorePackageCommand> logger, IRpaClientFactory clientFactory, IProject project, InvocationContext context)
+            private async Task HandleAsync(ILogger<RestorePackageCommand> logger, IPackageManagerFactory packageManagerFactory, IProject project, InvocationContext context)
             {
                 var cancellation = context.GetCancellationToken();
-                var factory = new PackageManagerFactory(clientFactory);
-                var manager = factory.Create(project);
+                var manager = packageManagerFactory.Create(project);
                 var packages = await manager.RestoreAsync(cancellation);
                 if (packages.Any())
                     logger.LogInformation("Total of {Count} packages have been restored.", packages.Count());

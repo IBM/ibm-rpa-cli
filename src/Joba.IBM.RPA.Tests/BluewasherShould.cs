@@ -23,8 +23,10 @@ namespace Joba.IBM.RPA.Tests
             project.Setup(p => p.WorkingDirectory).Returns(workingDir);
             project.Setup(p => p.Scripts).Returns(new ScriptRepository(workingDir));
             project.Setup(p => p.Robots).Returns(robots.Object);
+            var packageManagerFactory = new Mock<IPackageManagerFactory>();
+            packageManagerFactory.Setup(p => p.Create(project.Object, null)).Returns(new Mock<IPackageManager>().Object);
             var arguments = new BuildArguments(project.Object, robot, outputDir);
-            var sut = (ICompiler)new Bluewasher(logger.Object);
+            var sut = (ICompiler)new Bluewasher(logger.Object, packageManagerFactory.Object);
 
             //act
             var result = await sut.BuildAsync(arguments, CancellationToken.None);
@@ -53,8 +55,10 @@ namespace Joba.IBM.RPA.Tests
             project.Setup(p => p.WorkingDirectory).Returns(workingDir);
             project.Setup(p => p.Scripts).Returns(new ScriptRepository(workingDir));
             project.Setup(p => p.Robots).Returns(robots.Object);
+            var packageManagerFactory = new Mock<IPackageManagerFactory>();
+            packageManagerFactory.Setup(p => p.Create(project.Object, null)).Returns(new Mock<IPackageManager>().Object);
             var arguments = new BuildArguments(project.Object, robot, outputDir);
-            var sut = (ICompiler)new Bluewasher(logger.Object);
+            var sut = (ICompiler)new Bluewasher(logger.Object, packageManagerFactory.Object);
 
             //act
             var result = await sut.BuildAsync(arguments, CancellationToken.None);
@@ -85,8 +89,10 @@ namespace Joba.IBM.RPA.Tests
             project.Setup(p => p.WorkingDirectory).Returns(workingDir);
             project.Setup(p => p.Scripts).Returns(new ScriptRepository(workingDir));
             project.Setup(p => p.Robots).Returns(robots.Object);
+            var packageManagerFactory = new Mock<IPackageManagerFactory>();
+            packageManagerFactory.Setup(p => p.Create(project.Object, null)).Returns(new Mock<IPackageManager>().Object);
             var arguments = new BuildArguments(project.Object, outputDir);
-            var sut = (ICompiler)new Bluewasher(logger.Object);
+            var sut = (ICompiler)new Bluewasher(logger.Object, packageManagerFactory.Object);
 
             //act
             var result = await sut.BuildAsync(arguments, CancellationToken.None);

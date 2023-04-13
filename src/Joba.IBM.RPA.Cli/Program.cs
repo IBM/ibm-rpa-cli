@@ -92,7 +92,10 @@ namespace Joba.IBM.RPA.Cli
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
             context.BindingContext.AddService<IRpaClientFactory>(s => new RpaClientFactory(context.Console));
-            context.BindingContext.AddService<ICompiler>(s => new Bluewasher(s.GetRequiredService<ILogger<Bluewasher>>()));
+            context.BindingContext.AddService<IPackageManagerFactory>(s => new PackageManagerFactory(s.GetRequiredService<IRpaClientFactory>()));
+            context.BindingContext.AddService<ICompiler>(s => new Bluewasher(
+                s.GetRequiredService<ILogger<Bluewasher>>(),
+                s.GetRequiredService<IPackageManagerFactory>()));
 
             if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult &&
                 context.ParseResult.CommandResult.Command != null)
