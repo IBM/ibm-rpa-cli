@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     public class PackageManagerFactory
     {

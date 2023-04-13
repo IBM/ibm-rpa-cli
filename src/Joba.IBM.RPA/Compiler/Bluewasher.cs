@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Joba.Pipeline;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
@@ -13,7 +14,7 @@ namespace Joba.IBM.RPA
     /// <summary>
     /// The IBM RPA compiler. Codename "<see cref="Bluewasher"/>".
     /// </summary>
-    public sealed class Bluewasher : ICompiler
+    public sealed partial class Bluewasher : ICompiler
     {
         private readonly ILogger logger;
         private readonly ISnippetFactory snippetFactory;
@@ -37,6 +38,7 @@ namespace Joba.IBM.RPA
             var stopwatch = Stopwatch.StartNew();
             try
             {
+                logger.LogInformation("Build started for project '{Project}'", project.Name);
                 var tasks = project.Robots.Select(robot => BuildRobotAsync(project, robot, outputDirectory, cancellation)).ToArray();
                 var results = await WhenAllFailFast(tasks, cancellation);
                 stopwatch.Stop();
@@ -84,128 +86,81 @@ namespace Joba.IBM.RPA
             }, default, flags, TaskScheduler.Default).Unwrap();
         }
 
-        //TODO: refactor to use Pipeline
         private async Task<BuildResult> BuildRobotAsync(IProject project, Robot robot, DirectoryInfo outputDirectory, CancellationToken cancellation)
         {
-            var file = project.Scripts.Get(robot.Name) ?? throw new InvalidOperationException($"Could not find the wal file for the robot named '{robot.Name}'");
-            var stopwatch = Stopwatch.StartNew();
-
             //TODO: restore packages before building...
-            logger.LogInformation("Build started for: {File}", file.Info.FullName);
-            try
-            {
-                var copyPath = Path.Combine(outputDirectory.FullName, file.Info.Name);
-                logger.LogDebug("Copying {Source} to {Target}", file.Info.FullName, copyPath);
-                File.Copy(file.Info.FullName, copyPath, true);
-                var fileCopy = WalFile.Read(new FileInfo(copyPath));
-
-                var context = new ScanningContext(logger, project, fileCopy);
-                var references = ScanReferencesRecursively(context).ToList();
-                var dependencies = references.Select(r => r.Right).Distinct().ToList();
-                logger.LogInformation("Total of dependencies found for '{File}': {Total}", fileCopy.Name, dependencies.Count);
-
-                if (dependencies.Any())
+            var context = new BuildRobotContext(project, robot, outputDirectory);
+            var pipeline = AsyncPipeline<BuildRobotContext>.Create()
+                .Add(new CopyOriginalFile(logger))
+                .Add(new ScanReferences(logger))
+                .Add(new InjectDependencies(logger, snippetFactory))
+                .Catch((ctx, source, c) =>
                 {
-                    var dependenciesZipPath = Path.Combine(outputDirectory.FullName, $"{fileCopy.Name.WithoutExtension}.zip");
-                    logger.LogDebug("Creating the dependencies zip file '{FilePath}'", dependenciesZipPath);
-                    using (var fileStream = new FileStream(dependenciesZipPath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
-                    {
-                        using var archive = new ZipArchive(fileStream, ZipArchiveMode.Create, true) { Comment = $"Robot {fileCopy.Name} dependencies of project {project.Name}" };
-                        foreach (var dependency in dependencies)
-                        {
-                            var relativePath = Path.GetRelativePath(project.WorkingDirectory.FullName, dependency.FullName);
-                            var entry = archive.CreateEntryFromFile(dependency.FullName, relativePath);
-                            logger.LogDebug("Entry '{Entry}' added to '{FilePath}'", relativePath, dependenciesZipPath);
-                        }
-                    }
-
-                    var snippet = await snippetFactory.GetAsync("InjectDependencies", cancellation) ?? throw new InvalidOperationException($"Could not find snippet 'InjectDependencies'");
-                    snippet.Configure("zipFileAsBase64", Convert.ToBase64String(File.ReadAllBytes(dependenciesZipPath)));
-                    //TODO: delete zip file
-
-                    var analyzer = context.GetAnalyzerFromCache(fileCopy);
-                    var variables = analyzer.EnumerateCommands<DefineVariableLine>(DefineVariableLine.Verb);
-                    var workingDirVar = variables.FirstOrDefault(v => v.Name == "workingDirectory");
-                    if (workingDirVar != null && workingDirVar.Type != "String")
-                        throw new InvalidOperationException($"Although the variable 'workingDirectory' is defined in '{fileCopy.Name}', it must be 'String' type and not '{workingDirVar.Type}' type");
-                    if (workingDirVar == null)
-                    {
-                        var defVarSnippet = (ISnippet)new Snippet("defVar --name workingDirectory --type String", null, null);
-                        defVarSnippet.Apply(fileCopy);
-                    }
-
-                    snippet.Apply(fileCopy);
-                }
-
-                stopwatch.Stop();
-                return BuildResult.Succeed(stopwatch.Elapsed, robot, fileCopy);
-            }
-            catch (Exception ex)
-            {
-                stopwatch.Stop();
-                return BuildResult.Failed(stopwatch.Elapsed, ex);
-            }
-        }
-
-        private IEnumerable<Reference> ScanReferencesRecursively(ScanningContext context)
-        {
-            var project = context.Project;
-            var current = context.Current;
-
-            context.LogDebug("Analyzing '{Script}' ({File})", current.Name, current.Info.FullName);
-            var analyzer = context.CreateAnalyzer();
-
-            context.LogDebug("Searching '{command}' command references on '{Script}'", ExecuteScriptLine.Verb, current.Name);
-            var executeScripts = analyzer.EnumerateCommands<ExecuteScriptLine>(ExecuteScriptLine.Verb);
-            foreach (var executeScript in executeScripts)
-            {
-                var relativePath = executeScript.GetRelativePath(project.WorkingDirectory);
-                if (relativePath == null)
+                    ctx.SetError(source.Exception);
+                    source.MarkAsHandled();
+                    return Task.CompletedTask;
+                })
+                .Finally((ctx, c) =>
                 {
-                    context.LogWarning("Skipping the reference on line '{Line}' of '{Script}' because the '--name' parameter does not follow the format '${[working_directory_variable]}\\[path_of_the_wal_file_within_working_directory]'.", executeScript.LineNumber, current.Name, executeScript.Name);
-                    context.LogWarning("Examples:\n" +
-                        "  ${workingDir}\\myscript.wal\n" +
-                        "  ${var1}\\packages\\package1.wal");
-                    continue;
-                }
+                    ctx.Stop();
+                    return Task.CompletedTask;
+                });
 
-                context.LogDebug("Reference found on line '{Line}' of '{Script}': {RelativePath}", executeScript.LineNumber, current.Name, relativePath);
+            logger.LogInformation("Build started for: {File}", context.OriginalFile.Info.FullName);
+            await pipeline.ExecuteAsync(context, cancellation);
 
-                var file = new FileInfo(Path.Combine(project.WorkingDirectory.FullName, relativePath));
-                var wal = project.Scripts.Get(file);
-                yield return wal == null
-                    ? throw new FileNotFoundException($"The file '{file.FullName}' could not be found.", file.Name)
-                    : new Reference(current.Info, wal.Info);
+            if (context.Error == null)
+                return BuildResult.Succeed(context.ElapsedTime, robot, context.File!);
 
-                foreach (var reference in ScanReferencesRecursively(context.Next(wal)))
-                    yield return reference;
-            }
+            return BuildResult.Failed(context.ElapsedTime, context.Error);
         }
-
-        class ScanningContext
+        
+        class BuildRobotContext
         {
-            private readonly ILogger logger;
-            private int logPadding = 0;
-            private readonly IDictionary<string, WalAnalyzer> cache = new Dictionary<string, WalAnalyzer>();
+            private readonly Stopwatch stopwatch;
 
-            internal ScanningContext(ILogger logger, IProject project, WalFile wal)
+            internal BuildRobotContext(IProject project, Robot robot, DirectoryInfo outputDirectory)
             {
-                this.logger = logger;
+                stopwatch = Stopwatch.StartNew();
+                OriginalFile = project.Scripts.Get(robot.Name) ?? throw new InvalidOperationException($"Could not find the wal file for the robot named '{robot.Name}'");
                 Project = project;
-                Current = wal;
+                Robot = robot;
+                OutputDirectory = outputDirectory;
             }
 
             internal IProject Project { get; }
-            internal WalFile Current { get; private set; }
+            internal Robot Robot { get; }
+            internal WalFile OriginalFile { get; }
+            internal DirectoryInfo OutputDirectory { get; }
+            internal TimeSpan ElapsedTime { get; }
+            internal Exception? Error { get; private set; }
+            internal WalFile? File { get; set; }
+            internal ReferenceScanner? Scanner { get; private set; }
+            internal IEnumerable<FileInfo> Dependencies { get; set; } = Enumerable.Empty<FileInfo>();
 
-            internal WalAnalyzer CreateAnalyzer()
+            internal ReferenceScanner CreateScanner(ILogger logger)
             {
-                if (cache.TryGetValue(Current.Info.FullName, out var analyzer))
-                    return analyzer;
+                Scanner = new ReferenceScanner(logger, Project, File!);
+                return Scanner;
+            }
+            internal void Stop() => stopwatch.Stop();
+            internal void SetError(Exception exception) => Error = exception;
+        }
 
-                analyzer = new WalAnalyzer(Current);
-                cache.Add(Current.Info.FullName, analyzer);
-                return analyzer;
+        class ReferenceScanner
+        {
+            private readonly ILogger logger;
+            private readonly IProject project;
+            private readonly IDictionary<string, WalAnalyzer> cache = new Dictionary<string, WalAnalyzer>();
+            private WalFile current;
+            private int logPadding = 0;
+
+            internal ReferenceScanner(ILogger logger, IProject project, WalFile wal)
+            {
+                this.logger = logger;
+                this.project = project;
+                this.project = project;
+                current = wal;
             }
 
             internal WalAnalyzer GetAnalyzerFromCache(WalFile wal)
@@ -216,23 +171,67 @@ namespace Joba.IBM.RPA
                 return analyzer;
             }
 
-            internal ScanningContext Next(WalFile wal)
+            private WalAnalyzer CreateAnalyzer()
+            {
+                if (cache.TryGetValue(current.Info.FullName, out var analyzer))
+                    return analyzer;
+
+                analyzer = new WalAnalyzer(current);
+                cache.Add(current.Info.FullName, analyzer);
+                return analyzer;
+            }
+
+            private ReferenceScanner Next(WalFile wal)
             {
                 ++logPadding;
-                Current = wal;
+                current = wal;
                 return this;
             }
 
-            internal void LogDebug(string? message, params object?[] args)
+            private void LogDebug(string? message, params object?[] args)
             {
                 if (logger.IsEnabled(LogLevel.Debug))
                     logger.LogDebug(new string(' ', logPadding) + message, args);
             }
 
-            internal void LogWarning(string? message, params object?[] args)
+            private void LogWarning(string? message, params object?[] args)
             {
                 if (logger.IsEnabled(LogLevel.Warning))
                     logger.LogWarning(new string(' ', logPadding) + message, args);
+            }
+
+            internal IEnumerable<Reference> Scan() => ScanRecursively(this);
+
+            private static IEnumerable<Reference> ScanRecursively(ReferenceScanner context)
+            {
+                context.LogDebug("Analyzing '{Script}' ({File})", context.current.Name, context.current.Info.FullName);
+                var analyzer = context.CreateAnalyzer();
+
+                context.LogDebug("Searching '{command}' command references on '{Script}'", ExecuteScriptLine.Verb, context.current.Name);
+                var executeScripts = analyzer.EnumerateCommands<ExecuteScriptLine>(ExecuteScriptLine.Verb);
+                foreach (var executeScript in executeScripts)
+                {
+                    var relativePath = executeScript.GetRelativePath(context.project.WorkingDirectory);
+                    if (relativePath == null)
+                    {
+                        context.LogWarning("Skipping the reference on line '{Line}' of '{Script}' because the '--name' parameter does not follow the format '${[working_directory_variable]}\\[path_of_the_wal_file_within_working_directory]'.", executeScript.LineNumber, context.current.Name, executeScript.Name);
+                        context.LogWarning("Examples:\n" +
+                            "  ${workingDir}\\myscript.wal\n" +
+                            "  ${var1}\\packages\\package1.wal");
+                        continue;
+                    }
+
+                    context.LogDebug("Reference found on line '{Line}' of '{Script}': {RelativePath}", executeScript.LineNumber, context.current.Name, relativePath);
+
+                    var file = new FileInfo(Path.Combine(context.project.WorkingDirectory.FullName, relativePath));
+                    var wal = context.project.Scripts.Get(file);
+                    yield return wal == null
+                        ? throw new FileNotFoundException($"The file '{file.FullName}' could not be found.", file.Name)
+                        : new Reference(context.current.Info, wal.Info);
+
+                    foreach (var reference in ScanRecursively(context.Next(wal)))
+                        yield return reference;
+                }
             }
         }
 
