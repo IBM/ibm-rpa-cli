@@ -11,8 +11,8 @@ namespace Joba.IBM.RPA.Tests
         {
             //arrange
             var cliName = "rpa";
-            var directoryName = @"assets\gitattributes";
-            var file = new FileInfo(@$"{directoryName}\{nameof(UpdatePattern)}.txt");
+            var directoryName = Path.GetFullPath(@"assets/gitattributes");
+            var file = new FileInfo(@$"{directoryName}/{nameof(UpdatePattern)}.txt");
             var gitAttributes = new GitAttributes(file, cliName);
 
             //act
@@ -29,8 +29,8 @@ namespace Joba.IBM.RPA.Tests
         {
             //arrange
             var cliName = "rpa";
-            var directoryName = @"assets\gitattributes";
-            var file = new FileInfo(@$"{directoryName}\{nameof(AddPattern)}.txt");
+            var directoryName = Path.GetFullPath(@"assets/gitattributes");
+            var file = new FileInfo(@$"{directoryName}/{nameof(AddPattern)}.txt");
             var gitAttributes = new GitAttributes(file, cliName);
 
             //act
