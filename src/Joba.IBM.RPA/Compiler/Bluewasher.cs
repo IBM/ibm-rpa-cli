@@ -223,7 +223,7 @@ namespace Joba.IBM.RPA
                     var relativePath = executeScript.GetRelativePath(context.project.WorkingDirectory);
                     if (relativePath == null)
                     {
-                        context.LogWarning("Skipping the reference on line '{Line}' of '{Script}' because the '--name' parameter does not follow the format '${[working_directory_variable]}\\[path_of_the_wal_file_within_working_directory]'.", executeScript.LineNumber, context.current.Name, executeScript.Name);
+                        context.LogWarning("Skipping the reference on line '{Line}' of '{Script}' because the '--name' parameter does not follow the format '[working_directory_variable]\\[path_of_the_wal_file_within_working_directory]'.", executeScript.LineNumber, context.current.Name, executeScript.Name);
                         context.LogWarning("Examples:\n" +
                             "  ${workingDir}\\myscript.wal\n" +
                             "  ${var1}\\packages\\package1.wal");

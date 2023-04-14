@@ -28,7 +28,10 @@ namespace Joba.IBM.RPA
                 commandsMapping = new Dictionary<string, Type>
             {
                 { ExecuteScriptLine.Verb, typeof(ExecuteScriptLine) },
-                { DefineVariableLine.Verb, typeof(DefineVariableLine) }
+                { DefineVariableLine.Verb, typeof(DefineVariableLine) },
+                { ImportLine.Verb, typeof(ImportLine) },
+                { GoSubLine.Verb, typeof(GoSubLine) },
+                { BeginSubLine.Verb, typeof(BeginSubLine) }
             };
             }
 
@@ -77,6 +80,66 @@ namespace Joba.IBM.RPA
 
         internal string Name { get; }
         internal string Type { get; }
+    }
+
+    internal class GoSubLine : WalLine
+    {
+        public const string Verb = "goSub";
+
+        public GoSubLine(int number, string content, string? command)
+            : base(number, content, command)
+        {
+            var match = Regex.Match(content, @"--label\s+(?<label>\w+)");
+            if (!match.Success)
+                throw new Exception($"Line {number} ({Verb}) does not have the '--label' parameter in the correct format.");
+            Label = match.Groups["label"]?.Value;
+        }
+
+        internal string Label { get; }
+    }
+
+    internal class BeginSubLine : WalLine
+    {
+        public const string Verb = "beginSub";
+
+        public BeginSubLine(int number, string content, string? command)
+            : base(number, content, command)
+        {
+            var match = Regex.Match(content, @"--name\s+(?<name>\w+)");
+            if (!match.Success)
+                throw new Exception($"Line {number} ({Verb}) does not have the '--name' parameter in the correct format.");
+            Name = match.Groups["name"]?.Value;
+        }
+
+        internal string Name { get; }
+    }
+
+    internal class ImportLine : WalLine
+    {
+        public const string Verb = "import";
+
+        public ImportLine(int number, string content, string? command)
+            : base(number, content, command)
+        {
+            var match = Regex.Match(content, @"--name\s+(?<name>\w+)");
+            if (!match.Success)
+                throw new Exception($"Line {number} ({Verb}) does not have the '--name' parameter in the correct format.");
+            Name = match.Groups["name"]?.Value;
+
+            match = Regex.Match(content, "--type\\s+\"(?<type>\\w+)\"");
+            if (!match.Success)
+                throw new Exception($"Line {number} ({Verb}) does not have the '--type' parameter in the correct format.");
+            Type = match.Groups["type"]?.Value;
+
+            match = Regex.Match(content, @"--content\s+(?<content>([^\s]+))");
+            if (!match.Success)
+                throw new Exception($"Line {number} ({Verb}) does not have the '--content' parameter in the correct format.");
+            Base64Content = match.Groups["content"]?.Value;
+        }
+
+        internal string Name { get; }
+        internal string Type { get; }
+        internal string Base64Content { get; }
     }
 
     internal partial class ExecuteScriptLine : WalLine
@@ -148,7 +211,7 @@ namespace Joba.IBM.RPA
         private static partial Regex ContainsVariable();
     }
 
-    public class WalLines : IEnumerable<WalLine>
+    internal class WalLines : IEnumerable<WalLine>
     {
         private readonly IList<WalLine> lines;
 
@@ -164,7 +227,7 @@ namespace Joba.IBM.RPA
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)lines).GetEnumerator();
     }
 
-    public class WalLine
+    internal class WalLine
     {
         internal WalLine(int number, string content, string? command)
         {

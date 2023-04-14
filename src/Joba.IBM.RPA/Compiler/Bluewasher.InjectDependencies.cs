@@ -1,5 +1,6 @@
 ﻿using Joba.Pipeline;
 using Microsoft.Extensions.Logging;
+using System.IO;
 using System.IO.Compression;
 
 namespace Joba.IBM.RPA
@@ -64,8 +65,8 @@ namespace Joba.IBM.RPA
                     foreach (var dependency in context.Dependencies)
                     {
                         var relativePath = Path.GetRelativePath(context.Project.WorkingDirectory.FullName, dependency.FullName);
-                        _ = archive.CreateEntryFromFile(dependency.FullName, relativePath);
-                        logger.LogDebug("Entry '{Entry}' added to '{FilePath}'", relativePath, dependenciesZipPath);
+                        var entry = archive.CreateEntryFromFile(dependency.FullName, relativePath);
+                        logger.LogDebug("Entry '{Entry}' added to '{FilePath}'", entry.FullName, dependenciesZipPath);
                     }
                 }
 
