@@ -11,19 +11,19 @@ defVar --name result --type Numeric
 setVarIf --variablename "${workingDirectory}" --value "C:\\Users\\002742631\\Desktop\\ibm-rpa-cli-test-scripts" --left "${workingDirectory}" --operator "Is_Null_Or_Empty"
 
 executeScript --name "${workingDirectory}\\greetings.wal" --comment greetings
-executeScript --name "${workingDirectory}\\Math\\sum.wal" --parameters "{\"left\":\"1\",\"right\":\"1\"}" --output "{\"result\":\"${sum}\"}" --comment sum
+executeScript --name "${workingDirectory}\\math\\sum.wal" --parameters "{\"left\":\"1\",\"right\":\"1\"}" --output "{\"result\":\"${sum}\"}" --comment sum
 logMessage --message "sum = ${sum}" --type "Info"
 
 goSub --label Multiply
 
 //some comments here
-setVar --name "${scriptName}" --value "${workingDirectory}\\Math\\subtract.wal"
+setVar --name "${scriptName}" --value "${workingDirectory}\\math\\subtract.wal"
 executeScript --name "${scriptName}" --parameters "{\"left\":\"1\",\"right\":\"1\"}" --output "{\"result\":\"${result}\"}"
 logMessage --message "result = ${result}" --type "Info"
 
-executeScript --name "${workingDirectory}\\Math\\subtract.wal" --parameters "{\"left\":\"1\",\"right\":\"1\"}" --output "{\"result\":\"${result}\"}" --comment subtract
+executeScript --name "${workingDirectory}\\math\\subtract.wal" --parameters "{\"left\":\"1\",\"right\":\"1\"}" --output "{\"result\":\"${result}\"}" --comment subtract
 logMessage --message "result = ${result}" --type "Info"
 beginSub --name Multiply
-	executeScript --handleError  --name "${workingDirectory}\\Math\\multiply.wal" --parameters "{\"left\":\"1\",\"right\":\"1\"}" --output "{\"result\":\"${multiply}\"}" --version 1 --comment multiply success=value errorMessage=errormessage errorLineNumber=linenumber errorRoutine=errorsubname error=error
+	executeScript --handleError  --name "${workingDirectory}\\math\\multiply.wal" --parameters "{\"left\":\"1\",\"right\":\"1\"}" --output "{\"result\":\"${multiply}\"}" --version 1 --comment multiply success=value errorMessage=errormessage errorLineNumber=linenumber errorRoutine=errorsubname error=error
 	logMessage --message "multiply = ${multiply}" --type "Info"
 endSub*23.0.3.0
