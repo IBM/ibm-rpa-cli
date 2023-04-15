@@ -1,14 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
-using Polly;
-using System;
-using System.Xml.Linq;
 
 namespace Joba.IBM.RPA.Cli
 {
     [RequiresProject]
     internal partial class PullCommand : Command
     {
-        public PullCommand() : base("pull", "Pulls all the project files")
+        public const string CommandName = "pull";
+        public PullCommand() : base(CommandName, "Pulls all the project files")
         {
             var name = new Argument<string>("name", "The asset name. To pull several at once, use '*' at the end, e.g 'MyParam*'.");
             var environmentName = new Option<string>("--env", "The alias of the environment to pull parameters from.") { Arity = ArgumentArity.ExactlyOne };

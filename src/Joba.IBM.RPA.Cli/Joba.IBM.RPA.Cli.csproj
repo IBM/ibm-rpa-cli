@@ -26,9 +26,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Templates\attended.wal" />
+	  <None Remove="Templates\excel.wal" />
+	  <None Remove="Templates\unattended.wal" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Templates\attended.wal" />
 	  <EmbeddedResource Include="Templates\chatbot.wal">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </EmbeddedResource>
+	  <EmbeddedResource Include="Templates\excel.wal" />
+	  <EmbeddedResource Include="Templates\unattended.wal" />
 	</ItemGroup>
 
 	<ItemGroup>

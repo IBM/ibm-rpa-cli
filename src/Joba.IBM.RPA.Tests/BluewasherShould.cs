@@ -139,6 +139,7 @@ namespace Joba.IBM.RPA.Tests
             mockProject.Setup(p => p.Name).Returns(projectName);
             mockProject.Setup(p => p.WorkingDirectory).Returns(workingDir);
             mockProject.Setup(p => p.Scripts).Returns(new ScriptRepository(workingDir));
+            mockProject.Setup(p => p.Packages).Returns(new PackageReferences(workingDir));
             mockProject.Setup(p => p.Robots).Returns(mockRobots.Object);
 
             return mockProject.Object;

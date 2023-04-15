@@ -19,6 +19,12 @@
         public RemoteSettings Remote { get; }
         public ISessionManager Session => session;
 
+        internal async Task<(EnvironmentSettingsFile, EnvironmentSettings)> LoadSettingsAsync(IProject project, CancellationToken cancellation)
+        {
+            var (file, settings) = await EnvironmentSettingsFile.TryLoadAsync(project.WorkingDirectory, project.Name, Alias, cancellation);
+            return (file, settings ?? new EnvironmentSettings(project.Parameters));
+        }
+
         public override string ToString() => $"{Alias} ({Remote.TenantName}), [{Remote.Region}]({Remote.Address})";
     }
 
@@ -40,9 +46,9 @@
             this.userSettings = userSettings;
         }
 
-        Environment IEnvironments.this[string alias] => 
-            projectSettings.Environments.TryGetValue(alias, out var value) ? 
-                new(alias, value, userFile, userSettings) : 
+        Environment IEnvironments.this[string alias] =>
+            projectSettings.Environments.TryGetValue(alias, out var value) ?
+                new(alias, value, userFile, userSettings) :
                 throw EnvironmentException.NotConfigured(alias);
     }
 }

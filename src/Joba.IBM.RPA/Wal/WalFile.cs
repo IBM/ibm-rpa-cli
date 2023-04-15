@@ -84,6 +84,14 @@ namespace Joba.IBM.RPA
             Save();
         }
 
+        internal void Overwrite(Guid scriptId, Guid versionId, WalVersion version)
+        {
+            Id = scriptId;
+            VersionId = versionId;
+            Version = version;
+            Save();
+        }
+
         private void UpdateWith(ScriptVersion version)
         {
             Content = new WalContent(version.Content);
@@ -93,8 +101,8 @@ namespace Joba.IBM.RPA
             ProductVersion = version.ProductVersion;
         }
 
-        internal PublishScript PrepareToPublish(string message) =>
-            new(Id, VersionId, Name, message, Content.ToString(), ProductVersion?.ToString(), false, 300, 300, 300);
+        internal PublishScript PrepareToPublish(string message, TimeSpan timeout, bool resetIds = false) =>
+            new(resetIds ? null : Id, resetIds ? null : VersionId, Name.WithoutExtension, message, Content.ToString(), ProductVersion?.ToString(), false, Convert.ToInt32(timeout.TotalSeconds), Convert.ToInt32(timeout.TotalSeconds), Convert.ToInt32(timeout.TotalSeconds));
 
         internal void Save()
         {

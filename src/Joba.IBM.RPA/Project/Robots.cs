@@ -38,7 +38,7 @@ namespace Joba.IBM.RPA
                 ChatbotSettings.TypeName => new ChatbotSettings(),
                 AttendedSettings.TypeName => new AttendedSettings(),
                 UnattendedSettings.TypeName => new UnattendedSettings(),
-                _ => throw new InvalidOperationException($"Type '{type}' is not supported."),
+                _ => new UnattendedSettings()
             };
         }
     }
@@ -75,6 +75,9 @@ namespace Joba.IBM.RPA
     public abstract class RobotSettings
     {
         internal RobotSettings() { }
+
+        internal TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(5);
+        internal string Description { get; set; } = string.Empty;
     }
 
     internal class ChatbotSettings : RobotSettings
@@ -87,6 +90,9 @@ namespace Joba.IBM.RPA
     {
         internal const string TypeName = "unattended";
         internal UnattendedSettings() : base() { }
+
+        [JsonPropertyName("computer-group")]
+        internal string ComputerGroupName { get; set; }
     }
 
     internal class AttendedSettings : RobotSettings

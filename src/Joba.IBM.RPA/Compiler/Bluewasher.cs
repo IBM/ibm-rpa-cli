@@ -29,6 +29,7 @@ namespace Joba.IBM.RPA
 
         async Task<BuildResult> ICompiler.BuildAsync(BuildArguments arguments, CancellationToken cancellation)
         {
+            arguments.OutputDirectory.Create();
             await RestorePackagesAsync(arguments.Project, cancellation);
             if (arguments.Robot != null)
                 return await BuildRobotAsync(arguments.Project, arguments.Robot.Value, arguments.OutputDirectory, cancellation);
@@ -38,9 +39,12 @@ namespace Joba.IBM.RPA
 
         private async Task RestorePackagesAsync(IProject project, CancellationToken cancellation)
         {
-            logger.LogInformation("Restoring packages for project '{Project}'", project.Name);
-            var manager = packageManagerFactory.Create(project);
-            await manager.RestoreAsync(cancellation);
+            if (project.Packages.Any())
+            {
+                logger.LogInformation("Restoring packages for project '{Project}'", project.Name);
+                var manager = packageManagerFactory.Create(project);
+                await manager.RestoreAsync(cancellation);
+            }
         }
 
         private async Task<BuildResult> BuildProjectAsync(IProject project, DirectoryInfo outputDirectory, CancellationToken cancellation)
@@ -50,8 +54,12 @@ namespace Joba.IBM.RPA
             {
                 logger.LogInformation("Build started for project '{Project}'", project.Name);
                 var tasks = project.Robots.Select(robot => BuildRobotAsync(project, robot, outputDirectory, cancellation)).ToArray();
-                var results = await WhenAllFailFast(tasks, cancellation);
+                var results = await TaskExtensions.WhenAllFailFast(tasks, cancellation);
                 stopwatch.Stop();
+
+                var errors = results.Where(r => r.Error != null).Select(r => r.Error!).ToArray();
+                if (errors.Any())
+                    throw new AggregateException(errors);
 
                 var robots = results.SelectMany(r => r.Robots);
                 return BuildResult.Succeed(stopwatch.Elapsed, new Dictionary<Robot, WalFile>(robots));
@@ -89,39 +97,6 @@ namespace Joba.IBM.RPA
                 return BuildResult.Succeed(context.ElapsedTime, robot, context.File!);
 
             return BuildResult.Failed(context.ElapsedTime, context.Error);
-        }
-
-        /// <summary>
-        /// Fails the <see cref="Task.WhenAll(Task[])"/> when one of the tasks fails.
-        /// From https://stackoverflow.com/a/69338551/1830639
-        /// </summary>
-        private static Task<TResult[]> WhenAllFailFast<TResult>(Task<TResult>[] tasks, CancellationToken cancellation)
-        {
-            ArgumentNullException.ThrowIfNull(tasks);
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
-            Task<TResult>? failedTask = null;
-            var flags = TaskContinuationOptions.DenyChildAttach |
-                TaskContinuationOptions.ExecuteSynchronously;
-            Action<Task<TResult>> continuationAction = new(task =>
-            {
-                if (!task.IsCompletedSuccessfully)
-                    if (Interlocked.CompareExchange(ref failedTask, task, null) is null)
-                        cts.Cancel();
-            });
-            var continuations = tasks.Select(task => task
-                .ContinueWith(continuationAction, cts.Token, flags, TaskScheduler.Default));
-
-            return Task.WhenAll(continuations).ContinueWith(allContinuations =>
-            {
-                cts.Dispose();
-                var localFailedTask = Volatile.Read(ref failedTask);
-                if (localFailedTask is not null)
-                    return Task.WhenAll(localFailedTask);
-                // At this point all the tasks are completed successfully
-                Debug.Assert(tasks.All(t => t.IsCompletedSuccessfully));
-                Debug.Assert(allContinuations.IsCompletedSuccessfully);
-                return Task.WhenAll(tasks);
-            }, default, flags, TaskScheduler.Default).Unwrap();
         }
 
         class BuildRobotContext

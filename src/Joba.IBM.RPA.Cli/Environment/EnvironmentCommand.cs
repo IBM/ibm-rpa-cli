@@ -69,8 +69,11 @@ namespace Joba.IBM.RPA.Cli
                 var environment = await project.ConfigureEnvironment(client.Account, options.Alias, region, credentials, cancellation);
                 await project.SaveAsync(cancellation);
 
-                logger.LogInformation("Hi '{PersonName}', the following environment has been configured: {Environment}\nUse '{RpaCommandName} {EnvironmentCommand} {Name} [alias]' to configure more environments.",
-                    environment.Session.Current.PersonName, environment, RpaCommand.CommandName, EnvironmentCommand.CommandName, Name);
+                logger.LogInformation("Hi '{PersonName}', the following environment has been configured: {Environment}\n" +
+                    "Use '{RpaCommandName} {PullCommand} [asset name] --env {Alias}' to pull files from the environment.\n" +
+                    "Use '{RpaCommandName} {DeployCommand} {Environment}' to deploy the project to the environment.",
+                    environment.Session.Current.PersonName, environment, RpaCommand.CommandName, PullCommand.CommandName, environment.Alias,
+                    RpaCommand.CommandName, DeployCommand.CommandName, environment.Alias);
             }
         }
     }

@@ -7,6 +7,9 @@
         IAccountResource Account { get; }
         IScriptResource Script { get; }
         IParameterResource Parameter { get; }
+        IProjectResource Project { get; }
+        IBotResource Bot { get; }
+        IComputerGroupResource ComputerGroup { get; }
     }
 
     public interface IRpaClientFactory
@@ -60,6 +63,24 @@
         Task<Parameter> CreateOrUpdateAsync(string parameterName, string value, CancellationToken cancellation);
     }
 
+    public interface IProjectResource
+    {
+        Task<ServerProject> CreateOrUpdateAsync(string name, string description, CancellationToken cancellation);
+    }
+
+    public interface IBotResource
+    {
+        Task CreateOrUpdateAsync(ServerBot bot, CancellationToken cancellation);
+    }
+
+    public interface IComputerGroupResource
+    {
+        Task<ComputerGroup> GetAsync(string name, CancellationToken cancellation);
+    }
+
+    public record class ComputerGroup(Guid Id, string Name);
+    public record class ServerBot(Guid ProjectId, Guid ScriptId, Guid ScriptVersionId, [property: JsonPropertyName("GroupId")] Guid ComputerGroupId, string Name, [property: JsonPropertyName("TechnicalName")] string UniqueId, string Description);
+    public record class ServerProject(Guid Id, string Name, string Description, [property: JsonPropertyName("TechnicalName")] string UniqueId);
     public record class Parameter([property: JsonPropertyName("Id")] string Name, string Value);
     public record class PublishScript(Guid? Id, Guid? VersionId, string Name, string? Description, string Content, string ProductVersion,
         bool SetAsProduction, int GreenExecutionTimeSeconds, int YellowExecutionTimeSeconds, int RedExecutionTimeSeconds);

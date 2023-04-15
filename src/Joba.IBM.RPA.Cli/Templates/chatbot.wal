@@ -1,4 +1,4 @@
-í!defVar --name language --type Language
+³!defVar --name language --type Language
 defVar --name chat --type ChatData
 defVar --name messages --type Stack --innertype String
 defVar --name success --type Boolean
@@ -21,7 +21,7 @@ defVar --name workingDirectory --type String
 //- Also, this will ensure your dev team only has to change one variable (workingDirectory) to run the project.
 //- If you call an 'executeScript', always pass the 'workingDirectory' variable as a parameter, so you do not need to set in every script.
 //- To store the source code .wal files, use GIT. Do not use the Control Center to store the .wal files.
-setVarIf --variablename "${workingDirectory}" --value "C:\\Users" --left "${workingDirectory}" --operator "Is_Null_Or_Empty" --comment "The build process will inject the correct value for \'workingDirectory\' at runtime."
+setVarIf --variablename "${workingDirectory}" --value "@{workingDirectory}" --left "${workingDirectory}" --operator "Is_Null_Or_Empty" --comment "The build process will inject the correct value for \'workingDirectory\' at runtime."
 //************************************
 onError --label HandleErrorWrapper
 setTimeout --timeout 00:00:45
@@ -62,7 +62,6 @@ else
 endIf
 endSub
 beginSub --name HandleErrorWrapper
-logMessage --message "HandleErrorWrapper was called" --type "Info"
 goSub --label HandleError
 recover
 endSub

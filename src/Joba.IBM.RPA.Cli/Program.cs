@@ -55,46 +55,51 @@ namespace Joba.IBM.RPA.Cli
             void EnvironmentException(Exception exception)
             {
                 if (exception is EnvironmentException ex)
-                    logger.LogInformation("Use '{RpaCommandName} {EnvironmentCommand} {AddEnvironmentCommand} {Alias}' to configure it.", RpaCommand.CommandName, EnvironmentCommand.CommandName, EnvironmentCommand.AddEnvironmentCommand.CommandName, ex.Alias);
+                    logger.LogInformation(" Use '{RpaCommandName} {EnvironmentCommand} {AddEnvironmentCommand} {Alias}' to configure it.", RpaCommand.CommandName, EnvironmentCommand.CommandName, EnvironmentCommand.AddEnvironmentCommand.CommandName, ex.Alias);
             }
 
             void PackageAlreadyInstalledException(Exception exception)
             {
                 if (exception is PackageAlreadyInstalledException ex)
-                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName} {UpdatePackageCommandName} {PackageName}' to update it.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.UpdatePackageCommand.CommandName, ex.PackageName);
+                    logger.LogInformation(" Use '{RpaCommandName} {PackageCommandName} {UpdatePackageCommandName} {PackageName}' to update it.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.UpdatePackageCommand.CommandName, ex.PackageName);
             }
 
             void PackageNotFoundException(Exception exception)
             {
                 if (exception is PackageNotFoundException ex)
-                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName} {InstallPackageCommandName} {PackageName}' to install it first.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.InstallPackageCommand.CommandName, ex.PackageName);
+                    logger.LogInformation(" Use '{RpaCommandName} {PackageCommandName} {InstallPackageCommandName} {PackageName}' to install it first.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.InstallPackageCommand.CommandName, ex.PackageName);
             }
 
             void PackageException(Exception exception)
             {
                 if (exception is PackageException ex)
-                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName}' to manage packages.", RpaCommand.CommandName, PackageCommand.CommandName);
+                    logger.LogInformation(" Use '{RpaCommandName} {PackageCommandName}' to manage packages.", RpaCommand.CommandName, PackageCommand.CommandName);
             }
 
             void PackageSourceNotFoundException(Exception exception)
             {
                 if (exception is PackageSourceNotFoundException ex)
-                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName} {PackageSourceCommandName} {Alias}' to add it first.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.PackageSourceCommand.CommandName, ex.Alias);
+                    logger.LogInformation(" Use '{RpaCommandName} {PackageCommandName} {PackageSourceCommandName} {Alias}' to add it first.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.PackageSourceCommand.CommandName, ex.Alias);
             }
 
             void PackageSourceException(Exception exception)
             {
                 if (exception is PackageSourceException ex)
-                    logger.LogInformation("Use '{RpaCommandName} {PackageCommandName} {PackageSourceCommandName}' to add package sources.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.PackageSourceCommand.CommandName);
+                    logger.LogInformation(" Use '{RpaCommandName} {PackageCommandName} {PackageSourceCommandName}' to add package sources.", RpaCommand.CommandName, PackageCommand.CommandName, PackageCommand.PackageSourceCommand.CommandName);
             }
         }
 
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
+            var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
             context.BindingContext.AddService<IRpaClientFactory>(s => new RpaClientFactory(context.Console));
+            context.BindingContext.AddService<IDeployService>(s => new DeployService(
+                loggerFactory.CreateLogger<ILogger<DeployService>>(),
+                s.GetRequiredService<IRpaClientFactory>(),
+                s.GetRequiredService<ICompiler>()));
             context.BindingContext.AddService<IPackageManagerFactory>(s => new PackageManagerFactory(s.GetRequiredService<IRpaClientFactory>()));
             context.BindingContext.AddService<ICompiler>(s => new Bluewasher(
-                s.GetRequiredService<ILogger<Bluewasher>>(),
+                loggerFactory.CreateLogger<ILogger<Bluewasher>>(),
                 s.GetRequiredService<IPackageManagerFactory>()));
 
             if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult &&
@@ -107,10 +112,8 @@ namespace Joba.IBM.RPA.Cli
         private static async Task TryLoadProjectAsync(InvocationContext context)
         {
             var cancellation = context.GetCancellationToken();
-            var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
             var commandType = context.ParseResult.CommandResult.Command.GetType();
-            var logger = loggerFactory.CreateLogger(commandType);
-            var project = await ProjectFactory.TryLoadFromCurrentDirectoryAsync(logger, cancellation);
+            var project = await ProjectFactory.TryLoadFromCurrentDirectoryAsync(cancellation);
             if (commandType.GetCustomAttribute<RequiresProjectAttribute>() != null && project == null)
                 throw ProjectException.ThrowRequired(System.Environment.CommandLine);
 

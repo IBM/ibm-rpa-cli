@@ -75,6 +75,7 @@ namespace Joba.IBM.RPA
 
         internal Dictionary<string, RemoteSettings> Environments { get; init; } = new Dictionary<string, RemoteSettings>();
 
+        internal string Description { get; init; } = string.Empty;
         /// <summary>
         /// NOTE: polymorphic serialization/deserialization: https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/polymorphism?pivots=dotnet-7-0
         /// </summary>
