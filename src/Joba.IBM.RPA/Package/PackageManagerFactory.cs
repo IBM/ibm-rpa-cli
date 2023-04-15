@@ -11,7 +11,7 @@
 
         public PackageManagerFactory(IRpaClientFactory clientFactory) => this.clientFactory = clientFactory;
 
-        IPackageManager IPackageManagerFactory.Create(IProject project, string? sourceAlias = null)
+        IPackageManager IPackageManagerFactory.Create(IProject project, string? sourceAlias)
         {
             if (sourceAlias == null)
                 return new PackageManager(project, new MultiplePackageSourceResource(CreateSources(project).ToArray()));

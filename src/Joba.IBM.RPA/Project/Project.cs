@@ -1,10 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     internal class Project : IProject
     {
-        private readonly ILogger logger;
         private readonly ProjectFile projectFile;
         private readonly ProjectSettings projectSettings;
         private readonly UserSettingsFile userFile;
@@ -14,14 +11,13 @@ namespace Joba.IBM.RPA
         private readonly Environments environments;
         private PackageSources? packageSources;
 
-        internal Project(ILogger logger, ProjectFile projectFile, ProjectSettings projectSettings, UserSettingsFile userFile, UserSettings userSettings,
+        internal Project(ProjectFile projectFile, ProjectSettings projectSettings, UserSettingsFile userFile, UserSettings userSettings,
             PackageSourcesFile packageSourcesFile)
-            : this(logger, projectFile, projectSettings, userFile, userSettings, packageSourcesFile, null) { }
+            : this(projectFile, projectSettings, userFile, userSettings, packageSourcesFile, null) { }
 
-        internal Project(ILogger logger, ProjectFile projectFile, ProjectSettings projectSettings, UserSettingsFile userFile, UserSettings userSettings,
+        internal Project(ProjectFile projectFile, ProjectSettings projectSettings, UserSettingsFile userFile, UserSettings userSettings,
         PackageSourcesFile packageSourcesFile, PackageSources? packageSources)
         {
-            this.logger = logger;
             this.projectFile = projectFile;
             this.projectSettings = projectSettings;
             this.userFile = userFile;
@@ -35,6 +31,7 @@ namespace Joba.IBM.RPA
         public DirectoryInfo RpaDirectory => projectFile.RpaDirectory;
         public DirectoryInfo WorkingDirectory => projectFile.WorkingDirectory;
         public string Name => projectFile.ProjectName;
+        public string Description => string.IsNullOrEmpty(projectSettings.Description) ? projectFile.ProjectName : projectSettings.Description;
         public IPackageSources PackageSources => packageSources ??= new PackageSources(projectSettings, userFile, userSettings);
         public IPackages Packages => projectSettings.Packages;
         public IRobots Robots => projectSettings.Robots;
@@ -73,6 +70,7 @@ namespace Joba.IBM.RPA
         DirectoryInfo RpaDirectory { get; }
         DirectoryInfo WorkingDirectory { get; }
         string Name { get; }
+        string Description { get; }
         IPackageSources PackageSources { get; }
         IPackages Packages { get; }
         IRobots Robots { get; }

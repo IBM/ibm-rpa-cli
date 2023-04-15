@@ -34,13 +34,11 @@ namespace Joba.IBM.RPA.Cli
 
             internal async Task HandleAsync(DirectoryInfo workingDir, string name, CancellationToken cancellation)
             {
-                var project = ProjectFactory.Create(logger, workingDir, name);
+                var project = ProjectFactory.Create(workingDir, name);
                 await project.SaveAsync(cancellation);
 
-                //TODO: create "build" command
-                //logger.LogInformation("Project '{ProjectName}' has been initialized. Use '{RpaCommandName} {BuildCommand} <bot-name>' to build scripts into bots.",
-                //    project.Name, RpaCommand.CommandName, BuildCommand.CommandName);
-                logger.LogInformation("Project '{ProjectName}' has been initialized.", project.Name);
+                logger.LogInformation("Project '{ProjectName}' has been initialized. Use '{RpaCommandName} {BuildCommand}' to build the project. Or '{RpaCommandName} {RobotCommand} {NewBotCommand} [name]' to create bots",
+                    project.Name, RpaCommand.CommandName, BuildCommand.CommandName, RpaCommand.CommandName, RobotCommand.CommandName, RobotCommand.NewBotCommand.CommandName);
             }
         }
     }

@@ -13,7 +13,8 @@ namespace Joba.IBM.RPA
             this.assembly = assembly;
         }
 
-        public async Task<WalFile?> CreateAsync(WalFileName fileName, string templateName, CancellationToken cancellation)
+        //TODO: templates should be json files with metadata about them, e.g, 'excel' template would be 'unattended' bot
+        public async Task<WalFile> CreateAsync(WalFileName fileName, string templateName, CancellationToken cancellation)
         {
             if (!templateName.EndsWith(WalFile.Extension))
                 templateName += WalFile.Extension;
@@ -21,11 +22,11 @@ namespace Joba.IBM.RPA
             //TODO: do not embbed into the assembly, but publish from the 'templates' folder
             var templateStream = assembly.GetManifestResourceStream(@$"Joba.IBM.RPA.Cli.Templates.{templateName}");
             if (templateStream == null)
-                return null;
+                throw new NotSupportedException($"Template '{templateName}' does not exist");
 
             var file = new FileInfo(Path.Combine(workingDir.FullName, fileName));
             if (file.Exists)
-                return null;
+                throw new InvalidOperationException($"Cannot create the file '{file.FullName}' because it already exists");
 
             using (var fileStream = File.OpenWrite(file.FullName))
             {
@@ -33,8 +34,10 @@ namespace Joba.IBM.RPA
                 await templateStream.CopyToAsync(fileStream, cancellation);
             }
 
-            //TODO: discover which RPA version is installed and use that in the WAL metadata (ProductVersion)
-            return WalFile.Read(file);
+            var wal = WalFile.Read(file);
+            var content = new WalContent(wal.Content.ToString().Replace("@{workingDirectory}", workingDir.FullName));
+            wal.Overwrite(content);
+            return wal;
         }
     }
 }

@@ -10,7 +10,7 @@
     },
     "rpa bot new Assistant --type": {
       "commandName": "Project",
-      "commandLineArgs": "bot new Assistant --type chatbot"
+      "commandLineArgs": "bot new Assistant --template unattended"
     },
     "rpa env add dev": {
       "commandName": "Project",
@@ -75,6 +75,10 @@
     "rpa build": {
       "commandName": "Project",
       "commandLineArgs": "rpa build"
+    },
+    "rpa deploy": {
+      "commandName": "Project",
+      "commandLineArgs": "rpa deploy QA"
     },
     "rpa git config": {
       "commandName": "Project",

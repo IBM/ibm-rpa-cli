@@ -89,7 +89,7 @@ namespace Joba.IBM.RPA
         public GoSubLine(int number, string content, string? command)
             : base(number, content, command)
         {
-            var match = Regex.Match(content, @"--label\s+(?<label>\w+)");
+            var match = Regex.Match(content, "--label\\s+(?<label>(\\w+)|\"(.*?)\")");
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--label' parameter in the correct format.");
             Label = match.Groups["label"]?.Value;
