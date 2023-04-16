@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Reflection;
+using static Joba.IBM.RPA.Cli.ProjectCommand;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -27,16 +28,34 @@ namespace Joba.IBM.RPA.Cli
             {
                 var cancellation = context.GetCancellationToken();
 
-                if (project.Robots.Exists(name))
-                    throw new InvalidOperationException($"Bot named '{name}' already exists.");
+                var handler = new NewRobotHandler(logger, project);
+                await handler.HandleAsync(name, templateName, context.GetCancellationToken());
+            }
 
-                var template = new TemplateFactory(project.WorkingDirectory, Assembly.GetExecutingAssembly());
-                _ = await template.CreateAsync(name, templateName, cancellation);
-                var settings = RobotSettingsFactory.Create(templateName);
-                project.Robots.Add(name.WithoutExtension, settings);
+            internal class NewRobotHandler
+            {
+                private readonly ILogger logger;
+                private readonly IProject project;
 
-                await project.SaveAsync(cancellation);
-                logger.LogInformation("Bot '{Bot}' created successfully based on '{Template}' template", name, templateName);
+                public NewRobotHandler(ILogger logger, IProject project)
+                {
+                    this.logger = logger;
+                    this.project = project;
+                }
+
+                internal async Task HandleAsync(WalFileName name, string templateName, CancellationToken cancellation)
+                {
+                    if (project.Robots.Exists(name.WithoutExtension))
+                        throw new ProjectException($"Robot named '{name}' already exists.");
+
+                    var template = new TemplateFactory(project.WorkingDirectory, Assembly.GetExecutingAssembly());
+                    _ = await template.CreateAsync(name, templateName, cancellation);
+                    var settings = RobotSettingsFactory.Create(templateName, name.WithoutExtension);
+                    project.Robots.Add(name.WithoutExtension, settings);
+
+                    await project.SaveAsync(cancellation);
+                    logger.LogInformation("Bot '{Bot}' created successfully based on '{Template}' template", name, templateName);
+                }
             }
         }
     }

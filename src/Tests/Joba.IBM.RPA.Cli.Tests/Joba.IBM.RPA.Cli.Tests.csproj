@@ -36,6 +36,18 @@
     <None Update="assets\CreateProjectJsonFile.rpa.verified.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="assets\NewRobotHandlerShould\CreateWalAndUpdateProjectFile\CreateWalAndUpdateProjectFile.rpa.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\NewRobotHandlerShould\CreateWalAndUpdateProjectFile\CreateWalAndUpdateProjectFile.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\NewRobotHandlerShould\ThrowException_WhenBotAlreadyExists.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

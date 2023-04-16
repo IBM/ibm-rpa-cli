@@ -35,14 +35,14 @@ namespace Joba.IBM.RPA
 
     public static class RobotSettingsFactory
     {
-        public static RobotSettings Create(string type)
+        public static RobotSettings Create(string type, string description)
         {
             return type switch
             {
-                ChatbotSettings.TypeName => new ChatbotSettings(),
-                AttendedSettings.TypeName => new AttendedSettings(),
-                UnattendedSettings.TypeName => new UnattendedSettings(),
-                _ => new UnattendedSettings()
+                ChatbotSettings.TypeName => new ChatbotSettings { Description = description },
+                AttendedSettings.TypeName => new AttendedSettings { Description = description },
+                UnattendedSettings.TypeName => new UnattendedSettings { Description = description },
+                _ => new UnattendedSettings { Description = description }
             };
         }
     }
