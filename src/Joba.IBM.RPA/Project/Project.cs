@@ -31,7 +31,7 @@
         public DirectoryInfo RpaDirectory => projectFile.RpaDirectory;
         public DirectoryInfo WorkingDirectory => projectFile.WorkingDirectory;
         public string Name => projectFile.ProjectName;
-        public string Description => string.IsNullOrEmpty(projectSettings.Description) ? projectFile.ProjectName : projectSettings.Description;
+        public string Description => projectSettings.Description;
         public IPackageSources PackageSources => packageSources ??= new PackageSources(projectSettings, userFile, userSettings);
         public IPackages Packages => projectSettings.Packages;
         public IRobots Robots => projectSettings.Robots;

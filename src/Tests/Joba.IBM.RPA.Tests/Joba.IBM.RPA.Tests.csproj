@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Joba.IBM.RPA\Joba.IBM.RPA.csproj" />
+    <ProjectReference Include="..\..\Joba.IBM.RPA\Joba.IBM.RPA.csproj" />
   </ItemGroup>
 
   <ItemGroup>

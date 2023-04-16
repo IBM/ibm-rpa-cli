@@ -15,7 +15,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-			<_Parameter1>$(AssemblyName).Tests</_Parameter1>
+			<_Parameter1>Joba.IBM.RPA.Cli.Tests</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
 

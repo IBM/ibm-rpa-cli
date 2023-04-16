@@ -1,3 +1,4 @@
+using Joba.Xunit;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.IO.Compression;
@@ -5,7 +6,6 @@ using Xunit.Abstractions;
 
 namespace Joba.IBM.RPA.Tests
 {
-    //TODO: these do not pass on CI and are prone to error because of how ZIP works.
     public class BluewasherShould
     {
         private readonly ILogger logger;
@@ -150,29 +150,6 @@ namespace Joba.IBM.RPA.Tests
             var packageManagerFactory = new Mock<IPackageManagerFactory>();
             packageManagerFactory.Setup(p => p.Create(project, null)).Returns(new Mock<IPackageManager>().Object);
             return new Bluewasher(logger, packageManagerFactory.Object);
-        }
-    }
-
-    class XunitLogger : ILogger
-    {
-        private readonly ITestOutputHelper output;
-
-        public XunitLogger(ITestOutputHelper output) => this.output = output;
-
-        IDisposable ILogger.BeginScope<TState>(TState state) => new DummyScope();
-
-        bool ILogger.IsEnabled(LogLevel logLevel) => true;
-
-        void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            output.WriteLine($"[{logLevel}] {formatter(state, exception)}");
-        }
-
-        class DummyScope : IDisposable
-        {
-            void IDisposable.Dispose()
-            {
-            }
         }
     }
 }
