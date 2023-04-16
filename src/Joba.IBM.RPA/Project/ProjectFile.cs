@@ -36,7 +36,7 @@ namespace Joba.IBM.RPA
             var file = Find(workingDir);
             if (file == null)
                 return (null, null);
-            if (!file.Value.Exists || !file.Value.RpaDirectory.Exists)
+            if (!file.Value.Exists)
                 return (file, null);
 
             var serializer = JsonSerializerOptionsFactory.CreateForProject(workingDir);

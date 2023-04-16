@@ -1,0 +1,10 @@
+{
+  "description": "CreateWalAndUpdateProjectFile",
+  "robots": {
+    "CreateWalAndUpdateProjectFile": {
+      "type": "unattended",
+      "timeout": "00:05:00",
+      "description": "CreateWalAndUpdateProjectFile"
+    }
+  }
+}

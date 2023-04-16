@@ -1,0 +1,8 @@
+{
+  "description": "ThrowException_WhenBotAlreadyExists",
+  "robots": {
+    "Assistant": {
+      "type": "unattended"
+    }
+  }
+}

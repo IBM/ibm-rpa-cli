@@ -20,7 +20,7 @@ namespace Joba.IBM.RPA.Tests
             var outputDir = new DirectoryInfo(Path.Combine(System.Environment.CurrentDirectory, "out/01"));
             outputDir.Create();
 
-            var robot = new Robot("main", RobotSettingsFactory.Create("unattended"));
+            var robot = new Robot("main", RobotSettingsFactory.Create("unattended", "main"));
             var project = MockProject(workingDir, nameof(Build_Robot_Without_Dependencies), robot);
             var sut = CreateCompiler(logger, project);
 
@@ -42,7 +42,7 @@ namespace Joba.IBM.RPA.Tests
             var outputDir = new DirectoryInfo(Path.Combine(System.Environment.CurrentDirectory, @"out/02"));
             outputDir.Create();
 
-            var robot = new Robot("main", RobotSettingsFactory.Create("unattended"));
+            var robot = new Robot("main", RobotSettingsFactory.Create("unattended", "main"));
             var project = MockProject(workingDir, nameof(Build_Robot_With_Dependencies), robot);
             var sut = CreateCompiler(logger, project);
 
@@ -56,7 +56,7 @@ namespace Joba.IBM.RPA.Tests
             var analyzer = new WalAnalyzer(result.Robots[robot]);
             AssertDefineVariables(analyzer);
             AssertRoutine(analyzer);
-            AssertImport(analyzer, "greetings.wal", $"math{Path.DirectorySeparatorChar}multiply.wal",$"math{Path.DirectorySeparatorChar}subtract.wal", $"math{Path.DirectorySeparatorChar}sum.wal");
+            AssertImport(analyzer, "greetings.wal", $"math{Path.DirectorySeparatorChar}multiply.wal", $"math{Path.DirectorySeparatorChar}subtract.wal", $"math{Path.DirectorySeparatorChar}sum.wal");
         }
 
         [Fact]
@@ -67,9 +67,9 @@ namespace Joba.IBM.RPA.Tests
             var outputDir = new DirectoryInfo(Path.Combine(System.Environment.CurrentDirectory, @"out/03"));
             outputDir.Create();
 
-            var unattendedBot = new Robot("unattended", RobotSettingsFactory.Create("unattended"));
-            var attendedBot = new Robot("attended", RobotSettingsFactory.Create("attended"));
-            var chatbot = new Robot("chatbot", RobotSettingsFactory.Create("chatbot"));
+            var unattendedBot = new Robot("unattended", RobotSettingsFactory.Create("unattended", "unattended"));
+            var attendedBot = new Robot("attended", RobotSettingsFactory.Create("attended", "attended"));
+            var chatbot = new Robot("chatbot", RobotSettingsFactory.Create("chatbot", "chatbot"));
             var project = MockProject(workingDir, nameof(Build_Project_With_Several_Robots), unattendedBot, attendedBot, chatbot);
             var sut = CreateCompiler(logger, project);
 
