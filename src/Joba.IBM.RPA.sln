@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA.Cli", "Joba.IB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA", "Joba.IBM.RPA\Joba.IBM.RPA.csproj", "{F21309FD-B918-463F-B3DE-28F83E64B946}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA.Tests", "Joba.IBM.RPA.Tests\Joba.IBM.RPA.Tests.csproj", "{3BC3EC59-576D-4926-B38C-028A02283282}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA.Tests", "Tests\Joba.IBM.RPA.Tests\Joba.IBM.RPA.Tests.csproj", "{3BC3EC59-576D-4926-B38C-028A02283282}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{165BDDAD-6020-41E0-98BF-219C9B05187E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +32,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3BC3EC59-576D-4926-B38C-028A02283282} = {165BDDAD-6020-41E0-98BF-219C9B05187E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {21E0AAC9-AF2C-4B31-BEA6-F4208399F573}
