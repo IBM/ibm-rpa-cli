@@ -38,5 +38,9 @@
 
         public IEnumerator<Parameter> GetEnumerator() => mappings.Values.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        int ICollection.Count => mappings.Count;
+        bool ICollection.IsSynchronized => false;
+        object ICollection.SyncRoot => this;
+        void ICollection.CopyTo(Array array, int index) => mappings.CopyTo((KeyValuePair<string, Parameter>[])array, index);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.Json.Serialization.Metadata;
+using System.Linq;
 
 namespace Joba.IBM.RPA
 {
@@ -14,10 +15,18 @@ namespace Joba.IBM.RPA
                 ConfigureConstructor(info);
                 ConfigureProperties(info, options);
             }
+
+            SkipEmptyCollections(info);
             return info;
         }
 
-        protected virtual void ConfigureConstructor(JsonTypeInfo info)
+        private static void SkipEmptyCollections(JsonTypeInfo info)
+        {
+            foreach (var property in info.Properties.Where(property => typeof(ICollection).IsAssignableFrom(property.PropertyType)))
+                property.ShouldSerialize = (_, value) => value is ICollection collection && collection.Count > 0;
+        }
+
+        private static void ConfigureConstructor(JsonTypeInfo info)
         {
             var ctor = info.Type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, Type.EmptyTypes);
             if (ctor != null)

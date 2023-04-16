@@ -1,6 +1,6 @@
 ﻿namespace Joba.IBM.RPA
 {
-    public interface ILocalRepository<T> : IEnumerable<T> where T : class
+    public interface ILocalRepository<T> : IEnumerable<T>, ICollection where T : class
     {
         void AddOrUpdate(params T[] items);
         void Update(T item);

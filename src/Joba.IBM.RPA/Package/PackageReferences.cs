@@ -81,9 +81,13 @@
 
         public IEnumerator<PackageMetadata> GetEnumerator() => references.Values.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        int ICollection.Count => references.Count;
+        bool ICollection.IsSynchronized => false;
+        object ICollection.SyncRoot => this;
+        void ICollection.CopyTo(Array array, int index) => references.CopyTo((KeyValuePair<string, PackageMetadata>[])array, index);
     }
 
-    public interface IPackages : IEnumerable<PackageMetadata>
+    public interface IPackages : IEnumerable<PackageMetadata>, ICollection
     {
         PackageMetadata? Get(string name);
         WalFile? Get(PackageMetadata metadata);

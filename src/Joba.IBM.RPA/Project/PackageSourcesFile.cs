@@ -94,9 +94,13 @@ namespace Joba.IBM.RPA
 
         IEnumerator<PackageSource> IEnumerable<PackageSource>.GetEnumerator() => sources.Values.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => sources.Values.GetEnumerator();
+        int ICollection.Count => sources.Count;
+        bool ICollection.IsSynchronized => false;
+        object ICollection.SyncRoot => this;
+        void ICollection.CopyTo(Array array, int index) => sources.CopyTo((KeyValuePair<string, PackageSource>[])array, index);
     }
 
-    public interface IPackageSources : IEnumerable<PackageSource>
+    public interface IPackageSources : IEnumerable<PackageSource>, ICollection
     {
         PackageSource this[string alias] { get; }
         PackageSource? Get(string alias);

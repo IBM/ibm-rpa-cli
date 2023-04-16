@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Joba.IBM.RPA.Tests", "Tests
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{165BDDAD-6020-41E0-98BF-219C9B05187E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joba.IBM.RPA.Cli.Tests", "Tests\Joba.IBM.RPA.Cli.Tests\Joba.IBM.RPA.Cli.Tests.csproj", "{049D591E-71D2-4042-B73A-F929E067CAD5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,12 +31,17 @@ Global
 		{3BC3EC59-576D-4926-B38C-028A02283282}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BC3EC59-576D-4926-B38C-028A02283282}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BC3EC59-576D-4926-B38C-028A02283282}.Release|Any CPU.Build.0 = Release|Any CPU
+		{049D591E-71D2-4042-B73A-F929E067CAD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{049D591E-71D2-4042-B73A-F929E067CAD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{049D591E-71D2-4042-B73A-F929E067CAD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{049D591E-71D2-4042-B73A-F929E067CAD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{3BC3EC59-576D-4926-B38C-028A02283282} = {165BDDAD-6020-41E0-98BF-219C9B05187E}
+		{049D591E-71D2-4042-B73A-F929E067CAD5} = {165BDDAD-6020-41E0-98BF-219C9B05187E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {21E0AAC9-AF2C-4B31-BEA6-F4208399F573}

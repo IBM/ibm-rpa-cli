@@ -10,6 +10,7 @@
             {
                 WriteIndented = true,
                 PropertyNameCaseInsensitive = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 PropertyNamingPolicy = new JsonKebabCaseNamingPolicy(),
                 TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver(),
             };

@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     public static class ProjectFactory
     {
@@ -8,18 +6,18 @@ namespace Joba.IBM.RPA
         {
             var projectFile = new ProjectFile(workingDir, name);
             if (projectFile.RpaDirectory.Exists)
-                throw new Exception($"A project is already configured in the '{workingDir.FullName}' directory");
+                throw new ProjectException($"A project is already configured in the '{workingDir.FullName}' directory");
             projectFile.RpaDirectory.CreateHidden();
 
             var userFile = new UserSettingsFile(projectFile.ProjectName);
             var packageSourcesFile = new PackageSourcesFile(workingDir, projectFile.ProjectName);
-            var projectSettings = new ProjectSettings(workingDir);
+            var projectSettings = new ProjectSettings(workingDir) { Description = name };
 
             return new Project(projectFile, projectSettings, userFile, new UserSettings(), packageSourcesFile);
         }
 
         public static IProject CreateFromCurrentDirectory(string name)
-            => Create( new DirectoryInfo(System.Environment.CurrentDirectory), name);
+            => Create(new DirectoryInfo(System.Environment.CurrentDirectory), name);
 
         public static async Task<IProject?> TryLoadAsync(DirectoryInfo workingDir, CancellationToken cancellation)
         {

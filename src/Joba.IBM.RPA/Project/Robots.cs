@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Xml.Linq;
 
 namespace Joba.IBM.RPA
 {
@@ -20,9 +19,14 @@ namespace Joba.IBM.RPA
         void IRobots.Add(string name, RobotSettings settings) => bots.Add(name, settings);
         public IEnumerator<Robot> GetEnumerator() => bots.Select(b => new Robot(b.Key, b.Value)).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        int ICollection.Count => bots.Count;
+        bool ICollection.IsSynchronized => false;
+        object ICollection.SyncRoot => this;
+        void ICollection.CopyTo(Array array, int index) => bots.CopyTo((KeyValuePair<string, RobotSettings>[])array, index);
     }
 
-    public interface IRobots : IEnumerable<Robot>
+    public interface IRobots : IEnumerable<Robot>, ICollection
     {
         bool Exists(string name);
         void Add(string name, RobotSettings settings);
