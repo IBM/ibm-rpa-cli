@@ -1,0 +1,14 @@
+{
+  "dev": {
+    "code": 500,
+    "name": "development",
+    "region": "us1",
+    "address": "https://dev.ibm.com:443/v1.0/"
+  },
+  "qa": {
+    "code": 501,
+    "name": "quality assurance",
+    "region": "us1qa",
+    "address": "https://qa.ibm.com:443/v1.0/"
+  }
+}

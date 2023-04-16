@@ -1,0 +1,11 @@
+{
+  "description": "ThrowException_WhenEnvironmentAlreadyExists",
+  "environments": {
+    "dev": {
+      "code": 500,
+      "name": "development",
+      "region": "us1",
+      "address": "https://something.com"
+    }
+  }
+}

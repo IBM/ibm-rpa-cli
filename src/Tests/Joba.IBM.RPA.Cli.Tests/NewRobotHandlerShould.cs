@@ -40,8 +40,9 @@ namespace Joba.IBM.RPA.Cli.Tests
                 await sut.HandleAsync(new WalFileName(nameof(CreateWalAndUpdateProjectFile)), "unattended", CancellationToken.None);
 
                 //assert
-                Assert.True(
-                    File.Exists(Path.GetFullPath(Path.Combine("assets", $"{nameof(NewRobotHandlerShould)}", nameof(CreateWalAndUpdateProjectFile), $"{nameof(CreateWalAndUpdateProjectFile)}.wal"))));
+                var filePath = Path.Combine(project.WorkingDirectory.FullName, $"{nameof(CreateWalAndUpdateProjectFile)}.wal");
+                //var filePath = Path.GetFullPath(Path.Combine("assets", $"{nameof(NewRobotHandlerShould)}", nameof(CreateWalAndUpdateProjectFile), $"{nameof(CreateWalAndUpdateProjectFile)}.wal"));
+                Assert.True(File.Exists(filePath), $"File {filePath} should have been created");
                 await VerifyFile(Path.Combine(workingDir.FullName, $"{project.Name}.rpa.json"))
                    .UseDirectory(Path.GetFullPath(Path.Combine("assets", $"{nameof(NewRobotHandlerShould)}", nameof(CreateWalAndUpdateProjectFile))))
                    .UseFileName($"{project.Name}.rpa");
