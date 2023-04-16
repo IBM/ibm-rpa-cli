@@ -33,6 +33,39 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="assets\AddPackageSourceHandlerShould\CreatePackageSourcesFile\CreatePackageSourcesFile.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\AddPackageSourceHandlerShould\CreatePackageSourcesFile\CreatePackageSourcesFile.sources.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+    </None>
+    <None Update="assets\AddPackageSourceHandlerShould\UpdatePackageSourcesFile\UpdatePackageSourcesFile.sources.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\AddPackageSourceHandlerShould\UpdatePackageSourcesFile\UpdatePackageSourcesFile.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\AddPackageSourceHandlerShould\UpdatePackageSourcesFile\UpdatePackageSourcesFile.sources.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\AddPackageSourceHandlerShould\ThrowException_WhenEnvironmentAlreadyExists\ThrowException_WhenEnvironmentAlreadyExists.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\AddPackageSourceHandlerShould\ThrowException_WhenPackageSourceAlreadyExists\ThrowException_WhenPackageSourceAlreadyExists.sources.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\AddPackageSourceHandlerShould\ThrowException_WhenPackageSourceAlreadyExists\ThrowException_WhenPackageSourceAlreadyExists.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="assets\CreateProjectJsonFile.rpa.verified.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

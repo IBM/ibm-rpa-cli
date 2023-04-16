@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Polly;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -34,13 +35,34 @@ namespace Joba.IBM.RPA.Cli
             private async Task HandleAsync(RemoteOptions options, ILogger<PackageSourceCommand> logger, IRpaClientFactory clientFactory,
                 IProject project, InvocationContext context)
             {
+                var handler = new AddPackageSourceHandler(logger, context.Console, project, clientFactory);
+                await handler.HandleAsync(options, context.GetCancellationToken());
+            }
+        }
+
+        internal class AddPackageSourceHandler
+        {
+            private readonly ILogger logger;
+            private readonly IConsole console;
+            private readonly IProject project;
+            private readonly IRpaClientFactory clientFactory;
+
+            public AddPackageSourceHandler(ILogger logger, IConsole console, IProject project, IRpaClientFactory clientFactory)
+            {
+                this.logger = logger;
+                this.console = console;
+                this.project = project;
+                this.clientFactory = clientFactory;
+            }
+
+            internal async Task HandleAsync(RemoteOptions options, CancellationToken cancellation)
+            {
                 project.EnsureCanConfigure(options.Alias);
-                var cancellation = context.GetCancellationToken();
-                var regionSelector = new RegionSelector(context.Console, clientFactory, project);
+                var regionSelector = new RegionSelector(console, clientFactory, project);
                 var region = await regionSelector.SelectAsync(options.Address, options.RegionName, cancellation);
 
                 using var client = clientFactory.CreateFromRegion(region);
-                var accountSelector = new AccountSelector(context.Console, client.Account);
+                var accountSelector = new AccountSelector(console, client.Account);
                 var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, options.Password, cancellation);
 
                 var package = await project.PackageSources.AddAsync(client.Account, options.Alias, region, credentials, cancellation);
