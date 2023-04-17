@@ -27,11 +27,29 @@ namespace Joba.IBM.RPA.Cli
             private async Task HandleAsync(string name, int? version, string? sourceAlias, ILogger<InstallPackageCommand> logger,
                 IPackageManagerFactory packageManagerFactory, IProject project, InvocationContext context)
             {
-                var cancellation = context.GetCancellationToken();
+                var handler = new InstallPackageHandler(logger, project, packageManagerFactory);
+                await handler.HandleAsync(name, version, sourceAlias, context.GetCancellationToken());
+            }
+        }
 
+        internal class InstallPackageHandler
+        {
+            private readonly ILogger logger;
+            private readonly IProject project;
+            private readonly IPackageManagerFactory packageManagerFactory;
+
+            public InstallPackageHandler(ILogger logger, IProject project, IPackageManagerFactory packageManagerFactory)
+            {
+                this.logger = logger;
+                this.project = project;
+                this.packageManagerFactory = packageManagerFactory;
+            }
+
+            internal async Task HandleAsync(string name, int? version, string? sourceAlias, CancellationToken cancellation)
+            {
                 var pattern = new NamePattern(name);
                 if (pattern.HasWildcard && version.HasValue)
-                    throw new Exception($"You cannot specify the version if you're using '*' in the package name.");
+                    throw new PackageException(pattern.ToString(), $"You cannot specify the version if you're using '*' in the package name.");
 
                 var manager = packageManagerFactory.Create(project, sourceAlias);
                 if (version.HasValue)
