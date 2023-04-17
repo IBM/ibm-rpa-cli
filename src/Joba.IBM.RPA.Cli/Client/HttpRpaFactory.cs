@@ -14,7 +14,7 @@ namespace Joba.IBM.RPA.Cli
         {
             var handler = new ThrottlingHttpMessageHandler(MaxParallelism, CreateUserAgentHandler());
             var client = new HttpClient(handler) { BaseAddress = address };
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            ApplyDefaultRequestHeaders(client);
             return client;
         }
 
@@ -23,8 +23,16 @@ namespace Joba.IBM.RPA.Cli
             var refreshTokenHandler = new RefreshTokenHttpMessageHandler(sessionRenewal, CreateUserAgentHandler());
             var handler = new ThrottlingHttpMessageHandler(MaxParallelism, refreshTokenHandler);
             var client = new HttpClient(handler) { BaseAddress = address };
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            ApplyDefaultRequestHeaders(client);
             return client;
+        }
+
+        private static void ApplyDefaultRequestHeaders(HttpClient client)
+        {
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(RpaCommand.ServiceName, RpaCommand.AssemblyVersion));
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(System.Environment.OSVersion.ToString()));
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(System.Environment.MachineName));
         }
 
         private static HttpMessageHandler CreatePolicyHandler()
