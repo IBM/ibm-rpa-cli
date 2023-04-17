@@ -35,7 +35,7 @@ namespace Joba.IBM.RPA.Cli
             private async Task HandleAsync(RemoteOptions options, ILogger<PackageSourceCommand> logger, IRpaClientFactory clientFactory,
                 IProject project, InvocationContext context)
             {
-                var handler = new AddPackageSourceHandler(logger, context.Console, project, clientFactory);
+                var handler = new AddPackageSourceHandler(logger, project, context.Console, clientFactory);
                 await handler.HandleAsync(options, context.GetCancellationToken());
             }
         }
@@ -47,7 +47,7 @@ namespace Joba.IBM.RPA.Cli
             private readonly IProject project;
             private readonly IRpaClientFactory clientFactory;
 
-            public AddPackageSourceHandler(ILogger logger, IConsole console, IProject project, IRpaClientFactory clientFactory)
+            public AddPackageSourceHandler(ILogger logger, IProject project, IConsole console, IRpaClientFactory clientFactory)
             {
                 this.logger = logger;
                 this.console = console;

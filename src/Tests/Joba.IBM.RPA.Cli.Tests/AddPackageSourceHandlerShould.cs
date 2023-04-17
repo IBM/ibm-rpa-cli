@@ -22,7 +22,7 @@ namespace Joba.IBM.RPA.Cli.Tests
             var clientFactory = new Mock<IRpaClientFactory>();
             var workingDir = new DirectoryInfo(Path.GetFullPath(Path.Combine("assets", $"{nameof(AddPackageSourceHandlerShould)}", nameof(ThrowException_WhenPackageSourceAlreadyExists))));
             var project = await LoadProjectAsync(workingDir);
-            var sut = new AddPackageSourceHandler(logger, console.Object, project, clientFactory.Object);
+            var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object);
             var options = new RemoteOptions("dev", new ServerAddress());
 
             //assert
@@ -38,7 +38,7 @@ namespace Joba.IBM.RPA.Cli.Tests
             var clientFactory = new Mock<IRpaClientFactory>();
             var workingDir = new DirectoryInfo(Path.GetFullPath(Path.Combine("assets", $"{nameof(AddPackageSourceHandlerShould)}", nameof(ThrowException_WhenEnvironmentAlreadyExists))));
             var project = await LoadProjectAsync(workingDir);
-            var sut = new AddPackageSourceHandler(logger, console.Object, project, clientFactory.Object);
+            var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object);
             var options = new RemoteOptions("dev", new ServerAddress());
 
             //assert
@@ -68,7 +68,7 @@ namespace Joba.IBM.RPA.Cli.Tests
                 clientFactory.Setup(c => c.CreateFromAddress(region.ApiAddress)).Returns(client.Object);
                 clientFactory.Setup(c => c.CreateFromRegion(region)).Returns(client.Object);
                 var project = await LoadProjectAsync(workingDir);
-                var sut = new AddPackageSourceHandler(logger, console.Object, project, clientFactory.Object);
+                var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object);
 
                 //act
                 await sut.HandleAsync(options, CancellationToken.None);
@@ -108,7 +108,7 @@ namespace Joba.IBM.RPA.Cli.Tests
                 clientFactory.Setup(c => c.CreateFromAddress(region.ApiAddress)).Returns(client.Object);
                 clientFactory.Setup(c => c.CreateFromRegion(region)).Returns(client.Object);
                 var project = await LoadProjectAsync(workingDir);
-                var sut = new AddPackageSourceHandler(logger, console.Object, project, clientFactory.Object);
+                var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object);
 
                 //act
                 await sut.HandleAsync(options, CancellationToken.None);
