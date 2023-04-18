@@ -174,6 +174,8 @@ namespace Joba.IBM.RPA
             private string GetContents() => $"#!/bin/bash" + System.Environment.NewLine + gitDiffCommandLine;
 
             /// <summary>
+            /// TODO: this is wrong: https://stackoverflow.com/questions/69903900/how-to-maintain-environment-variables-in-path-when-adding-new-path-folder
+            /// https://stackoverflow.com/a/9845159/1830639
             /// The directory where the 'wal2txt' (conversion intermediate file) file is located needs to be in the windows environment PATH so git can reach it.
             /// </summary>
             private void AppendToPathEnvironmentVariable()

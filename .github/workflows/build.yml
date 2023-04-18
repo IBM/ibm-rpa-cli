@@ -9,7 +9,6 @@ on:
 
 jobs:
   build:
-    needs: [check-commit-message]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3

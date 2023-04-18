@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace Joba.IBM.RPA.Cli
@@ -19,8 +18,6 @@ namespace Joba.IBM.RPA.Cli
             // dotnet tool update --global --add-source ./Joba.IBM.RPA.Cli/nupkg --version 1.0.0-beta-8 rpa
             // [uninstall]
             // dotnet tool uninstall --global rpa
-            Directory.CreateDirectory(Constants.LocalFolder);
-
             var parser = new CommandLineBuilder(new RpaCommand())
                 .AddInstrumentation()
                 .RegisterLoggerFactory()
@@ -42,7 +39,8 @@ namespace Joba.IBM.RPA.Cli
         {
             var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<RpaCommand>();
-            logger.LogError(exception, exception.Message);
+            var verbosity = context.ParseResult.GetValueForOption(RpaCommand.VerbosityOption);
+            logger.LogError(exception, verbosity == Verbosity.Diagnostic || verbosity == Verbosity.Detailed ? exception.ToString() : exception.Message);
 
             EnvironmentException(exception);
             PackageAlreadyInstalledException(exception);
