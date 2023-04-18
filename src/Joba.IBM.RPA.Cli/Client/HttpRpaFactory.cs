@@ -29,10 +29,11 @@ namespace Joba.IBM.RPA.Cli
 
         private static void ApplyDefaultRequestHeaders(HttpClient client)
         {
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(RpaCommand.ServiceName, RpaCommand.AssemblyVersion));
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(System.Environment.OSVersion.ToString()));
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(System.Environment.MachineName));
+            //TODO: invalid formats
+            //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            //client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(RpaCommand.CommandName, RpaCommand.AssemblyVersion));
+            //client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(System.Environment.OSVersion.ToString()));
+            //client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue(System.Environment.MachineName));
         }
 
         private static HttpMessageHandler CreatePolicyHandler()

@@ -11,7 +11,7 @@
 		<PackageOutputPath>./nupkg</PackageOutputPath>
 		<AssemblyName>rpa</AssemblyName>
 		<VersionPrefix>1.0.0</VersionPrefix>
-		<VersionSuffix>beta-1</VersionSuffix>
+		<VersionSuffix>beta-2</VersionSuffix>
 	</PropertyGroup>
 	<ItemGroup>
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
