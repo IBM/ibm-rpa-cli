@@ -31,7 +31,8 @@ namespace Joba.IBM.RPA
                 { DefineVariableLine.Verb, typeof(DefineVariableLine) },
                 { ImportLine.Verb, typeof(ImportLine) },
                 { GoSubLine.Verb, typeof(GoSubLine) },
-                { BeginSubLine.Verb, typeof(BeginSubLine) }
+                { BeginSubLine.Verb, typeof(BeginSubLine) },
+                { SetVarIfLine.Verb, typeof(SetVarIfLine) }
             };
             }
 
@@ -67,12 +68,12 @@ namespace Joba.IBM.RPA
         public DefineVariableLine(int number, string content, string? command)
             : base(number, content, command)
         {
-            var match = Regex.Match(content, @"--name\s+(?<name>\w+)");
+            var match = Regex.Match(content, @"--name\s+(?<name>\w+)", RegexOptions.IgnoreCase);
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--name' parameter in the correct format.");
             Name = match.Groups["name"]?.Value;
 
-            match = Regex.Match(content, @"--type\s+(?<type>\w+)");
+            match = Regex.Match(content, @"--type\s+(?<type>\w+)", RegexOptions.IgnoreCase);
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--type' parameter in the correct format.");
             Type = match.Groups["type"]?.Value;
@@ -89,7 +90,7 @@ namespace Joba.IBM.RPA
         public GoSubLine(int number, string content, string? command)
             : base(number, content, command)
         {
-            var match = Regex.Match(content, "--label\\s+(?<label>(\\w+)|\"(.*?)\")");
+            var match = Regex.Match(content, "--label\\s+(?<label>(\\w+)|\"(.*?)\")", RegexOptions.IgnoreCase);
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--label' parameter in the correct format.");
             Label = match.Groups["label"]?.Value;
@@ -105,13 +106,35 @@ namespace Joba.IBM.RPA
         public BeginSubLine(int number, string content, string? command)
             : base(number, content, command)
         {
-            var match = Regex.Match(content, @"--name\s+(?<name>\w+)");
+            var match = Regex.Match(content, @"--name\s+(?<name>\w+)", RegexOptions.IgnoreCase);
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--name' parameter in the correct format.");
             Name = match.Groups["name"]?.Value;
         }
 
         internal string Name { get; }
+    }
+
+    internal class SetVarIfLine : WalLine
+    {
+        public const string Verb = "setVarIf";
+
+        public SetVarIfLine(int number, string content, string? command)
+            : base(number, content, command)
+        {
+            var match = Regex.Match(content, "--variablename\\s+\"(?<name>.*?)\"", RegexOptions.IgnoreCase);
+            if (!match.Success)
+                throw new Exception($"Line {number} ({Verb}) does not have the '--variablename' parameter in the correct format.");
+            Name = match.Groups["name"]?.Value;
+
+            match = Regex.Match(content, "--value\\s+\"(?<value>.*?)\"", RegexOptions.IgnoreCase);
+            if (!match.Success)
+                throw new Exception($"Line {number} ({Verb}) does not have the '--value' parameter in the correct format.");
+            Value = match.Groups["value"]?.Value;
+        }
+
+        internal string Name { get; }
+        internal string Value { get; }
     }
 
     internal class ImportLine : WalLine
@@ -121,17 +144,17 @@ namespace Joba.IBM.RPA
         public ImportLine(int number, string content, string? command)
             : base(number, content, command)
         {
-            var match = Regex.Match(content, @"--name\s+(?<name>\w+)");
+            var match = Regex.Match(content, @"--name\s+(?<name>\w+)", RegexOptions.IgnoreCase);
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--name' parameter in the correct format.");
             Name = match.Groups["name"]?.Value;
 
-            match = Regex.Match(content, "--type\\s+\"(?<type>\\w+)\"");
+            match = Regex.Match(content, "--type\\s+\"(?<type>\\w+)\"", RegexOptions.IgnoreCase);
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--type' parameter in the correct format.");
             Type = match.Groups["type"]?.Value;
 
-            match = Regex.Match(content, @"--content\s+(?<content>([^\s]+))");
+            match = Regex.Match(content, @"--content\s+(?<content>([^\s]+))", RegexOptions.IgnoreCase);
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--content' parameter in the correct format.");
             Base64Content = match.Groups["content"]?.Value;
@@ -150,7 +173,7 @@ namespace Joba.IBM.RPA
         public ExecuteScriptLine(int number, string content, string? command)
             : base(number, content, command)
         {
-            var match = Regex.Match(content, @"--name\s+(""(?<localScriptName>.*?)""|(?<publishedScriptName>\w+))");
+            var match = Regex.Match(content, @"--name\s+(""(?<localScriptName>.*?)""|(?<publishedScriptName>\w+))", RegexOptions.IgnoreCase);
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--name' parameter in the correct format.");
 

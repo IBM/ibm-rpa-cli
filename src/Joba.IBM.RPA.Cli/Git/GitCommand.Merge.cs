@@ -44,16 +44,23 @@ namespace Joba.IBM.RPA.Cli
                 logger.LogDebug("Reading base {File} (exists={Exists})", baseFile, baseFile.Exists);
                 //File.Copy(baseFile.FullName, @"C:\Users\002742631\Desktop\base.wal", true);
                 var baseWal = WalFile.Read(baseFile);
+                logger.LogDebug("Reading local {File}", localFile);
                 var localWal = WalFile.Read(localFile);
+                logger.LogDebug("Reading remote {File}", remoteFile);
                 var remoteWal = WalFile.Read(remoteFile);
                 var mergedWal = mergedFile.Exists ? WalFile.Read(mergedFile) : remoteWal.CloneTo(mergedFile);
 
                 using var baseTxt = await TempFile.CreateAsync(baseWal, "base", cancellation);
+                logger.LogDebug("Temp created for base {File}", baseTxt.Info);
                 using var localTxt = await TempFile.CreateAsync(localWal, "local", cancellation);
+                logger.LogDebug("Temp created for local {File}", localTxt.Info);
                 using var remoteTxt = await TempFile.CreateAsync(remoteWal, "remote", cancellation);
+                logger.LogDebug("Temp created for remote {File}", remoteTxt.Info);
                 using var mergedTxt = await TempFile.CreateAsync(mergedWal, "merged", cancellation);
+                logger.LogDebug("Temp created for merged {File}", mergedTxt.Info);
 
                 var vsCode = new VsCode();
+                logger.LogDebug("Launching Vs Code...");
                 await vsCode.MergeAsync(localTxt, remoteTxt, baseTxt, mergedTxt, cancellation);
 
                 mergedWal.Overwrite(new WalContent(await mergedTxt.ReadAsync(cancellation)));

@@ -1,13 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Runtime.CompilerServices;
-
-namespace Joba.IBM.RPA
+﻿namespace Joba.IBM.RPA
 {
     public static class Extensions
     {
-        public static PackageMetadata ToPackage(this WalFile wal) =>
-            new(wal.Name, wal.Version ?? throw new InvalidOperationException($"Cannot convert '{wal.Name}' to package because it does not have a version."));
-
         internal static (List<NamePattern>, List<string>) Split(this IEnumerable<NamePattern> collection)
         {
             var withWildcards = new List<NamePattern>();
@@ -49,26 +43,6 @@ namespace Joba.IBM.RPA
         {
             dir.Create();
             dir.Attributes |= FileAttributes.Hidden;
-        }
-
-        public static void CopyTo(this DirectoryInfo source, ILogger logger, DirectoryInfo target)
-        {
-            if (source.FullName.Equals(target.FullName, StringComparison.InvariantCultureIgnoreCase))
-                return;
-            if (!target.Exists)
-                target.Create();
-
-            foreach (var file in source.GetFiles())
-            {
-                logger.LogInformation(@"Copying {Target}\{FileName}", target.FullName, file.Name);
-                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
-            }
-
-            foreach (var subDir in source.GetDirectories())
-            {
-                var nextTargetSubDir = target.CreateSubdirectory(subDir.Name);
-                subDir.CopyTo(logger, nextTargetSubDir);
-            }
         }
     }
 }
