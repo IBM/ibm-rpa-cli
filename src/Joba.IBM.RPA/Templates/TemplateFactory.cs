@@ -26,7 +26,7 @@ namespace Joba.IBM.RPA
 
             var file = new FileInfo(Path.Combine(workingDir.FullName, fileName));
             if (file.Exists)
-                throw new InvalidOperationException($"Cannot create the file '{file.FullName}' because it already exists");
+                throw new TemplateException($"Cannot create the file '{file.FullName}' because it already exists");
 
             using (var fileStream = File.OpenWrite(file.FullName))
             {
@@ -34,8 +34,10 @@ namespace Joba.IBM.RPA
                 await templateStream.CopyToAsync(fileStream, cancellation);
             }
 
+            file.Refresh();
             var wal = WalFile.Read(file);
-            var content = new WalContent(wal.Content.ToString().Replace("@{workingDirectory}", workingDir.FullName));
+            var workingDirectoryEscaped = workingDir.FullName.Replace("\\", "\\\\"); //NOTE: wal expects '\\' in directory separators.
+            var content = new WalContent(wal.Content.ToString().Replace("@{workingDirectory}", workingDirectoryEscaped));
             wal.Overwrite(content);
             return wal;
         }

@@ -1,4 +1,4 @@
-³!defVar --name language --type Language
+´!defVar --name language --type Language
 defVar --name chat --type ChatData
 defVar --name messages --type Stack --innertype String
 defVar --name success --type Boolean
@@ -13,7 +13,7 @@ defVar --name timedOut --type Boolean
 defVar --name workingDirectory --type String
 //************************************
 //Template for a chatbot
-//- Continue you logic from line 51, within 'Core' routine.
+//- Continue your logic from line 51, within 'Core' routine.
 //************************************
 //Set the working directory where all local .wal files are located. Always use 'workingDirectory' variable in the 'executeScript' to reference the scripts.
 //- The build process will ignore 'executeScripts' that do not reference local .wal files using 'workingDirectory'.

@@ -1,9 +1,7 @@
-‰defVar --name workingDirectory --type String
-defVar --name filePath --type String
-defVar --name excel --type Excel
+ùdefVar --name workingDirectory --type String
 //************************************
 //Template for a unattended
-//- Continue you logic from line 16.
+//- Continue your logic from line 16.
 //************************************
 //Set the working directory where all local .wal files are located. Always use 'workingDirectory' variable in the 'executeScript' to reference the scripts.
 //- The build process will ignore 'executeScripts' that do not reference local .wal files using 'workingDirectory'.
