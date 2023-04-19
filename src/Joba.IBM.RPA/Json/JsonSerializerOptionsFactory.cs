@@ -4,7 +4,7 @@
     {
         internal static readonly JsonSerializerOptions SerializerOptions = CreateDefault();
 
-        internal static JsonSerializerOptions CreateDefault()
+        internal static JsonSerializerOptions CreateDefault(DirectoryInfo? workingDirectory = null)
         {
             var @default = new JsonSerializerOptions
             {
@@ -12,7 +12,7 @@
                 PropertyNameCaseInsensitive = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 PropertyNamingPolicy = new JsonKebabCaseNamingPolicy(),
-                TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver(),
+                TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver(workingDirectory),
             };
             @default.Converters.Add(new WalVersionJsonConverter());
             @default.Converters.Add(new NamePatternJsonConverter());
@@ -23,7 +23,7 @@
 
         internal static JsonSerializerOptions CreateForProject(DirectoryInfo workingDirectory)
         {
-            var options = CreateDefault();
+            var options = CreateDefault(workingDirectory);
             options.Converters.Add(new PackageReferencesJsonConverterFactory(workingDirectory));
             return options;
         }
