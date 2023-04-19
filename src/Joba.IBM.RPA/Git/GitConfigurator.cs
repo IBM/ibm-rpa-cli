@@ -216,7 +216,11 @@ namespace Joba.IBM.RPA
 
             private async Task<bool> NeedsConfigurationAsync(CancellationToken cancellation)
             {
-                var info = new ProcessStartInfo("git", $"config --global --get-regexp diff.{cliName}.*") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+                var fileName = "git";
+                var arguments = $"config --global --get-regexp diff.{cliName}.*";
+                logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
+                
+                var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                 using var process = Process.Start(info);
                 if (process == null)
                     throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
@@ -225,12 +229,16 @@ namespace Joba.IBM.RPA
                 var output = await process.StandardOutput.ReadToEndAsync(cancellation);
                 await process.WaitForExitAsync(cancellation);
 
-                return string.IsNullOrWhiteSpace(output) == false;
+                return string.IsNullOrWhiteSpace(output) == true;
             }
 
             private async Task ConfigureTextConversionAsync(CancellationToken cancellation)
             {
-                var info = new ProcessStartInfo("git", $"config --global diff.{cliName}.textconv {Name}") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+                var fileName = "git";
+                var arguments = $"config --global diff.{cliName}.textconv {Name}";
+                logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
+
+                var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                 var process = Process.Start(info);
                 if (process == null)
                     throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
@@ -244,7 +252,11 @@ namespace Joba.IBM.RPA
 
             private async Task ConfigureCacheTextConversionAsync(CancellationToken cancellation)
             {
-                var info = new ProcessStartInfo("git", $"config --global diff.{cliName}.cachetextconv true") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+                var fileName = "git";
+                var arguments = $"config --global diff.{cliName}.cachetextconv true";
+                logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
+
+                var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                 var process = Process.Start(info);
                 if (process == null)
                     throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
@@ -267,7 +279,11 @@ namespace Joba.IBM.RPA
                 if (file.Exists)
                     file.Delete();
 
-                var info = new ProcessStartInfo("git", $"config --global --remove-section diff.{cliName}") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+                var fileName = "git";
+                var arguments = $"config --global --remove-section diff.{cliName}";
+                logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
+
+                var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                 var process = Process.Start(info);
                 if (process == null)
                     throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
@@ -303,7 +319,11 @@ namespace Joba.IBM.RPA
 
             private async Task<bool> NeedsConfigurationAsync(CancellationToken cancellation)
             {
-                var info = new ProcessStartInfo("git", $"config --global --get-regexp merge.{cliName}.*") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+                var fileName = "git";
+                var arguments = $"config --global --get-regexp merge.{cliName}.*";
+                logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
+
+                var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                 using var process = Process.Start(info);
                 if (process == null)
                     throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
@@ -312,7 +332,7 @@ namespace Joba.IBM.RPA
                 var output = await process.StandardOutput.ReadToEndAsync(cancellation);
                 await process.WaitForExitAsync(cancellation);
 
-                return string.IsNullOrWhiteSpace(output) == false;
+                return string.IsNullOrWhiteSpace(output) == true;
             }
 
             private async Task ConfigureMergeDriverAsync(CancellationToken cancellation)
@@ -334,7 +354,11 @@ namespace Joba.IBM.RPA
 
                 async Task ConfigureNameAsync(CancellationToken cancellation)
                 {
-                    var info = new ProcessStartInfo("git", $"config --global merge.{cliName}.name \"rpa cli merge driver\"") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+                    var fileName = "git";
+                    var arguments = $"config --global merge.{cliName}.name \"rpa cli merge driver\"";
+                    logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
+
+                    var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                     var process = Process.Start(info);
                     if (process == null)
                         throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
@@ -348,7 +372,11 @@ namespace Joba.IBM.RPA
 
                 async Task ConfigureDriverAsync(CancellationToken cancellation)
                 {
-                    var info = new ProcessStartInfo("git", $"config --global merge.{cliName}.driver \"{gitMergeCommandLine}\"") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+                    var fileName = "git";
+                    var arguments = $"config --global merge.{cliName}.driver \"{gitMergeCommandLine}\"";
+                    logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
+
+                    var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                     var process = Process.Start(info);
                     if (process == null)
                         throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
@@ -362,7 +390,11 @@ namespace Joba.IBM.RPA
 
                 async Task ConfigureRecursiveAsync(CancellationToken cancellation)
                 {
-                    var info = new ProcessStartInfo("git", $"config --global merge.{cliName}.recursive text") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+                    var fileName = "git";
+                    var arguments = $"config --global merge.{cliName}.recursive text";
+                    logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
+
+                    var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                     var process = Process.Start(info);
                     if (process == null)
                         throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
@@ -383,7 +415,11 @@ namespace Joba.IBM.RPA
 
             internal async Task DeleteAsync(CancellationToken cancellation)
             {
-                var info = new ProcessStartInfo("git", $"config --global --remove-section merge.{cliName}") { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
+                var fileName = "git";
+                var arguments = $"config --global --remove-section merge.{cliName}";
+                logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
+
+                var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                 var process = Process.Start(info);
                 if (process == null)
                     throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");

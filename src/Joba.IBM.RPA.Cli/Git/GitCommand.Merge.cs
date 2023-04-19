@@ -39,7 +39,10 @@ namespace Joba.IBM.RPA.Cli
                 localFile = new FileInfo(Path.GetFullPath(localFile.FullName));
                 remoteFile = new FileInfo(Path.GetFullPath(remoteFile.FullName));
                 mergedFile = new FileInfo(Path.GetFullPath(mergedFile.FullName));
-
+                
+                //TODO: not working... the 'base' file is corrupted by git :(
+                logger.LogDebug("Reading base {File} (exists={Exists})", baseFile, baseFile.Exists);
+                //File.Copy(baseFile.FullName, @"C:\Users\002742631\Desktop\base.wal", true);
                 var baseWal = WalFile.Read(baseFile);
                 var localWal = WalFile.Read(localFile);
                 var remoteWal = WalFile.Read(remoteFile);

@@ -4,6 +4,9 @@ namespace Joba.IBM.RPA.Cli
 {
     internal partial class GitCommand
     {
+        internal static readonly string GitDiffCommandLine = $"{RpaCommand.CommandName} {GitCommand.CommandName} {GitCommand.DiffCommand.CommandName} \"$1\"";
+        internal static readonly string GitMergeCommandLine = $"{RpaCommand.CommandName} {GitCommand.CommandName} {GitCommand.MergeCommand.CommandName} %O %A %B";
+
         internal class ConfigureCommand : Command
         {
             public ConfigureCommand() : base("config", "Configures git to understand .wal files.")
@@ -22,11 +25,8 @@ namespace Joba.IBM.RPA.Cli
                     throw new Exception("Git is not initialized in this directory");
 
                 var cancellation = context.GetCancellationToken();
-                var configurator = new GitConfigurator(logger,
-                    new DirectoryInfo(System.Environment.CurrentDirectory),
-                    RpaCommand.CommandName,
-                    $"{RpaCommand.CommandName} {GitCommand.CommandName} {GitCommand.DiffCommand.CommandName} \"$1\"",
-                    $"{RpaCommand.CommandName} {GitCommand.CommandName} {GitCommand.MergeCommand.CommandName} %O %A %B");
+                var configurator = new GitConfigurator(logger, new DirectoryInfo(System.Environment.CurrentDirectory),
+                    RpaCommand.CommandName, GitDiffCommandLine, GitMergeCommandLine);
 
                 if (remove)
                     await configurator.RemoveAsync(cancellation);
