@@ -67,10 +67,6 @@ namespace Joba.IBM.RPA
 
     internal class ProjectSettings
     {
-        /// <summary>
-        /// NOTE: used by Json serializer. The 'workingDirectory' is set by our custom JsonConverter.
-        /// </summary>
-        internal ProjectSettings() { }
         internal ProjectSettings(DirectoryInfo workingDirectory) => Packages = new PackageReferences(workingDirectory);
 
         internal Dictionary<string, RemoteSettings> Environments { get; init; } = new Dictionary<string, RemoteSettings>();

@@ -1,18 +1,27 @@
 ﻿using System.Reflection;
 using System.Text.Json.Serialization.Metadata;
-using System.Linq;
 
 namespace Joba.IBM.RPA
 {
     class IncludeInternalMembersJsonTypeInfoResolver : DefaultJsonTypeInfoResolver
     {
+        private readonly DirectoryInfo? workingDirectory;
+
+        /// <summary>
+        /// TODO: didn't like this. Rethink.
+        /// </summary>
+        public IncludeInternalMembersJsonTypeInfoResolver(DirectoryInfo? workingDirectory = null)
+        {
+            this.workingDirectory = workingDirectory;
+        }
+
         public override JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
         {
             var info = base.GetTypeInfo(type, options);
 
             if (info.Kind == JsonTypeInfoKind.Object)
             {
-                ConfigureConstructor(info);
+                ConfigureConstructor(info, workingDirectory);
                 ConfigureProperties(info, options);
             }
 
@@ -26,11 +35,26 @@ namespace Joba.IBM.RPA
                 property.ShouldSerialize = (_, value) => value is ICollection collection && collection.Count > 0;
         }
 
-        private static void ConfigureConstructor(JsonTypeInfo info)
+        private static void ConfigureConstructor(JsonTypeInfo info, DirectoryInfo? workingDirectory = null)
         {
-            var ctor = info.Type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, Type.EmptyTypes);
-            if (ctor != null)
-                info.CreateObject = () => ctor.Invoke(null);
+            if (workingDirectory != null)
+            {
+                var ctor = info.Type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, new Type[] { typeof(DirectoryInfo) });
+                if (ctor != null)
+                    info.CreateObject = () => ctor.Invoke(new object[] { workingDirectory });
+                else
+                {
+                    ctor = info.Type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, Type.EmptyTypes);
+                    if (ctor != null)
+                        info.CreateObject = () => ctor.Invoke(null);
+                }
+            }
+            else
+            {
+                var ctor = info.Type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, Type.EmptyTypes);
+                if (ctor != null)
+                    info.CreateObject = () => ctor.Invoke(null);
+            }
         }
 
         private static void ConfigureProperties(JsonTypeInfo info, JsonSerializerOptions options)
