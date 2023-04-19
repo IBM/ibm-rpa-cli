@@ -23,10 +23,10 @@ namespace Joba.IBM.RPA.Cli
         {
             var cancellation = context.GetCancellationToken();
 
-            if (name.HasValue && !project.Robots.Exists(name))
-                throw new InvalidOperationException($"Bot named '{name}' does not exist.");
+            if (name.HasValue && !project.Robots.Exists(name.Value.WithoutExtension))
+                throw new InvalidOperationException($"Bot named '{name.Value.WithoutExtension}' does not exist.");
 
-            Robot? robot = name.HasValue ? project.Robots[name.Value] : null;
+            Robot? robot = name.HasValue ? project.Robots[name.Value.WithoutExtension] : null;
             var arguments = new BuildArguments(project, robot, null, outputDirectory ?? new DirectoryInfo(Path.Combine(project.RpaDirectory.FullName, "build")));
             var result = await compiler.BuildAsync(arguments, cancellation);
             if (result.Success)
