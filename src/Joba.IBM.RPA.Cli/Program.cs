@@ -55,7 +55,7 @@ namespace Joba.IBM.RPA.Cli
             void EnvironmentException(Exception exception)
             {
                 if (exception is EnvironmentException ex)
-                    logger.LogInformation(" Use '{RpaCommandName} {EnvironmentCommand} {AddEnvironmentCommand} {Alias}' to configure it.", RpaCommand.CommandName, EnvironmentCommand.CommandName, EnvironmentCommand.AddEnvironmentCommand.CommandName, ex.Alias);
+                    logger.LogInformation(" Use '{RpaCommandName} {EnvironmentCommand} {AddEnvironmentCommand} {Alias}' to configure it.", RpaCommand.CommandName, EnvironmentCommand.CommandName, EnvironmentCommand.NewEnvironmentCommand.CommandName, ex.Alias);
             }
 
             void PackageAlreadyInstalledException(Exception exception)
