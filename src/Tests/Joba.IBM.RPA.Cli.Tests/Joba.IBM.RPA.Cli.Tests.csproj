@@ -73,6 +73,27 @@
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="assets\NewEnvironmentHandlerShould\AddEnvironment\AddEnvironment.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+    </None>
+    <None Update="assets\NewEnvironmentHandlerShould\AddEnvironment\AddEnvironment.rpa.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\NewEnvironmentHandlerShould\ThrowException_WhenEnviornmentAlreadyExists\ThrowException_WhenEnviornmentAlreadyExists.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\NewEnvironmentHandlerShould\ThrowException_WhenPackageSourceAlreadyExists\ThrowException_WhenPackageSourceAlreadyExists.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\NewEnvironmentHandlerShould\ThrowException_WhenPackageSourceAlreadyExists\ThrowException_WhenPackageSourceAlreadyExists.sources.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="assets\NewRobotHandlerShould\CreateWalAndUpdateProjectFile\CreateWalAndUpdateProjectFile.rpa.verified.json">
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

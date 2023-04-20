@@ -7,8 +7,8 @@ namespace Joba.IBM.RPA
             string alias, Region region, CreatedSession session)
         {
             var remote = RemoteSettings.Create(region, session);
-            userSettings.Sessions.Add(alias, Session.From(session));
-            
+            userSettings.AddOrUpdateSession(alias, Session.From(session));
+
             return new Environment(alias, remote, userFile, userSettings);
         }
     }
