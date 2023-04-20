@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Reflection;
-using static Joba.IBM.RPA.Cli.ProjectCommand;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -12,7 +11,7 @@ namespace Joba.IBM.RPA.Cli
             public const string CommandName = "new";
             public NewBotCommand() : base(CommandName, "Scaffolds wal files based on the templates.")
             {
-                var name = new Argument<WalFileName>("name", arg => new WalFileName(arg.Tokens[0].Value), description: "The bot name.");
+                var name = new Argument<string>("name", description: "The bot name.");
                 var template = new Option<string>("--template", () => "unattended", "The template to use. Depending on the template, different configurations are allowed.")
                     .FromAmong("attended", "chatbot", "unattended", "excel");
 
@@ -24,10 +23,8 @@ namespace Joba.IBM.RPA.Cli
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(WalFileName name, string templateName, ILogger<RobotCommand> logger, IProject project, InvocationContext context)
+            private async Task HandleAsync(string name, string templateName, ILogger<RobotCommand> logger, IProject project, InvocationContext context)
             {
-                var cancellation = context.GetCancellationToken();
-
                 var handler = new NewRobotHandler(logger, project);
                 await handler.HandleAsync(name, templateName, context.GetCancellationToken());
             }
@@ -43,15 +40,15 @@ namespace Joba.IBM.RPA.Cli
                     this.project = project;
                 }
 
-                internal async Task HandleAsync(WalFileName name, string templateName, CancellationToken cancellation)
+                internal async Task HandleAsync(string name, string templateName, CancellationToken cancellation)
                 {
-                    if (project.Robots.Exists(name.WithoutExtension))
+                    if (project.Robots.Exists(name))
                         throw new ProjectException($"Robot named '{name}' already exists.");
 
                     var template = new TemplateFactory(project.WorkingDirectory, Assembly.GetExecutingAssembly());
-                    _ = await template.CreateAsync(name, templateName, cancellation);
-                    var settings = RobotSettingsFactory.Create(templateName, name.WithoutExtension);
-                    project.Robots.Add(name.WithoutExtension, settings);
+                    _ = await template.CreateAsync(new WalFileName(name), templateName, cancellation);
+                    var settings = RobotSettingsFactory.Create(templateName, name);
+                    project.Robots.Add(name, settings);
 
                     await project.SaveAsync(cancellation);
                     logger.LogInformation("Bot '{Bot}' created successfully based on '{Template}' template", name, templateName);

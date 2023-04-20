@@ -22,7 +22,7 @@ namespace Joba.IBM.RPA.Cli.Tests
 
             //assert
             _ = await Assert.ThrowsAsync<ProjectException>(
-                async () => await sut.HandleAsync(new WalFileName("Assistant"), "unattended", CancellationToken.None));
+                async () => await sut.HandleAsync("Assistant", "unattended", CancellationToken.None));
         }
 
         [Fact]
@@ -37,11 +37,10 @@ namespace Joba.IBM.RPA.Cli.Tests
                 var sut = new NewRobotHandler(logger, project);
 
                 //act
-                await sut.HandleAsync(new WalFileName(nameof(CreateWalAndUpdateProjectFile)), "unattended", CancellationToken.None);
+                await sut.HandleAsync(nameof(CreateWalAndUpdateProjectFile), "unattended", CancellationToken.None);
 
                 //assert
                 var filePath = Path.Combine(project.WorkingDirectory.FullName, $"{nameof(CreateWalAndUpdateProjectFile)}.wal");
-                //var filePath = Path.GetFullPath(Path.Combine("assets", $"{nameof(NewRobotHandlerShould)}", nameof(CreateWalAndUpdateProjectFile), $"{nameof(CreateWalAndUpdateProjectFile)}.wal"));
                 Assert.True(File.Exists(filePath), $"File {filePath} should have been created");
                 await VerifyFile(Path.Combine(workingDir.FullName, $"{project.Name}.rpa.json"))
                    .UseDirectory(Path.GetFullPath(Path.Combine("assets", $"{nameof(NewRobotHandlerShould)}", nameof(CreateWalAndUpdateProjectFile))))
