@@ -79,7 +79,12 @@
     }
 
     public record class ComputerGroup(Guid Id, string Name);
-    public record class ServerBot(Guid ProjectId, Guid ScriptId, Guid ScriptVersionId, [property: JsonPropertyName("GroupId")] Guid ComputerGroupId, string Name, [property: JsonPropertyName("TechnicalName")] string UniqueId, string Description);
+    public record class ServerBot(Guid ProjectId, Guid ScriptId, Guid ScriptVersionId, [property: JsonPropertyName("GroupId")] Guid ComputerGroupId, string Name, [property: JsonPropertyName("TechnicalName")] string UniqueId, string Description)
+    {
+        public static ServerBot Copy(ServerBot bot, string uniqueId) =>
+            new(bot.ProjectId, bot.ScriptId, bot.ScriptVersionId, bot.ComputerGroupId, bot.Name, uniqueId, bot.Description);
+    }
+
     public record class ServerProject(Guid Id, string Name, string Description, [property: JsonPropertyName("TechnicalName")] string UniqueId);
     public record class Parameter([property: JsonPropertyName("Id")] string Name, string Value);
     public record class PublishScript(Guid? Id, Guid? VersionId, string Name, string? Description, string Content, string ProductVersion,

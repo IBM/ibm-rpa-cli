@@ -320,7 +320,7 @@ namespace Joba.IBM.RPA.Cli
                 if (server == null)
                     _ = await CreateAsync(bot, cancellation);
                 else
-                    _ = await UpdateAsync(server.Id, bot, cancellation);
+                    _ = await UpdateAsync(server.Id, ServerBot.Copy(bot, server.UniqueId), cancellation);
             }
 
             private async Task<ServerBotSearch> UpdateAsync(Guid id, ServerBot bot, CancellationToken cancellation)
