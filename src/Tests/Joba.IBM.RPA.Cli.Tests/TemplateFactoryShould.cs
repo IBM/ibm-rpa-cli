@@ -70,7 +70,7 @@
                 var wal = await sut.CreateAsync(fileName, templateName, CancellationToken.None);
 
                 //assert
-                var expected = workingDir.FullName.Replace("\\", "\\\\");
+                var expected = $"\"{workingDir.FullName.Replace("\\", "\\\\")}\"";
                 var analyzer = new WalAnalyzer(wal);
                 var setVar = analyzer.EnumerateCommands<SetVarIfLine>(SetVarIfLine.Verb).FirstOrDefault(s => s.Name == "${workingDirectory}");
                 Assert.True(setVar != null, "setVarIf --name \"${workingDirectory}\" should exist");
