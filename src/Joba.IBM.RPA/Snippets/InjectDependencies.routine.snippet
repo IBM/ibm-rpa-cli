@@ -1,9 +1,15 @@
 beginSub --name __ExportDependenciesAndSetWorkingDirectory
-	export --asset "${asset.__dependencies}" __dependenciesFilePath=value
+    //Get the current 'process id' 
+	writeToFile --value dummy --createrandomfile  --encoding "Default" __dummyFilePathForPowershell=value
+	powerShell --apartmentState "MTA" --script "$PID | OUT-FILE -FilePath \"${__dummyFilePathForPowershell}\"" success=success
+	readAllText --filepath "${__dummyFilePathForPowershell}" --encoding "Default" __pid=value
+    trimString --text "${__pid}" --trimoption "TrimStartAndEnd" __pid=value
+    //Unzipping
 	getEnvVar --name TEMP --target "User" __tempPath=value
-	setVar --name "${__dependenciesDir}" --value "${__tempPath}\\${rpa:scriptName}\\"
+	setVar --name "${__dependenciesDir}" --value "${__tempPath}\\${rpa:scriptName}\\${__pid}"
 	replaceText --texttoparse "${__dependenciesDir}" --textpattern ".wal" __dependenciesDir=value
 	createDir --path "${__dependenciesDir}" __dependenciesDir=value
+	export --asset "${asset.__dependencies}" __dependenciesFilePath=value
 	unzip --file "${__dependenciesFilePath}" --destinationfolder "${__dependenciesDir}"
 	setVar --name "${workingDirectory}" --value "${__dependenciesDir}"
 endSub
