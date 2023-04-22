@@ -14,9 +14,9 @@ namespace Joba.IBM.RPA.Cli
             // [build]
             // dotnet pack -c Release
             // [install]
-            // dotnet tool install --global --add-source ./src/Joba.IBM.RPA.Cli/nupkg --version 0.0.1-beta-6 rpa
+            // dotnet tool install --global --add-source ./Joba.IBM.RPA.Cli/nupkg --version 1.0.0-beta-8 rpa
             // [update]
-            // dotnet tool update --global --add-source ./Joba.IBM.RPA.Cli/nupkg --version 1.0.0-beta-3 rpa
+            // dotnet tool update --global --add-source ./Joba.IBM.RPA.Cli/nupkg --version 1.0.0-beta-8 rpa
             // [uninstall]
             // dotnet tool uninstall --global rpa
             Directory.CreateDirectory(Constants.LocalFolder);

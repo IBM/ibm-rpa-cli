@@ -143,7 +143,6 @@ namespace Joba.IBM.RPA
             {
                 this.logger = logger;
                 this.project = project;
-                this.project = project;
                 current = wal;
             }
 
