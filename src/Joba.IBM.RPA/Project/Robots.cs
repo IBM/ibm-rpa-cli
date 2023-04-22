@@ -82,6 +82,10 @@ namespace Joba.IBM.RPA
 
         internal TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(5);
         internal string Description { get; set; } = string.Empty;
+        /// <summary>
+        /// Specify wal files to include in the build process of 'this' robot.
+        /// </summary>
+        internal string[]? Include { get; set; }
     }
 
     internal class ChatbotSettings : RobotSettings
@@ -96,7 +100,7 @@ namespace Joba.IBM.RPA
         internal UnattendedSettings() : base() { }
 
         [JsonPropertyName("computer-group")]
-        internal string ComputerGroupName { get; set; }
+        internal string? ComputerGroupName { get; set; }
     }
 
     internal class AttendedSettings : RobotSettings

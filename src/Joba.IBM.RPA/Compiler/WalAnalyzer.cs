@@ -127,7 +127,7 @@ namespace Joba.IBM.RPA
                 throw new Exception($"Line {number} ({Verb}) does not have the '--variablename' parameter in the correct format.");
             Name = match.Groups["name"]?.Value;
 
-            match = Regex.Match(content, "--value\\s+\"(?<value>.*?)\"", RegexOptions.IgnoreCase);
+            match = Regex.Match(content, "--value\\s+(?<value>(\\w+)|\"(.*?)\")", RegexOptions.IgnoreCase);
             if (!match.Success)
                 throw new Exception($"Line {number} ({Verb}) does not have the '--value' parameter in the correct format.");
             Value = match.Groups["value"]?.Value;
