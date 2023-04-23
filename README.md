@@ -1,1 +1,1 @@
-![continuous integration](https://github.com/JobaDiniz/ibm-rpa-cli/actions/workflows/ci.yml/badge.svg)
+![continuous integration](https://github.com/JobaDiniz/ibm-rpa-cli/actions/workflows/build.yml/badge.svg)
