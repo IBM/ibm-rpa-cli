@@ -1,3 +1,5 @@
 * [Home](/)
-* [Concepts](concepts.md "RPA concepts")
-* [Reference](reference.md "RPA command line reference")
+* [User Guide](guide/ "Describes all the RPA CLI concepts.")
+* [Command Reference](reference.md "Describes the latest version of the RPA CLI in detail and provides basic syntax, options, and usage examples for each operation.")
+* [Security](security.md)
+* [FAQ](faq.md "Frequently asked questions")

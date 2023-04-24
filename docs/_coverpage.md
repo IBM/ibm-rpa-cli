@@ -1,7 +1,7 @@
-![logo](_media/icon.svg)
+![logo](_assets/icon.svg)
 
 # RPA Command Line Interface
 
-> Unofficial command line interface to manage and deploy IBM RPA projects
+> Unofficial command line interface to manage and deploy IBM® RPA projects
 
-[Get Started](#get-started)
+[About](#about)
