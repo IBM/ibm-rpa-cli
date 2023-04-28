@@ -8,6 +8,9 @@ on:
 jobs:
   release:
     runs-on: windows-latest
+    permissions:
+      id-token: write # This permission is needed to interact with GitHub's OIDC Token endpoint.
+      contents: write # This permission is needed to interact with GitHub's OIDC Token endpoint & upload release.
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET
@@ -30,7 +33,17 @@ jobs:
          fi
     - name: Publish
       run: dotnet publish ./src/Joba.IBM.RPA.Cli/Joba.IBM.RPA.Cli.csproj -c Release -f net7.0 -r win-x64 -p:PublishSingleFile=true -p:VersionPrefix=${MAIN_VERSION} -p:VersionSufix=${PRE_RELEASE_VERSION} -o ./publish --self-contained
-    - name: Release
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::578599518237:role/Github-ibm-rpa-cli-Role
+        role-session-name: MySessionName
+        aws-region: us-east-1
+    - name: Upload to AWS S3
+      run: |
+        aws s3api put-object --bucket joba-ibm-rpa-cli --key ${{env.VERSION}}/
+        aws s3 cp './publish/rpa.exe' s3://joba-ibm-rpa-cli/releases/${{env.VERSION}}/
+    - name: Github release
       shell: pwsh
       run: |
         if ( $null -eq "${{env.PRE_RELEASE_VERSION}}" -or "${{env.PRE_RELEASE_VERSION}}" -eq '' ) {
