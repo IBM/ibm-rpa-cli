@@ -1,5 +1,5 @@
 * [Home](/)
-* [User Guide](guide/ "Describes all the RPA CLI concepts.")
+* [User Guide](guide/readme.md "Describes all the RPA CLI concepts.")
   * [Getting started](guide/getting-started.md)
   * [Managing projects](guide/project.md)
   * [Managing robots](guide/robot.md)
