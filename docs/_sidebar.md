@@ -1,5 +1,5 @@
 * [Home](/)
-* [User Guide](guide/ "Describes all the RPA CLI concepts.")
+* [User Guide](guide/readme.md "Describes all the RPA CLI concepts.")
 * [Command Reference](reference.md "Describes the latest version of the RPA CLI in detail and provides basic syntax, options, and usage examples for each operation.")
 * [Security](security.md)
 * [FAQ](faq.md "Frequently asked questions")

@@ -10,7 +10,7 @@ The IBM® RPA Command Line Interface (RPA CLI) is an *unofficial* tool that prov
         <div class="card-header">
           <div class="inner-card-header">
             <h3>
-              <a href="#/guide/"><span>User Guide</span></a>
+              <a href="#/guide/readme"><span>User Guide</span></a>
             </h3>
           </div>
         </div>
