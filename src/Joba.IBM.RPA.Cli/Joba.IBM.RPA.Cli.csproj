@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
@@ -44,7 +44,7 @@
 	  <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
 	  <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.4.0" />
 	  <PackageReference Include="OpenTelemetry.Extensions" Version="1.0.0-beta2.88" />
-	  <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.6" />
+	  <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.14" />
 	  <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.1" />
 	  <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
 	  <PackageReference Include="System.Net.Http.Json" Version="7.0.1" />
