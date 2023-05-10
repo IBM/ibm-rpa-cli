@@ -43,7 +43,7 @@ The IBM® RPA API URL of the server.
 The URL option is usually `https://[region]api.[domain]/v1.0/`, for example `https://us1api.wdgautomation.com/v1.0/`. But RPA CLI already knows the SaaS APIs and you can just provide `--url default`.
 
 ##### On-Premise
-The URL option is your API server URL followed by `/v1.0/`. For example, if your API server is `https://192.123.654`, then the URL should be `https://192.123.654/v1.0/`.
+The URL option is your API server URL followed by `/v1.0/`. For example, if your API server is `https://192.123.654:433`, then the URL should be `https://192.123.654:433/v1.0/`.
 
 #### Region
 The region option is only applicable in SaaS. It's one of the following values: *AP1*, *BR1*, *BR2*, *EU1*, *UK1*, *US1*. See [understanding tenants and regions](https://www.ibm.com/docs/en/rpa/23.0?topic=client-prerequisites-install#understanding-tenants-and-regions) for more details.

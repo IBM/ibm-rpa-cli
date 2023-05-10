@@ -10,7 +10,7 @@ RPA CLI changes that concept. For RPA CLI, WAL files are source code files, not 
 The [build](reference.md#rpa-build) process expects [executeScript](https://www.ibm.com/docs/en/rpa/23.0?topic=general-execute-script) commands to reference WAL files like so: `executeScript --name "${workingDirectory}/[path_of_the_file]"`.
 
 ### `${workingDirectory}`
- `${workingDirectory}` is a *String* WAL variable type and its value should be the current local working directory. The build process injects code to the **main** WAL file **at runtime** to change the value of `${workingDirectory}` accordingly.
+ `${workingDirectory}` is a *String* WAL variable type and its value should be the current local working directory. The build process injects code to the **main** WAL file to provide the mechanism **at runtime** to change the value of `${workingDirectory}` accordingly.
 
 When you create [robots](guide/robot.md) using *templates*, the initial WAL code structure is defined for you alongside with `${workingDirectory}` variable. The following is a template example for unattended.
 
@@ -77,4 +77,4 @@ next
 
 It will make 1000 HTTP requests to fech *Joba_Security* script. It does not cache the script because the *production* version can be changed at any point by the developer. Obviously the above example is an exageration, but how many loops do you have that reference [executeScript](https://www.ibm.com/docs/en/rpa/23.0?topic=general-execute-script) commands without `--version`?
 
-> RPA CLI solves the performance problem by bundling WAL script reference into the robot - the **main** WAL file - through the [build](reference.md#rpa-build) process. At runtime, IBM® RPA only fetches 1 script, the **main** one. The other references are already available and do not need to be fetched.
+?> RPA CLI solves the performance problem by bundling WAL script reference into the robot - the **main** WAL file - through the [build](reference.md#rpa-build) process. At runtime, IBM® RPA only fetches 1 script, the **main** one. The other references are already available and do not need to be fetched.

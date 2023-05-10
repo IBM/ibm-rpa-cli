@@ -3,4 +3,5 @@
 * [Concepts](concepts.md)
 * [Command Reference](reference.md "Describes the latest version of the RPA CLI in detail and provides basic syntax, options, and usage examples for each operation.")
 * [Security](security.md)
+* [Support](support.md)
 * [FAQ](faq.md "Frequently asked questions")
