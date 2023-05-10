@@ -16,5 +16,11 @@ The IBM® RPA Command Line Interface (RPA CLI) is an *unofficial* tool that prov
 ## `rpa build`
 *in progress...*
 
+## `rpa deploy`
+*in progress...*
+
 ## `rpa pull`
+*in progress...*
+
+## `rpa git`
 *in progress...*

@@ -6,6 +6,8 @@
   * [Managing environments](guide/environment.md)
   * [Managing package sources](guide/package-source.md)
   * [Managing packages](guide/package.md)
+  * [Using executeScript](guide/execute-script.md)
+* [Concepts](concepts.md)
 * [Security](security.md)
 * [Command Reference](reference.md "Describes the latest version of the RPA CLI in detail and provides basic syntax, options, and usage examples for each operation.")
 * [FAQ](faq.md "Frequently asked questions")
