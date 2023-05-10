@@ -18,7 +18,7 @@ These prompts can be bypassed if you provide all the options upfront, such as th
 rpa env new [alias] --url [url] --region [region] --tenant [tenant] --username [username] --password [password]
 ```
 
-The above command updates a configuration file named `[project_name].rpa.json` adding an *environments* property, where `[project_name]` is the project name, `[alias]` is the specified environment alias.
+The above command updates the configuration file named `[project_name].rpa.json` adding an *environments* property, where `[project_name]` is the project name, `[alias]` is the specified environment alias.
 ```json
 {
   ...
@@ -32,6 +32,8 @@ The above command updates a configuration file named `[project_name].rpa.json` a
   }
 }
 ```
+
+!> **Warning**: the `[alias]` should be unique among [package source](guide/package-source.md) aliases and environment aliases.
 
 ### Options
 #### Url
@@ -54,4 +56,4 @@ The credentials to establish a connection to the environment. These are not stor
 
 # Next steps
 * [Managing package sources](guide/package-source.md)
-* [Deploying](guide/package-source.md) your project to an environment.
+* [Deploying](guide/deploy.md) your project to an environment.

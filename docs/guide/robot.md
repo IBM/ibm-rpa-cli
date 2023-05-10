@@ -11,7 +11,7 @@ Issue the following command to create a robot within the working directory, repl
 rpa bot new [name] --template [template]
 ```
 
-The above command updates a configuration file named `[project_name].rpa.json` adding a *robots* property, where `[project_name]` is the project name, `[name]` is the specified robot name, and `[type]` is derived from the specified `[template]`.
+The above command updates the configuration file named `[project_name].rpa.json` adding a *robots* property, where `[project_name]` is the project name, `[name]` is the specified robot name, and `[type]` is derived from the specified `[template]`.
 ```json
 {
   "description": "[project_name]",
