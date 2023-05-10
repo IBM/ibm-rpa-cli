@@ -53,3 +53,4 @@ The credentials to establish a connection to the package source. These are not s
 
 # Next Steps
 * Install, uninstall, update, and restore [packages](guide/package.md).
+* Use the [author's packages](guide/joba-packages.md).
