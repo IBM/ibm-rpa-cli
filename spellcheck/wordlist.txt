@@ -1,0 +1,8 @@
+Joba
+JobaDiniz
+OpenShift
+SaaS
+RPA
+CLI
+env
+localappdata
