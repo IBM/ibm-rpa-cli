@@ -13,7 +13,7 @@ This topic describes how to install or update the latest release of the RPA CLI 
 We support the RPA CLI on Microsoft-supported versions of 64-bit Windows. We recommend that you install RPA CLI per Windows user-basis instead of installing system-wide. Currently, the installation is a manual procedure as follows:
 
 #### 1. Download 
-Click [here](https://joba-ibm-rpa-cli.s3.amazonaws.com/releases/1.0.0-beta-1/rpa.exe) to download the latest RPA CLI version. For other versions, change the `[version]` parameter of the following URL: `https://joba-ibm-rpa-cli.s3.amazonaws.com/releases/[version]/rpa.exe`.
+Find the latest version in the [releases](https://github.com/IBM/ibm-rpa-cli/releases) page. Expand the *Assets* section and click `rpa cli` to download it.
 
 #### 2. Create the directory
 Create the directory named `Joba\rpa cli\` within `%localappdata%` of the current user and copy the `rpa.exe` to it.

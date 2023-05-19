@@ -3,5 +3,5 @@ The IBM® RPA Command Line Interface (RPA CLI) is an *unofficial* tool that enab
 
 ---
 # Next Steps
-* Read the [concepts](guide/concepts.md) to understand how to best leverage the tool.
+* Read the [concepts](concepts.md) to understand how to best leverage the tool.
 * Read the [getting started](guide/getting-started.md) to install it.
