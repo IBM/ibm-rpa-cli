@@ -4,4 +4,5 @@
 
 > Unofficial command line interface to manage and deploy IBM® RPA projects
 
-[About](#about)
+[GitHub](https://github.com/IBM/ibm-rpa-cli/)
+[User Guide](guide/readme.md)

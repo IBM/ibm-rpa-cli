@@ -15,7 +15,10 @@ RPA CLI introduces **local** projects. Local projects are enabled by defining a 
 With RPA CLI, you can start your project locally and only deploy it when needed. You do not need to create a [Control Center project](https://www.ibm.com/docs/en/rpa/23.0?topic=interfaces-projects) to start working on your automation idea. Work locally and [deploy](guide/deploy.md) later. RPA CLI takes care of creating or updating the Control Center resources.
 
 ## Environments
+*in progress...*
 
 ## Package sources
+*in progress...*
 
 ## Packages
+*in progress...*

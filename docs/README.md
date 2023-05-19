@@ -48,9 +48,5 @@ The IBM® RPA Command Line Interface (RPA CLI) is an *unofficial* tool that prov
   </ol>
 </div>
 
-# Author
-<img src='https://avatars.githubusercontent.com/u/165290?v=4' alt='Joba' width='75px'/>
-<a style='margin-left:10px' href='https://github.com/JobaDiniz' target='_blank'>Joba</a>
-
 # License
-Licensed under [MIT](https://getpino.io/#/./LICENSE).
+Find more about the license [here](https://github.com/IBM/ibm-rpa-cli/blob/develop/LICENSE.md).
