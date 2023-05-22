@@ -1,0 +1,49 @@
+name: Bug Report
+description: File a bug report
+title: "<title>"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Please paste the output of the commands using '-v Detailed' option (https://ibm.github.io/ibm-rpa-cli/#/support?id=troubleshooting)
+      render: Shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true 
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What version of RPA CLI are you running?
+      options:
+        - 1.0.0-beta-1 (Default)
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Which operating system?
+      multiple: true
+      options:
+        - Windows 11
+        - Windows 10
+        - Windows Server
