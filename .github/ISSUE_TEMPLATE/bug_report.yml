@@ -35,14 +35,13 @@ body:
       label: Version
       description: What version of RPA CLI are you running?
       options:
-        - 1.0.0-beta-1 (Default)
+        - 1.0.0-beta-1 (latest)
     validations:
       required: true
   - type: dropdown
     id: os
     attributes:
       label: Which operating system?
-      multiple: true
       options:
         - Windows 11
         - Windows 10
