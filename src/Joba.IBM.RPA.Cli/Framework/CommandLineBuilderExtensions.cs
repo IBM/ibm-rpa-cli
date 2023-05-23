@@ -4,10 +4,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Logging.Console;
+using Microsoft.Extensions.Options;
 using OpenTelemetry;
-using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
@@ -61,12 +62,12 @@ namespace Joba.IBM.RPA.Cli
                     {
                         o.IncludeFormattedMessage = true;
                         o.AttachLogsToActivityEvent();
-                    //    .ConfigureResource(r => r.AddService(RpaCommand.ServiceName, serviceVersion: RpaCommand.AssemblyVersion))
+                        //    .ConfigureResource(r => r.AddService(RpaCommand.ServiceName, serviceVersion: RpaCommand.AssemblyVersion))
                     })
                     .SetMinimumLevel(verbosity.ToLogLevel());
 
                     //configuring custom console logging
-                    builder.AddConsoleFormatter<CoreMessageConsoleFormatter, SimpleConsoleFormatterOptions>();
+                    builder.AddConsoleFormatter<RpaConsoleFormatter, RpaConsoleFormatterOptions>(o => o.Verbosity = verbosity);
                     builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ConsoleLoggerProvider>());
                     LoggerProviderOptions.RegisterProviderOptions<ConsoleLoggerOptions, ConsoleLoggerProvider>(builder.Services);
                 });
@@ -116,9 +117,14 @@ namespace Joba.IBM.RPA.Cli
         }
     }
 
-    internal class CoreMessageConsoleFormatter : ConsoleFormatter
+    internal class RpaConsoleFormatter : ConsoleFormatter
     {
-        public CoreMessageConsoleFormatter() : base(ConsoleFormatterNames.Simple) { }
+        private readonly IOptionsMonitor<RpaConsoleFormatterOptions> options;
+
+        public RpaConsoleFormatter(IOptionsMonitor<RpaConsoleFormatterOptions> options) : base(ConsoleFormatterNames.Simple)
+        {
+            this.options = options;
+        }
 
         public override void Write<TState>(in LogEntry<TState> logEntry, IExternalScopeProvider scopeProvider, TextWriter textWriter)
         {
@@ -127,9 +133,19 @@ namespace Joba.IBM.RPA.Cli
                 return;
 
             if (logEntry.Exception != null)
-                textWriter.WriteColoredMessage(logEntry.Exception.Message, ConsoleColor.Black, ConsoleColor.DarkRed);
+            {
+                message = options.CurrentValue.Verbosity == Verbosity.Diagnostic || options.CurrentValue.Verbosity == Verbosity.Detailed ? logEntry.Exception.ToString() : logEntry.Exception.Message;
+                textWriter.WriteColoredMessage(message, ConsoleColor.Black, ConsoleColor.DarkRed);
+            }
             else if (!string.IsNullOrEmpty(message))
                 textWriter.WriteLine(message);
         }
+    }
+
+    internal class RpaConsoleFormatterOptions : ConsoleFormatterOptions
+    {
+        public RpaConsoleFormatterOptions() { }
+
+        public Verbosity Verbosity { get; set; }
     }
 }

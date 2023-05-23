@@ -40,7 +40,7 @@ namespace Joba.IBM.RPA.Cli
             var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<RpaCommand>();
             var verbosity = context.ParseResult.GetValueForOption(RpaCommand.VerbosityOption);
-            logger.LogError(exception, verbosity == Verbosity.Diagnostic || verbosity == Verbosity.Detailed ? exception.ToString() : exception.Message);
+            logger.LogError(exception, exception.Message);
 
             EnvironmentException(exception);
             PackageAlreadyInstalledException(exception);
@@ -90,7 +90,9 @@ namespace Joba.IBM.RPA.Cli
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
             var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
-            context.BindingContext.AddService<IRpaClientFactory>(s => new RpaClientFactory(context.Console));
+            context.BindingContext.AddService<IRpaClientFactory>(s => new RpaClientFactory(
+                loggerFactory.CreateLogger<ILogger<DeployService>>(),
+                context.Console));
             context.BindingContext.AddService<IDeployService>(s => new DeployService(
                 loggerFactory.CreateLogger<ILogger<DeployService>>(),
                 s.GetRequiredService<IRpaClientFactory>(),
