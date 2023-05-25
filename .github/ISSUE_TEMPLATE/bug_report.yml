@@ -1,7 +1,7 @@
 name: Bug Report
 description: File a bug report
-title: "<title>"
-labels: ["bug", "triage"]
+title: "rpa <command>: <title>"
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
@@ -36,7 +36,7 @@ body:
       description: What version of RPA CLI are you running?
       options:
         - 1.0.0-beta-2 (latest)
-        - 1.0.0-beta-1 ()
+        - 1.0.0-beta-1
     validations:
       required: true
   - type: dropdown
@@ -53,7 +53,8 @@ body:
   - type: dropdown
     id: os
     attributes:
-      label: Which operating system?
+      label: Operating system
+      description: What is the operating system RPA CLI is installed?
       options:
         - Windows 11
         - Windows 10

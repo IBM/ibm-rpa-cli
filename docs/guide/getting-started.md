@@ -13,16 +13,16 @@ This topic describes how to install or update the latest release of the RPA CLI 
 We support the RPA CLI on Microsoft-supported versions of 64-bit Windows. We recommend that you install RPA CLI per Windows user-basis instead of installing system-wide. Currently, the installation is a manual procedure as follows:
 
 #### 1. Download 
-Find the latest version in the [releases](https://github.com/IBM/ibm-rpa-cli/releases) page. Expand the *Assets* section and click `rpa cli` to download it.
+In the [latest version](https://github.com/IBM/ibm-rpa-cli/releases/latest) page, expand the *Assets* section and click `rpa cli` to download the executable.
 
 #### 2. Create the directory
-Create the directory named `Joba\rpa cli\` within `%localappdata%` of the current user and copy the `rpa.exe` to it.
+Create the directory named `IBM\rpa cli\` within `%localappdata%` of the current user and copy the `rpa.exe` to it.
 
 From your downloads directory, open the *cmd* and type:
 
 ```bash
-mkdir "%localappdata%\Joba\rpa cli\"
-copy rpa.exe "%localappdata%\Joba\rpa cli\" /y
+mkdir "%localappdata%\IBM\rpa cli\"
+copy rpa.exe "%localappdata%\IBM\rpa cli\" /y
 ```
 
 #### 3. Change the user environment PATH variable
@@ -31,7 +31,7 @@ Instruct windows to find `rpa.exe` when issuing commands. This will inform Windo
 You can edit the **user** PATH environment variable through Windows control panel, or using the [setx](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/setx) command:
 
 ```bash
-setx PATH "%PATH%;%localappdata%\Joba\rpa cli"
+setx PATH "%PATH%;%localappdata%\IBM\rpa cli"
 ```
 
 #### 4. Confirm the installation
