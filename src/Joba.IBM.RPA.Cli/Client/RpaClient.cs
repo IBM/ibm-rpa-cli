@@ -15,6 +15,8 @@ namespace Joba.IBM.RPA.Cli
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
             @default.Converters.Add(new WalVersionJsonConverter());
+            @default.Converters.Add(new AuthenticationMethodJsonConverter());
+            @default.Converters.Add(new DeploymentOptionJsonConverter());
             return @default;
         }
 

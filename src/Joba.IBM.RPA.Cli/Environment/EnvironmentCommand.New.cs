@@ -65,8 +65,10 @@ namespace Joba.IBM.RPA.Cli
                 {
                     project.EnsureCanConfigure(options.Alias);
                     var password = secretProvider.GetSecret(options);
-                    var regionSelector = new RegionSelector(console, clientFactory, project);
-                    var region = await regionSelector.SelectAsync(options.Address, options.RegionName, cancellation);
+                    var serverSelector = new ServerSelector(RpaCommand.SupportedServerVersion, console, clientFactory, project);
+                    var server = await serverSelector.SelectAsync(options.Address, cancellation);
+                    var regionSelector = new RegionSelector(console);
+                    var region = regionSelector.Select(server, options.RegionName);
 
                     using var client = clientFactory.CreateFromRegion(region);
                     var accountSelector = new AccountSelector(console, client.Account);

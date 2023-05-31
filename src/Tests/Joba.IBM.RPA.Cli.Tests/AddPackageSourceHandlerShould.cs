@@ -56,8 +56,8 @@ namespace Joba.IBM.RPA.Cli.Tests
             {
                 //arrange
                 var options = new RemoteOptions("dev", new ServerAddress("https://dev.ibm.com"), "us1", "username", 500, "password");
-                var region = new Region(options.RegionName!, options.Address.ToUri());
-                var config = new ServerConfig { Regions = new Region[] { region } };
+                var region = new Region(options.RegionName!, options.Address.ToUri(), options.Address.ToUri());
+                var config = new ServerConfig { Regions = new Region[] { region }, Version = RpaCommand.SupportedServerVersion, Deployment = DeploymentOption.SaaS, AuthenticationMethod = AuthenticationMethod.WDG };
                 var session = new CreatedSession { TenantCode = options.TenantCode!.Value, TenantName = "development" };
                 var console = new Mock<IConsole>();
                 var account = new Mock<IAccountResource>();
@@ -96,8 +96,8 @@ namespace Joba.IBM.RPA.Cli.Tests
             {
                 //arrange
                 var options = new RemoteOptions("qa", new ServerAddress("https://qa.ibm.com"), "us1qa", "username", 501, "password");
-                var region = new Region(options.RegionName!, options.Address.ToUri());
-                var config = new ServerConfig { Regions = new Region[] { region } };
+                var region = new Region(options.RegionName!, options.Address.ToUri(), options.Address.ToUri());
+                var config = new ServerConfig { Regions = new Region[] { region }, Version = RpaCommand.SupportedServerVersion, Deployment = DeploymentOption.SaaS, AuthenticationMethod = AuthenticationMethod.WDG };
                 var session = new CreatedSession { TenantCode = options.TenantCode!.Value, TenantName = "quality assurance" };
                 var console = new Mock<IConsole>();
                 var account = new Mock<IAccountResource>();

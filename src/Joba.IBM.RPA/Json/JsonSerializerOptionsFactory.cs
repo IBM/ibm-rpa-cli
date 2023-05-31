@@ -14,6 +14,8 @@
                 PropertyNamingPolicy = new JsonKebabCaseNamingPolicy(),
                 TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver(workingDirectory),
             };
+            @default.Converters.Add(new DeploymentOptionJsonConverter());
+            @default.Converters.Add(new AuthenticationMethodJsonConverter());
             @default.Converters.Add(new WalVersionJsonConverter());
             @default.Converters.Add(new NamePatternJsonConverter());
             @default.Converters.Add(new ParameterLocalRepositoryJsonConverterFactory());
