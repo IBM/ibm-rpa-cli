@@ -46,14 +46,14 @@ namespace Joba.IBM.RPA.Cli
                 ServerCertificateCustomValidationCallback = (requestMessage, certificate, chain, sslPolicyErrors) =>
                 {
                     var isValid = sslPolicyErrors == SslPolicyErrors.None;
-                    var message = isValid ? "VALID server certificate." : $"INVALID server certificate: {sslPolicyErrors}";
-                    logger.LogDebug($"{message}\n" +
-                        "Requested URI: {URI}\n" +
-                        "Effective date: {EffectiveDate}\n" +
-                        "Expiration date: {ExpirationDate}\n" +
-                        "Issuer: {certificate?.Issuer}\n" +
-                        "Subject: {certificate?.Subject}",
-                        requestMessage.RequestUri, certificate?.GetEffectiveDateString(), certificate?.GetExpirationDateString(), certificate?.Issuer, certificate?.Subject);
+                    if (!isValid)
+                        logger.LogDebug($"INVALID server certificate: {sslPolicyErrors}\n" +
+                            "Requested URI: {URI}\n" +
+                            "Effective date: {EffectiveDate}\n" +
+                            "Expiration date: {ExpirationDate}\n" +
+                            "Issuer: {certificate?.Issuer}\n" +
+                            "Subject: {certificate?.Subject}",
+                            requestMessage.RequestUri, certificate?.GetEffectiveDateString(), certificate?.GetExpirationDateString(), certificate?.Issuer, certificate?.Subject);
 
                     return isValid;
                 }
