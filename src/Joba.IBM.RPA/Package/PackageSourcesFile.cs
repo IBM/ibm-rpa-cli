@@ -6,6 +6,7 @@ namespace Joba.IBM.RPA
     struct PackageSourcesFile
     {
         internal const string Extension = ".sources.json";
+        internal const string PackagesDirectoryName = "packages";
         private readonly FileInfo file;
 
         internal PackageSourcesFile(DirectoryInfo workingDir, string projectName)

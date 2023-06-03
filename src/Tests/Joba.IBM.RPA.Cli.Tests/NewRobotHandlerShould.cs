@@ -6,6 +6,7 @@ using static Joba.IBM.RPA.Cli.RobotCommand.NewBotCommand;
 namespace Joba.IBM.RPA.Cli.Tests
 {
     [UsesVerify]
+    [Trait("Category", "Integration")]
     public class NewRobotHandlerShould : RequireProjectTest
     {
         private readonly ILogger logger;

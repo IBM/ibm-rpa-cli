@@ -34,11 +34,13 @@ namespace Joba.IBM.RPA.Cli
 
         void OnShouldPullingFiles(object? sender, ContinueOperationEventArgs e)
         {
-            using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
-            e.Continue = console.YesOrNo(
-                $"This operation will pull all the '{e.Pattern}' files and dependencies from the server. " +
-                $"This will overwrite every local file copy and dependencies. This is irreversible. " +
-                $"Are you sure you want to continue? [y/n]");
+            e.Continue = true;
+            //TODO: add --interactive option, and by default is non-interactive
+            //using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
+            //e.Continue = console.YesOrNo(
+            //    $"This operation will pull all the '{e.Pattern}' files and dependencies from the server. " +
+            //    $"This will overwrite every local file copy and dependencies. This is irreversible. " +
+            //    $"Are you sure you want to continue? [y/n]");
         }
 
         void OnPulling(object? sender, PullingEventArgs e)

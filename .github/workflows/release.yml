@@ -8,9 +8,6 @@ on:
 jobs:
   release:
     runs-on: windows-latest
-    permissions:
-      id-token: write # This permission is needed to interact with GitHub's OIDC Token endpoint.
-      contents: write # This permission is needed to interact with GitHub's OIDC Token endpoint & upload release.
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET
@@ -31,8 +28,15 @@ jobs:
          else
            echo "$VERSION doesn't match"
          fi
-    - name: Publish
+    - name: Build
       run: dotnet publish ./src/Joba.IBM.RPA.Cli/Joba.IBM.RPA.Cli.csproj -c Release -f net7.0 -r win-x64 -p:PublishSingleFile=true -p:VersionPrefix=${MAIN_VERSION} -p:VersionSufix=${PRE_RELEASE_VERSION} -o ./publish --self-contained
+    - name: e2e tests
+      run: dotnet test ./src/Tests/Joba.IBM.RPA.Cli.Tests --filter "Category=e2e" --verbosity normal
+      env:
+        RPA_EXECUTABLE_PATH: ${{github.workspace}}/publish/rpa.exe
+        RPA_SECRET_dev: ${{ secrets.DEV_TENANT_PASSWORD }}
+        RPA_SECRET_qa: ${{ secrets.QA_TENANT_PASSWORD }}
+        RPA_SECRET_joba: ${{ secrets.JOBA_TENANT_PASSWORD }}
     - name: Github release
       shell: pwsh
       run: |

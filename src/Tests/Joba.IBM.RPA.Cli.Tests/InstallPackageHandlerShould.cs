@@ -7,6 +7,7 @@ using static Joba.IBM.RPA.Cli.PackageCommand;
 namespace Joba.IBM.RPA.Cli.Tests
 {
     [UsesVerify]
+    [Trait("Category", "Integration")]
     public class InstallPackageHandlerShould : RequireProjectTest
     {
         private readonly ILogger logger;

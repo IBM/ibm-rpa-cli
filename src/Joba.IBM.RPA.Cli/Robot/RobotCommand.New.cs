@@ -45,8 +45,11 @@ namespace Joba.IBM.RPA.Cli
                     if (project.Robots.Exists(name))
                         throw new ProjectException($"Robot named '{name}' already exists.");
 
-                    var template = new TemplateFactory(project.WorkingDirectory, Assembly.GetExecutingAssembly());
-                    _ = await template.CreateAsync(new WalFileName(name), templateName, cancellation);
+                    if (!File.Exists(Path.Combine(project.WorkingDirectory.FullName, new WalFileName(name))))
+                    {
+                        var template = new TemplateFactory(project.WorkingDirectory, Assembly.GetExecutingAssembly());
+                        _ = await template.CreateAsync(new WalFileName(name), templateName, cancellation);
+                    }
                     var settings = RobotSettingsFactory.Create(templateName, name);
                     project.Robots.Add(name, settings);
 

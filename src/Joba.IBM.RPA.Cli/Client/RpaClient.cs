@@ -1,10 +1,6 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
-using System.Threading;
-using System.Xml;
-using System.Xml.Linq;
 
 namespace Joba.IBM.RPA.Cli
 {

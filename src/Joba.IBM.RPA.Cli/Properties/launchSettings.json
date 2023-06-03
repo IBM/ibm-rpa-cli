@@ -8,15 +8,15 @@
       "commandName": "Project",
       "commandLineArgs": "project new Assistant"
     },
-    "rpa bot new Assistant --type": {
+    "rpa bot new Assistant --template": {
       "commandName": "Project",
-      "commandLineArgs": "bot new Assistant --template unattended"
+      "commandLineArgs": "bot new Assistant --template chatbot"
     },
-    "rpa env add dev": {
+    "rpa env new dev": {
       "commandName": "Project",
       "commandLineArgs": "env new dev --url default --region US1 --userName joberto.diniz@ibm.com"
     },
-    "rpa env add QA": {
+    "rpa env new QA": {
       "commandName": "Project",
       "commandLineArgs": "env new QA --url https://ap1qaapi.wdgautomation.com/v1.0/ --region QA_AP1 --userName owner@wdgautomation.com --tenant 5000 -v Detailed"
     },

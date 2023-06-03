@@ -70,18 +70,22 @@ namespace Joba.IBM.RPA.Cli
 
         void OnShouldPullingAllFiles(object? sender, ContinueOperationEventArgs e)
         {
-            using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
-            e.Continue = console.YesOrNo(
-                $"This operation will pull the latest server file versions that matches '{e.Pattern}'. " +
-                $"If there are local copies in the '{e.Alias}' ({e.Project.WorkingDirectory}) directory, they will be overwritten. This is irreversible. " +
-                $"Are you sure you want to continue? [y/n]");
+            e.Continue = true;
+            //TODO: add --interactive option, and by default is non-interactive
+            //using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
+            //e.Continue = console.YesOrNo(
+            //    $"This operation will pull the latest server file versions that matches '{e.Pattern}'. " +
+            //    $"If there are local copies in the '{e.Alias}' ({e.Project.WorkingDirectory}) directory, they will be overwritten. This is irreversible. " +
+            //    $"Are you sure you want to continue? [y/n]");
         }
 
         void OnShouldPullingOneFile(object? sender, ContinueOperationEventArgs<WalFile> e)
         {
-            using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
-            e.Continue = console.YesOrNo($"This operation will fetch and overwrite the file '{e.Resource.Info.Name}' with the latest server version. This is irreversible. " +
-                $"Are you sure you want to continue? [y/n]");
+            e.Continue = true;
+            //TODO: add --interactive option, and by default is non-interactive
+            //using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
+            //e.Continue = console.YesOrNo($"This operation will fetch and overwrite the file '{e.Resource.Info.Name}' with the latest server version. This is irreversible. " +
+            //    $"Are you sure you want to continue? [y/n]");
         }
     }
 }

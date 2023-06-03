@@ -223,9 +223,7 @@ namespace Joba.IBM.RPA
                 logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
                 
                 var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
-                using var process = Process.Start(info);
-                if (process == null)
-                    throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
+                using var process = Process.Start(info) ?? throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
                 process.ErrorDataReceived += OnGitError;
                 process.BeginErrorReadLine();
                 var output = await process.StandardOutput.ReadToEndAsync(cancellation);

@@ -6,6 +6,7 @@ namespace Joba.IBM.RPA
     struct ProjectFile
     {
         internal const string Extension = ".rpa.json";
+        internal const string HiddenDirectoryName = ".rpa";
         private readonly FileInfo file;
         private readonly DirectoryInfo rpaDir;
 
@@ -15,7 +16,7 @@ namespace Joba.IBM.RPA
         private ProjectFile(FileInfo file)
         {
             this.file = file;
-            rpaDir = new DirectoryInfo(Path.Combine(file.Directory!.FullName, ".rpa"));
+            rpaDir = new DirectoryInfo(Path.Combine(file.Directory!.FullName, HiddenDirectoryName));
         }
 
         internal bool Exists => file.Exists;

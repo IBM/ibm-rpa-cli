@@ -67,18 +67,22 @@ namespace Joba.IBM.RPA.Cli
 
         void OnShouldPullingAllFiles(object? sender, ContinueOperationEventArgs e)
         {
-            using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
-            e.Continue = console.YesOrNo(
-                $"This operation will pull the server parameters that matches '{e.Pattern}'. " +
-                $"This will overwrite the current local parameters' values. This is irreversible. " +
-                $"Are you sure you want to continue? [y/n]");
+            e.Continue = true;
+            //TODO: add --interactive option, and by default is non-interactive
+            //using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
+            //e.Continue = console.YesOrNo(
+            //    $"This operation will pull the server parameters that matches '{e.Pattern}'. " +
+            //    $"This will overwrite the current local parameters' values. This is irreversible. " +
+            //    $"Are you sure you want to continue? [y/n]");
         }
 
         void OnShouldPullingOneFile(object? sender, ContinueOperationEventArgs<Parameter> e)
         {
-            using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
-            e.Continue = console.YesOrNo($"This operation will fetch and overwrite the parameter '{e.Resource.Name}' with the latest server value. This is irreversible. " +
-                $"Are you sure you want to continue? [y/n]");
+            e.Continue = true;
+            //TODO: add --interactive option, and by default is non-interactive
+            //using var _ = console.BeginForegroundColor(ConsoleColor.Yellow);
+            //e.Continue = console.YesOrNo($"This operation will fetch and overwrite the parameter '{e.Resource.Name}' with the latest server value. This is irreversible. " +
+            //    $"Are you sure you want to continue? [y/n]");
         }
     }
 }

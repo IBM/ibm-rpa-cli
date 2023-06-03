@@ -40,6 +40,7 @@ namespace Joba.IBM.RPA.Cli
 
             PackageSourceNotFoundException(exception);
             PackageSourceException(exception);
+            context.ExitCode = -1;
 
             void EnvironmentException(Exception exception)
             {

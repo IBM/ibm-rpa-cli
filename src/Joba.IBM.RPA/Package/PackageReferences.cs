@@ -10,7 +10,7 @@
 
         internal PackageReferences(DirectoryInfo workingDirectory, IDictionary<string, WalVersion> packages)
         {
-            packageDirectory = new DirectoryInfo(Path.Combine(workingDirectory.FullName, "packages"));
+            packageDirectory = new DirectoryInfo(Path.Combine(workingDirectory.FullName, PackageSourcesFile.PackagesDirectoryName));
             references = packages.Select(p => new PackageMetadata(p.Key, p.Value)).ToDictionary(k => k.Name, v => v);
         }
 
