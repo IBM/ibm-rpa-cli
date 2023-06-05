@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Polly;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -16,7 +15,7 @@ namespace Joba.IBM.RPA.Cli
                 var region = new Option<string?>("--region", "The region of the package source");
                 var userName = new Option<string?>("--userName", "The user name to authenticate, usually the e-mail, to use for authentication");
                 var tenant = new Option<int?>("--tenant", "The tenant code to use for authentication");
-                var password = new Option<string?>("--password", "The user password.") { IsHidden = true };
+                var password = new Option<string?>("--password", "The user password.");
 
                 AddArgument(alias);
                 AddOption(url);
@@ -28,14 +27,15 @@ namespace Joba.IBM.RPA.Cli
                     new RemoteOptionsBinder(alias, url, region, userName, tenant, password),
                     Bind.FromLogger<PackageSourceCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
+                    Bind.FromServiceProvider<ISecretProvider>(),
                     Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
             private async Task HandleAsync(RemoteOptions options, ILogger<PackageSourceCommand> logger, IRpaClientFactory clientFactory,
-                IProject project, InvocationContext context)
+                ISecretProvider secretProvider, IProject project, InvocationContext context)
             {
-                var handler = new AddPackageSourceHandler(logger, project, context.Console, clientFactory);
+                var handler = new AddPackageSourceHandler(logger, project, context.Console, clientFactory, secretProvider);
                 await handler.HandleAsync(options, context.GetCancellationToken());
             }
         }
@@ -46,24 +46,27 @@ namespace Joba.IBM.RPA.Cli
             private readonly IConsole console;
             private readonly IProject project;
             private readonly IRpaClientFactory clientFactory;
+            private readonly ISecretProvider secretProvider;
 
-            public AddPackageSourceHandler(ILogger logger, IProject project, IConsole console, IRpaClientFactory clientFactory)
+            public AddPackageSourceHandler(ILogger logger, IProject project, IConsole console, IRpaClientFactory clientFactory, ISecretProvider secretProvider)
             {
                 this.logger = logger;
                 this.console = console;
                 this.project = project;
                 this.clientFactory = clientFactory;
+                this.secretProvider = secretProvider;
             }
 
             internal async Task HandleAsync(RemoteOptions options, CancellationToken cancellation)
             {
                 project.EnsureCanConfigure(options.Alias);
+                var password = secretProvider.GetSecret(options);
                 var regionSelector = new RegionSelector(console, clientFactory, project);
                 var region = await regionSelector.SelectAsync(options.Address, options.RegionName, cancellation);
 
                 using var client = clientFactory.CreateFromRegion(region);
                 var accountSelector = new AccountSelector(console, client.Account);
-                var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, options.Password, cancellation);
+                var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, password, cancellation);
 
                 var package = await project.PackageSources.AddAsync(client.Account, options.Alias, region, credentials, cancellation);
                 await project.SaveAsync(cancellation);

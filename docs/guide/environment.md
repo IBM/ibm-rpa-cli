@@ -54,6 +54,8 @@ The tenant option is the tenant **code**. See [getting your tenant code](https:/
 #### User name and password
 The credentials to establish a connection to the environment. These are not stored in the `[project_name].rpa.json` configuration file. The credentials are not stored anywhere. Please refer to the [security](security.md) section for more information.
 
+When the **password** is not provided, RPA CLI tries to find it from the *Operating System Environment Variables*, and if it does not find it, RPA CLI wil prompt the user to type it. This is useful for *Continuous Integration* platforms, such as *Github Actions*. You can set the password as an environment variable and RPA CLI will pick it up. The environment variable should be in the following format: `RPA_SECRET_{alias}`. Example: `RPA_SECRET_dev` should be the environment variable key if you want to provide the password for `dev` environment.
+
 # Next steps
 * [Managing package sources](guide/package-source.md)
 * [Deploying](guide/deploy.md) your project to an environment.

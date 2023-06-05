@@ -82,7 +82,17 @@
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="assets\NewEnvironmentHandlerShould\ThrowException_WhenEnviornmentAlreadyExists\ThrowException_WhenEnviornmentAlreadyExists.rpa.json">
+    <None Update="assets\NewEnvironmentHandlerShould\AddEnvironment_UsingSecretFromSystemVariables\AddEnvironment_UsingSecretFromSystemVariables.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+    </None>
+    <None Update="assets\NewEnvironmentHandlerShould\AddEnvironment_UsingSecretFromSystemVariables\AddEnvironment_UsingSecretFromSystemVariables.rpa.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+    </None>
+    <None Update="assets\NewEnvironmentHandlerShould\ThrowException_WhenEnvironmentAlreadyExists\ThrowException_WhenEnvironmentAlreadyExists.rpa.json">
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -91,6 +101,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="assets\NewEnvironmentHandlerShould\ThrowException_WhenPackageSourceAlreadyExists\ThrowException_WhenPackageSourceAlreadyExists.sources.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\NewEnvironmentHandlerShould\ThrowException_WhenRunningOnCIAndNoPasswordProvided\ThrowException_WhenRunningOnCIAndNoPasswordProvided.rpa.json">
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

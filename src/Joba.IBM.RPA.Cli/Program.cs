@@ -10,14 +10,6 @@ namespace Joba.IBM.RPA.Cli
     {
         public static Task<int> Main(string[] args)
         {
-            // [build]
-            // dotnet pack -c Release
-            // [install]
-            // dotnet tool install --global --add-source ./Joba.IBM.RPA.Cli/nupkg --version 1.0.0-beta-8 rpa
-            // [update]
-            // dotnet tool update --global --add-source ./Joba.IBM.RPA.Cli/nupkg --version 1.0.0-beta-8 rpa
-            // [uninstall]
-            // dotnet tool uninstall --global rpa
             var parser = new CommandLineBuilder(new RpaCommand())
                 .AddInstrumentation()
                 .RegisterLoggerFactory()
@@ -39,7 +31,6 @@ namespace Joba.IBM.RPA.Cli
         {
             var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger<RpaCommand>();
-            var verbosity = context.ParseResult.GetValueForOption(RpaCommand.VerbosityOption);
             logger.LogError(exception, exception.Message);
 
             EnvironmentException(exception);
@@ -90,6 +81,7 @@ namespace Joba.IBM.RPA.Cli
         private static async Task Middleware(InvocationContext context, Func<InvocationContext, Task> next)
         {
             var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
+            context.BindingContext.AddService<ISecretProvider>(s => new DefaultSecretProvider());
             context.BindingContext.AddService<IRpaClientFactory>(s => new RpaClientFactory(
                 loggerFactory.CreateLogger<ILogger<DeployService>>(),
                 context.Console));

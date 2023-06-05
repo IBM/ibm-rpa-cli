@@ -51,6 +51,8 @@ The tenant option is the tenant **code**. See [getting your tenant code](https:/
 #### User name and password
 The credentials to establish a connection to the package source. These are not stored in the `[project_name].sources.json` configuration file. The credentials are not stored anywhere. Please refer to the [security](security.md) section for more information.
 
+When the **password** is not provided, RPA CLI tries to find it from the *Operating System Environment Variables*, and if it does not find it, RPA CLI wil prompt the user to type it. This is useful for *Continuous Integration* platforms, such as *Github Actions*. You can set the password as an environment variable and RPA CLI will pick it up. The environment variable should be in the following format: `RPA_SECRET_{alias}`. Example: `RPA_SECRET_joba` should be the environment variable key if you want to provide the password for `joba` package source.
+
 # Next Steps
 * Install, uninstall, update, and restore [packages](guide/package.md).
 * Use the [author's packages](guide/joba-packages.md).

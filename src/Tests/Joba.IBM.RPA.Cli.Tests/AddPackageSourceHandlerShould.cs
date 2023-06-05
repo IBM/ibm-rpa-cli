@@ -22,7 +22,7 @@ namespace Joba.IBM.RPA.Cli.Tests
             var clientFactory = new Mock<IRpaClientFactory>();
             var workingDir = new DirectoryInfo(Path.GetFullPath(Path.Combine("assets", $"{nameof(AddPackageSourceHandlerShould)}", nameof(ThrowException_WhenPackageSourceAlreadyExists))));
             var project = await LoadProjectAsync(workingDir);
-            var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object);
+            var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object, new DefaultSecretProvider());
             var options = new RemoteOptions("dev", new ServerAddress());
 
             //assert
@@ -38,7 +38,7 @@ namespace Joba.IBM.RPA.Cli.Tests
             var clientFactory = new Mock<IRpaClientFactory>();
             var workingDir = new DirectoryInfo(Path.GetFullPath(Path.Combine("assets", $"{nameof(AddPackageSourceHandlerShould)}", nameof(ThrowException_WhenEnvironmentAlreadyExists))));
             var project = await LoadProjectAsync(workingDir);
-            var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object);
+            var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object, new DefaultSecretProvider());
             var options = new RemoteOptions("dev", new ServerAddress());
 
             //assert
@@ -54,7 +54,7 @@ namespace Joba.IBM.RPA.Cli.Tests
             try
             {
                 //arrange
-                var options = new RemoteOptions("dev", new ServerAddress("https://dev.ibm.com"), "us1", "any", 500, "any");
+                var options = new RemoteOptions("dev", new ServerAddress("https://dev.ibm.com"), "us1", "username", 500, "password");
                 var region = new Region(options.RegionName!, options.Address.ToUri());
                 var config = new ServerConfig { Regions = new Region[] { region } };
                 var session = new CreatedSession { TenantCode = options.TenantCode!.Value, TenantName = "development" };
@@ -68,7 +68,7 @@ namespace Joba.IBM.RPA.Cli.Tests
                 clientFactory.Setup(c => c.CreateFromAddress(region.ApiAddress)).Returns(client.Object);
                 clientFactory.Setup(c => c.CreateFromRegion(region)).Returns(client.Object);
                 var project = await LoadProjectAsync(workingDir);
-                var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object);
+                var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object, new DefaultSecretProvider());
 
                 //act
                 await sut.HandleAsync(options, CancellationToken.None);
@@ -94,7 +94,7 @@ namespace Joba.IBM.RPA.Cli.Tests
             try
             {
                 //arrange
-                var options = new RemoteOptions("qa", new ServerAddress("https://qa.ibm.com"), "us1qa", "any", 501, "any");
+                var options = new RemoteOptions("qa", new ServerAddress("https://qa.ibm.com"), "us1qa", "username", 501, "password");
                 var region = new Region(options.RegionName!, options.Address.ToUri());
                 var config = new ServerConfig { Regions = new Region[] { region } };
                 var session = new CreatedSession { TenantCode = options.TenantCode!.Value, TenantName = "quality assurance" };
@@ -108,7 +108,7 @@ namespace Joba.IBM.RPA.Cli.Tests
                 clientFactory.Setup(c => c.CreateFromAddress(region.ApiAddress)).Returns(client.Object);
                 clientFactory.Setup(c => c.CreateFromRegion(region)).Returns(client.Object);
                 var project = await LoadProjectAsync(workingDir);
-                var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object);
+                var sut = new AddPackageSourceHandler(logger, project, console.Object, clientFactory.Object, new DefaultSecretProvider());
 
                 //act
                 await sut.HandleAsync(options, CancellationToken.None);

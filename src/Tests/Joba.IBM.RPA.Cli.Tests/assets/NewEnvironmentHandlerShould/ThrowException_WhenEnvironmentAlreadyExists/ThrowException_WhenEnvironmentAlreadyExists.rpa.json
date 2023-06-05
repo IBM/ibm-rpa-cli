@@ -1,5 +1,5 @@
 {
-  "description": "ThrowException_WhenEnviornmentAlreadyExists",
+  "description": "ThrowException_WhenEnvironmentAlreadyExists",
   "environments": {
     "dev": {
       "code": 500,
