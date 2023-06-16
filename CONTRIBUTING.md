@@ -38,4 +38,4 @@ Use Visual Studio 2022 or VsCode to run the test under [Tests/](src/Tests/) dire
 Create a **signed** tag - using `-s` option in `git tag -s` - and *push* it to the remote. This will start the release process using [release.yml](.github/workflows/release.yml) workflow.
 
 ## Documentation
-The documentation uses [docsify](https://docsify.js.org/) and it's automatically published whenever files changed within [docs/](docs/) of [gh-pages](https://github.com/IBM/ibm-rpa-cli/tree/gh-pages) branch.
+The documentation uses [docsify](https://docsify.js.org/) and it's automatically published whenever files changed within [docs/](https://github.com/IBM/ibm-rpa-cli/tree/gh-pages/docs/) of [gh-pages](https://github.com/IBM/ibm-rpa-cli/tree/gh-pages) branch.
