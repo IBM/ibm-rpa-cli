@@ -43,7 +43,6 @@ namespace Joba.IBM.RPA.Cli
                     .ConfigureResource(r => r.AddService(RpaCommand.ServiceName, serviceVersion: RpaCommand.AssemblyVersion))
                     .AddHttpClientInstrumentation()
                     .AddSource(RpaCommand.AssemblyName)
-                    .AddJaegerExporter()
                     .Build();
 
                     await next(context);
