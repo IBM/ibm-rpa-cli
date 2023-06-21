@@ -1,12 +1,8 @@
-name: Bug Report
+name: Bug report
 description: File a bug report
 title: "rpa <command>: <title>"
 labels: ["bug"]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for taking the time to fill out this bug report!
   - type: textarea
     id: description
     attributes:

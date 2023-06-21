@@ -1,0 +1,20 @@
+name: Documentation issue
+description: File a documentation issue
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The [documentation](https://ibm.github.io/ibm-rpa-cli) link.
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The page url of the documentation.
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the problem
+      description: A clear and concise description of what the problem is.
+    validations:
+      required: true
