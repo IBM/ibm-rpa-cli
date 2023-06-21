@@ -11,8 +11,9 @@ The IBM® RPA Command Line Interface (RPA CLI) is an *unofficial* tool that prov
 Read the [documentation](https://ibm.github.io/ibm-rpa-cli/) to find out how to use RPA CLI.
 
 ## Support
-* Open a [github issue](https://github.com/IBM/ibm-rpa-cli/issues/new?template=bug_report.yml) for bug report.
-* Open a [github request](https://github.com/IBM/ibm-rpa-cli/issues/new?template=feature_request.md) for new features.
+* Open a [github issue](https://github.com/IBM/ibm-rpa-cli/issues/new?template=bug_report.yml) for bug reports.
+* Open a [github documentation](https://github.com/IBM/ibm-rpa-cli/issues/new?template=doc.yml) for documentation issues.
+* Open a [github feature](https://github.com/IBM/ibm-rpa-cli/issues/new?template=feature_request.md) for new ideas.
 * Open a [github question](https://github.com/IBM/ibm-rpa-cli/issues/new?template=question.md) for doubts.
 
 ## Contributing
