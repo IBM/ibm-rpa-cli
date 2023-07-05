@@ -3,7 +3,7 @@ Package is not a concept defined in IBM® RPA. Packages are reusable libraries t
 
 ## Prerequisites
 To issue `rpa package` commands you need to have
-* a project configuration file within the working directory - see [managing projects](guide/project.md) section
+* a project configuration file within the working directory - see [managing projects](guide/project.md) section.
 * a package source configuration file within the working directory - see [managing package sources](guide/package-source.md).
 
 ## Installing packages
