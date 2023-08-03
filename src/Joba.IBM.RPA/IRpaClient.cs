@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA
+﻿using Microsoft.Extensions.Logging;
+
+namespace Joba.IBM.RPA
 {
     public interface IRpaClient : IDisposable
     {
@@ -18,6 +20,17 @@
         IRpaClient CreateFromRegion(Region region);
         IRpaClient CreateFromEnvironment(Environment environment);
         IRpaClient CreateFromPackageSource(PackageSource source);
+    }
+
+    public interface IRpaHttpClientFactory
+    {
+        HttpClient Create(Uri address);
+        HttpClient Create(Uri address, IRenewExpiredSession sessionRenewal);
+    }
+
+    public interface IRenewExpiredSession
+    {
+        Task<Session> RenewAsync(CancellationToken cancellation);
     }
 
     public interface IAccountResource

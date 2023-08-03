@@ -84,8 +84,8 @@ namespace Joba.IBM.RPA.Cli
             var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
             context.BindingContext.AddService<ISecretProvider>(s => new DefaultSecretProvider());
             context.BindingContext.AddService<IRpaClientFactory>(s => new RpaClientFactory(
-                loggerFactory.CreateLogger<ILogger<DeployService>>(),
-                context.Console));
+                context.Console,
+                new RpaHttpClientFactory(loggerFactory.CreateLogger<ILogger<RpaClientFactory>>())));
             context.BindingContext.AddService<IDeployService>(s => new DeployService(
                 loggerFactory.CreateLogger<ILogger<DeployService>>(),
                 s.GetRequiredService<IRpaClientFactory>(),

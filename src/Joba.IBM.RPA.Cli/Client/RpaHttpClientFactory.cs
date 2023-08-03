@@ -7,11 +7,14 @@ using System.Net.Security;
 
 namespace Joba.IBM.RPA.Cli
 {
-    internal static class HttpRpaFactory
+    internal class RpaHttpClientFactory : IRpaHttpClientFactory
     {
         private const int MaxParallelism = 10;
+        private readonly ILogger logger;
 
-        public static HttpClient Create(ILogger logger, Uri address)
+        public RpaHttpClientFactory(ILogger logger) => this.logger = logger;
+
+        public HttpClient Create(Uri address)
         {
             var handler = new ThrottlingHttpMessageHandler(MaxParallelism, CreateUserAgentHandler(logger));
             var client = new HttpClient(handler) { BaseAddress = address };
@@ -19,7 +22,7 @@ namespace Joba.IBM.RPA.Cli
             return client;
         }
 
-        public static HttpClient Create(ILogger logger, Uri address, IRenewExpiredSession sessionRenewal)
+        public HttpClient Create(Uri address, IRenewExpiredSession sessionRenewal)
         {
             var refreshTokenHandler = new RefreshTokenHttpMessageHandler(sessionRenewal, CreateUserAgentHandler(logger));
             var handler = new ThrottlingHttpMessageHandler(MaxParallelism, refreshTokenHandler);

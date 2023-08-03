@@ -24,9 +24,4 @@ namespace Joba.IBM.RPA.Cli
             return await base.SendAsync(request, cancellation);
         }
     }
-
-    internal interface IRenewExpiredSession
-    {
-        Task<Session> RenewAsync(CancellationToken cancellation);
-    }
 }
