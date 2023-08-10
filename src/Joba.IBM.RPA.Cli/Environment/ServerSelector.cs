@@ -64,6 +64,7 @@
                 { "uk1qaapp", "uk1qaapi" },
                 { "br1qaapp", "br1qaapi" },
                 { "eu1qaapp", "eu1qaapi" },
+                { "ibmrpaqa2app", "ibmrpaqa2api" },
                 { "br2-app", "api" },
                 { "ap1app", "ap1api" },
                 { "us1app", "us1api" },

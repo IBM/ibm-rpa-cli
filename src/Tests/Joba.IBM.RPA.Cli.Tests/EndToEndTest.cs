@@ -23,7 +23,7 @@ namespace Joba.IBM.RPA.Cli.Tests
             var projectName = $"MyProject-{DateTimeOffset.UtcNow:ddMMyyyyhhmmss}";
             await RunAsync($"project new {projectName}");
             await RunAsync("env new dev --url https://us1api.wdgautomation.com/v1.0/ --region US1 --userName joberto.diniz@ibm.com --tenant 5283");
-            await RunAsync("env new qa --url https://ap1qaapi.wdgautomation.com/v1.0/ --region QA_AP1 --userName owner@wdgautomation.com --tenant 5000");
+            await RunAsync("env new qa --url https://ibmrpaqa2api.wdgautomation.com/v1.0/ --region QA2_IBMRPA --userName owner@wdgautomation.com --tenant 5000");
             await RunAsync("package source joba --url https://us1api.wdgautomation.com/v1.0/ --region US1 --userName joberto.diniz@ibm.com --tenant 5547");
             await RunAsync("package install Joba*");
             await RunAsync("pull Assistant* --env dev");
