@@ -103,7 +103,7 @@ namespace Joba.IBM.RPA.Cli
                 var response = await client.GetAsync(url, cancellation);
                 if (response.StatusCode == HttpStatusCode.NotFound)
                     return null;
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 var data = await response.Content.ReadFromJsonAsync<ScriptInfo>(SerializerOptions, cancellation);
                 if (data == null)
                     throw new InvalidOperationException($"Could not deserialize the response from: {url}");
@@ -116,7 +116,7 @@ namespace Joba.IBM.RPA.Cli
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/script/publish";
                 var response = await client.PutAsJsonAsync(url, script, SerializerOptions, cancellation);
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
 
                 var builder = await response.Content.ReadFromJsonAsync<ScriptVersionBuilder>(SerializerOptions, cancellation);
                 if (builder == null)
@@ -172,7 +172,7 @@ namespace Joba.IBM.RPA.Cli
                 var request = new HttpRequestMessage(HttpMethod.Post, "token") { Content = content };
                 request.Headers.Add("tenantid", tenantId.ToString());
                 var response = await client.SendAsync(request, cancellation);
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<CreatedSession?>(SerializerOptions, cancellation)
                     ?? throw new Exception("Could not read token from http response");
             }
@@ -191,7 +191,7 @@ namespace Joba.IBM.RPA.Cli
                 var model = new { UserName = userName };
 
                 var response = await client.PostAsJsonAsync(url, model, cancellation);
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<Tenant[]>(SerializerOptions, cancellation)
                     ?? throw new Exception("Could not read tenants from http response");
             }
@@ -229,7 +229,7 @@ namespace Joba.IBM.RPA.Cli
                 if (response.StatusCode == HttpStatusCode.NotFound)
                     return null;
 
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 var value = await response.Content.ReadAsStringAsync(cancellation);
                 return new Parameter(parameterName, value);
             }
@@ -239,7 +239,7 @@ namespace Joba.IBM.RPA.Cli
                 var url = $"{CultureInfo.CurrentCulture.Name}/parameter";
                 var parameter = new Parameter(parameterName, value);
                 var response = await client.PostAsJsonAsync(url, parameter, cancellation);
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<Parameter>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
             }
 
@@ -248,7 +248,7 @@ namespace Joba.IBM.RPA.Cli
                 var url = $"{CultureInfo.CurrentCulture.Name}/parameter";
                 var parameter = new Parameter(parameterName, value);
                 var response = await client.PutAsJsonAsync(url, parameter, cancellation);
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<Parameter>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response"); ;
             }
 
@@ -292,7 +292,7 @@ namespace Joba.IBM.RPA.Cli
                 var url = $"{CultureInfo.CurrentCulture.Name}/project";
                 var project = new { Name = name, Description = description, TechnicalName = uniqueId };
                 var response = await client.PostAsJsonAsync(url, project, cancellation);
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<ServerProject>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
             }
 
@@ -301,7 +301,7 @@ namespace Joba.IBM.RPA.Cli
                 var url = $"{CultureInfo.CurrentCulture.Name}/project/{id}";
                 var project = new { Name = name, Description = description };
                 var response = await client.PutAsJsonAsync(url, project, cancellation);
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<ServerProject>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
             }
         }
@@ -325,7 +325,7 @@ namespace Joba.IBM.RPA.Cli
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/project/bot/{id}";
                 var response = await client.PutAsJsonAsync(url, bot, cancellation);
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<ServerBotSearch>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
             }
 
@@ -333,7 +333,7 @@ namespace Joba.IBM.RPA.Cli
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/project/bot";
                 var response = await client.PostAsJsonAsync(url, bot, cancellation);
-                await response.ThrowWhenUnsuccessful(cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<ServerBotSearch>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
             }
 

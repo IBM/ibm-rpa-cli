@@ -76,16 +76,14 @@ namespace Joba.IBM.RPA
         PackageSource IPackageSources.this[string alias] => sources[alias];
         PackageSource? IPackageSources.Get(string alias) => sources.TryGetValue(alias, out var value) ? value : null;
 
-        async Task<PackageSource> IPackageSources.AddAsync(IAccountResource resource, string alias, Region region, AccountCredentials credentials, CancellationToken cancellation)
+        PackageSource IPackageSources.Add(string alias, Region region, CreatedSession session, ServerConfig server, PropertyOptions properties)
         {
             if (sources.ContainsKey(alias))
                 throw new ProjectException($"Cannot add package source '{alias}' because it's already added.");
             if (projectSettings.EnvironmentExists(alias))
                 throw new ProjectException($"Cannot add package source because the alias '{alias}' needs to be unique among environments and package sources.");
 
-            var session = await credentials.AuthenticateAsync(resource, cancellation);
-            var remote = RemoteSettings.Create(region, session);
-
+            var remote = RemoteSettings.Create(region, session, server, properties);
             var source = new PackageSource(alias, remote, new SessionManager(alias, userFile, userSettings, remote));
             sources.Add(alias, source);
             userSettings.AddOrUpdateSession(alias, Session.From(session));
@@ -105,6 +103,6 @@ namespace Joba.IBM.RPA
     {
         PackageSource this[string alias] { get; }
         PackageSource? Get(string alias);
-        Task<PackageSource> AddAsync(IAccountResource resource, string alias, Region region, AccountCredentials credentials, CancellationToken cancellation);
+        PackageSource Add(string alias, Region region, CreatedSession session, ServerConfig server, PropertyOptions properties);
     }
 }

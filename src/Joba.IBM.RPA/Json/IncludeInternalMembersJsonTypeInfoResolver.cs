@@ -8,7 +8,7 @@ namespace Joba.IBM.RPA
         private readonly DirectoryInfo? workingDirectory;
 
         /// <summary>
-        /// TODO: didn't like this. Rethink.
+        /// TODO: didn't like this 'workingDirectory' here. Rethink.
         /// </summary>
         public IncludeInternalMembersJsonTypeInfoResolver(DirectoryInfo? workingDirectory = null)
         {
@@ -26,6 +26,7 @@ namespace Joba.IBM.RPA
             }
 
             SkipEmptyCollections(info);
+            SkipEmptyDictionaries<string, string>(info);
             return info;
         }
 
@@ -35,10 +36,17 @@ namespace Joba.IBM.RPA
                 property.ShouldSerialize = (_, value) => value is ICollection collection && collection.Count > 0;
         }
 
+        private static void SkipEmptyDictionaries<TKey, TValue>(JsonTypeInfo info)
+        {
+            foreach (var property in info.Properties.Where(property => typeof(ICollection<KeyValuePair<TKey, TValue>>).IsAssignableFrom(property.PropertyType)))
+                property.ShouldSerialize = (_, value) => value is ICollection<KeyValuePair<TKey, TValue>> collection && collection.Count > 0;
+        }
+
         private static void ConfigureConstructor(JsonTypeInfo info, DirectoryInfo? workingDirectory = null)
         {
             if (workingDirectory != null)
             {
+                /// TODO: didn't like this 'workingDirectory' here. Rethink.
                 var ctor = info.Type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, new Type[] { typeof(DirectoryInfo) });
                 if (ctor != null)
                     info.CreateObject = () => ctor.Invoke(new object[] { workingDirectory });

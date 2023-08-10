@@ -3,14 +3,14 @@
     class SessionEnsurer
     {
         private readonly IConsole console;
-        private readonly IAccountResource resource;
+        private readonly IAccountAuthenticatorFactory authenticatorFactory;
         private readonly ISessionManager session;
         private readonly RemoteRenderer remoteRenderer;
 
-        public SessionEnsurer(IConsole console, IAccountResource resource, ISessionManager session)
+        public SessionEnsurer(IConsole console, IAccountAuthenticatorFactory authenticatorFactory, ISessionManager session)
         {
             this.console = console;
-            this.resource = resource;
+            this.authenticatorFactory = authenticatorFactory;
             this.session = session;
             remoteRenderer = new RemoteRenderer(console, session.Alias, 2);
         }
@@ -25,7 +25,9 @@
                 var userName = console.ReadLine() ?? throw new OperationCanceledException("User did not provide the 'user name'");
                 console.Write("Password: ");
                 var password = console.Password();
-                return await session.CreateAndSaveAsync(resource, userName, password, cancellation);
+
+                var authenticator = CreateAuthenticator();
+                return await session.CreateAndSaveAsync(authenticator, userName, password, cancellation);
             }
 
             if (session.Current.IsExpired)
@@ -35,10 +37,17 @@
                 remoteRenderer.Render(session.Remote);
                 console.Write($"Please provide the password: ");
                 var password = console.Password();
-                return await session.RenewAndSaveAsync(resource, password, cancellation);
+
+                var authenticator = CreateAuthenticator();
+                return await session.RenewAndSaveAsync(authenticator, password, cancellation);
             }
 
             return session.Current;
+        }
+
+        private IAccountAuthenticator CreateAuthenticator()
+        {
+            return authenticatorFactory.Create(session.Remote.Deployment, session.Remote.AuthenticationMethod, new Region(session.Remote.Region, session.Remote.Address), session.Remote.Properties);
         }
     }
 }

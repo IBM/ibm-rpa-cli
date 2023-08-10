@@ -1,0 +1,16 @@
+{
+  "environments": {
+    "dev": {
+      "code": 500,
+      "name": "development",
+      "region": "us1",
+      "address": "https://dev.ibm.com:443/v1.0/",
+      "x-authentication": "OIDC",
+      "x-deployment": "OCP",
+      "x-properties": {
+        "cpconsole": "https://cloudpakconsole.ibm.com/"
+      }
+    }
+  },
+  "description": "AddCloudPakOpenShiftEnvironment"
+}

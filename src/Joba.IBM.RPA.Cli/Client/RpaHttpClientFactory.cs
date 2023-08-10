@@ -58,7 +58,7 @@ namespace Joba.IBM.RPA.Cli
                             "Subject: {certificate?.Subject}",
                             requestMessage.RequestUri, certificate?.GetEffectiveDateString(), certificate?.GetExpirationDateString(), certificate?.Issuer, certificate?.Subject);
 
-                    return isValid;
+                    return true; //TODO: add an option to allow users to opt-in to disregard certificate issues.
                 }
             };
             return new PolicyHttpMessageHandler(policy) { InnerHandler = coreHandler };

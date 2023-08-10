@@ -3,6 +3,8 @@
     "code": 500,
     "name": "development",
     "region": "us1",
-    "address": "https://something.com"
+    "address": "https://something.com",
+    "x-authentication": "WDG",
+    "x-deployment": "SaaS"
   }
 }

@@ -16,6 +16,7 @@ namespace Joba.IBM.RPA.Cli
                 var userName = new Option<string?>("--userName", "The user name, usually the e-mail, to use for authentication.");
                 var tenant = new Option<int?>("--tenant", "The tenant code to use for authentication.");
                 var password = new Option<string?>("--password", "The user password.");
+                var properties = new Option<IEnumerable<string>?>(new[] { "--property", "-p" }, $"A key-value pair property used by '{RpaCommand.ServiceName}' extensions. For example, to pass the CloudPak Console Url: -p:{PropertyOptions.CloudPakConsoleAddress}=[url].") { AllowMultipleArgumentsPerToken = true };
 
                 AddArgument(alias);
                 AddOption(url);
@@ -23,25 +24,30 @@ namespace Joba.IBM.RPA.Cli
                 AddOption(userName);
                 AddOption(tenant);
                 AddOption(password);
+                AddOption(properties);
 
                 this.SetHandler(HandleAsync,
                     new RemoteOptionsBinder(alias, url, region, userName, tenant, password),
+                    new PropertyOptionsBinder(properties),
                     Bind.FromLogger<EnvironmentCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<ISecretProvider>(),
+                    Bind.FromServiceProvider<IAccountAuthenticatorFactory>(),
                     Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(RemoteOptions options, ILogger<EnvironmentCommand> logger,
-                IRpaClientFactory clientFactory, ISecretProvider secretProvider, IProject project, InvocationContext context) =>
-                await HandleAsync(options, (ILogger)logger, clientFactory, secretProvider, project, context);
+            private async Task HandleAsync(RemoteOptions options, PropertyOptions properties, ILogger<EnvironmentCommand> logger,
+                IRpaClientFactory clientFactory, ISecretProvider secretProvider, IAccountAuthenticatorFactory authenticatorFactory,
+                IProject project, InvocationContext context) =>
+                await HandleAsync(options, properties, (ILogger)logger, clientFactory, secretProvider,  authenticatorFactory, project, context);
 
-            public async Task HandleAsync(RemoteOptions options, ILogger logger,
-                IRpaClientFactory clientFactory, ISecretProvider secretProvider, IProject project, InvocationContext context)
+            public async Task HandleAsync(RemoteOptions options, PropertyOptions properties, ILogger logger,
+                IRpaClientFactory clientFactory, ISecretProvider secretProvider, IAccountAuthenticatorFactory authenticatorFactory,
+                IProject project, InvocationContext context)
             {
-                var handler = new NewEnvironmentHandler(logger, project, context.Console, clientFactory, secretProvider);
-                await handler.HandleAsync(options, context.GetCancellationToken());
+                var handler = new NewEnvironmentHandler(logger, project, context.Console, clientFactory, secretProvider, authenticatorFactory);
+                await handler.HandleAsync(options, properties, context.GetCancellationToken());
             }
 
             internal class NewEnvironmentHandler
@@ -51,17 +57,20 @@ namespace Joba.IBM.RPA.Cli
                 private readonly IConsole console;
                 private readonly IRpaClientFactory clientFactory;
                 private readonly ISecretProvider secretProvider;
+                private readonly IAccountAuthenticatorFactory authenticatorFactory;
 
-                internal NewEnvironmentHandler(ILogger logger, IProject project, IConsole console, IRpaClientFactory clientFactory, ISecretProvider secretProvider)
+                internal NewEnvironmentHandler(ILogger logger, IProject project, IConsole console, IRpaClientFactory clientFactory,
+                    ISecretProvider secretProvider, IAccountAuthenticatorFactory authenticatorFactory)
                 {
                     this.logger = logger;
                     this.project = project;
                     this.console = console;
                     this.clientFactory = clientFactory;
                     this.secretProvider = secretProvider;
+                    this.authenticatorFactory = authenticatorFactory;
                 }
 
-                internal async Task HandleAsync(RemoteOptions options, CancellationToken cancellation)
+                internal async Task HandleAsync(RemoteOptions options, PropertyOptions properties, CancellationToken cancellation)
                 {
                     project.EnsureCanConfigure(options.Alias);
                     var password = secretProvider.GetSecret(options);
@@ -71,9 +80,11 @@ namespace Joba.IBM.RPA.Cli
                     var region = regionSelector.Select(server, options.RegionName);
 
                     using var client = clientFactory.CreateFromRegion(region);
+                    var authenticator = authenticatorFactory.Create(server.Deployment, server.AuthenticationMethod, region, properties);
                     var accountSelector = new AccountSelector(console, client.Account);
                     var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, password, cancellation);
-                    var environment = await project.ConfigureEnvironment(client.Account, options.Alias, region, credentials, cancellation);
+                    var session = await authenticator.AuthenticateAsync(credentials, cancellation);
+                    var environment = project.ConfigureEnvironment(options.Alias, region, session, server, properties);
                     await project.SaveAsync(cancellation);
 
                     logger.LogInformation("Hi '{PersonName}', the following environment has been configured: {Environment}\n" +

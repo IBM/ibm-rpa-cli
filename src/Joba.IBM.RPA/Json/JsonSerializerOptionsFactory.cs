@@ -20,6 +20,7 @@
             @default.Converters.Add(new NamePatternJsonConverter());
             @default.Converters.Add(new ParameterLocalRepositoryJsonConverterFactory());
             @default.Converters.Add(new RobotsJsonConverterFactory());
+            @default.Converters.Add(new PropertyOptionsJsonConverter());
             return @default;
         }
 

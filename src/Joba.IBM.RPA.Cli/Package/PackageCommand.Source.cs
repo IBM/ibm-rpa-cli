@@ -16,6 +16,7 @@ namespace Joba.IBM.RPA.Cli
                 var userName = new Option<string?>("--userName", "The user name to authenticate, usually the e-mail, to use for authentication");
                 var tenant = new Option<int?>("--tenant", "The tenant code to use for authentication");
                 var password = new Option<string?>("--password", "The user password.");
+                var properties = new Option<IEnumerable<string>?>(new[] { "--property", "-p" }, $"A key-value pair property used by '{RpaCommand.ServiceName}' extensions. For example, to pass the CloudPak Console Url: -p:{PropertyOptions.CloudPakConsoleAddress}=[url].") { AllowMultipleArgumentsPerToken = true };
 
                 AddArgument(alias);
                 AddOption(url);
@@ -25,18 +26,20 @@ namespace Joba.IBM.RPA.Cli
                 AddOption(password);
                 this.SetHandler(HandleAsync,
                     new RemoteOptionsBinder(alias, url, region, userName, tenant, password),
+                    new PropertyOptionsBinder(properties),
                     Bind.FromLogger<PackageSourceCommand>(),
                     Bind.FromServiceProvider<IRpaClientFactory>(),
                     Bind.FromServiceProvider<ISecretProvider>(),
+                    Bind.FromServiceProvider<IAccountAuthenticatorFactory>(),
                     Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(RemoteOptions options, ILogger<PackageSourceCommand> logger, IRpaClientFactory clientFactory,
-                ISecretProvider secretProvider, IProject project, InvocationContext context)
+            private async Task HandleAsync(RemoteOptions options, PropertyOptions properties, ILogger<PackageSourceCommand> logger, IRpaClientFactory clientFactory,
+                ISecretProvider secretProvider, IAccountAuthenticatorFactory authenticatorFactory, IProject project, InvocationContext context)
             {
-                var handler = new AddPackageSourceHandler(logger, project, context.Console, clientFactory, secretProvider);
-                await handler.HandleAsync(options, context.GetCancellationToken());
+                var handler = new AddPackageSourceHandler(logger, project, context.Console, clientFactory, secretProvider, authenticatorFactory);
+                await handler.HandleAsync(options, properties, context.GetCancellationToken());
             }
         }
 
@@ -47,17 +50,20 @@ namespace Joba.IBM.RPA.Cli
             private readonly IProject project;
             private readonly IRpaClientFactory clientFactory;
             private readonly ISecretProvider secretProvider;
+            private readonly IAccountAuthenticatorFactory authenticatorFactory;
 
-            public AddPackageSourceHandler(ILogger logger, IProject project, IConsole console, IRpaClientFactory clientFactory, ISecretProvider secretProvider)
+            public AddPackageSourceHandler(ILogger logger, IProject project, IConsole console, IRpaClientFactory clientFactory,
+                ISecretProvider secretProvider, IAccountAuthenticatorFactory authenticatorFactory)
             {
                 this.logger = logger;
                 this.console = console;
                 this.project = project;
                 this.clientFactory = clientFactory;
                 this.secretProvider = secretProvider;
+                this.authenticatorFactory = authenticatorFactory;
             }
 
-            internal async Task HandleAsync(RemoteOptions options, CancellationToken cancellation)
+            internal async Task HandleAsync(RemoteOptions options, PropertyOptions properties, CancellationToken cancellation)
             {
                 project.EnsureCanConfigure(options.Alias);
                 var password = secretProvider.GetSecret(options);
@@ -67,10 +73,12 @@ namespace Joba.IBM.RPA.Cli
                 var region = regionSelector.Select(server, options.RegionName);
 
                 using var client = clientFactory.CreateFromRegion(region);
+                var authenticator = authenticatorFactory.Create(server.Deployment, server.AuthenticationMethod, region, properties);
                 var accountSelector = new AccountSelector(console, client.Account);
                 var credentials = await accountSelector.SelectAsync(options.UserName, options.TenantCode, password, cancellation);
+                var session = await authenticator.AuthenticateAsync(credentials, cancellation);
 
-                var package = await project.PackageSources.AddAsync(client.Account, options.Alias, region, credentials, cancellation);
+                var package = project.PackageSources.Add(options.Alias, region, session, server, properties);
                 await project.SaveAsync(cancellation);
 
                 logger.LogInformation("Package source added: {Package}", package);

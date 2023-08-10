@@ -19,19 +19,19 @@
         RemoteSettings ISessionManager.Remote => remote;
         Session ISessionManager.Current => userSettings.TryGetSession(alias) ?? Session.NoSession;
 
-        async Task<Session> ISessionManager.RenewAndSaveAsync(IAccountResource resource, string password, CancellationToken cancellation)
+        async Task<Session> ISessionManager.RenewAndSaveAsync(IAccountAuthenticator authenticator, string password, CancellationToken cancellation)
         {
             var currentSession = userSettings.TryGetSession(alias) ?? throw new InvalidOperationException("A previous session needs to be available in order to renew it.");
             if (!currentSession.IsExpired)
                 return currentSession;
 
-            return await CreateAndSaveAsync(resource, currentSession.UserName, password, cancellation);
+            return await CreateAndSaveAsync(authenticator, currentSession.UserName, password, cancellation);
         }
 
-        public async Task<Session> CreateAndSaveAsync(IAccountResource resource, string userName, string password, CancellationToken cancellation)
+        public async Task<Session> CreateAndSaveAsync(IAccountAuthenticator authenticator, string userName, string password, CancellationToken cancellation)
         {
             var credentials = new AccountCredentials(remote.TenantCode, userName, password);
-            var internalSession = await credentials.AuthenticateAsync(resource, cancellation);
+            var internalSession = await authenticator.AuthenticateAsync(credentials, cancellation);
             var session = Session.From(internalSession);
             userSettings.Sessions[alias] = session;
 
@@ -42,10 +42,10 @@
 
     public interface ISessionManager
     {
-        string Alias{ get; }
+        string Alias { get; }
         RemoteSettings Remote { get; }
         Session Current { get; }
-        Task<Session> RenewAndSaveAsync(IAccountResource resource, string password, CancellationToken cancellation);
-        Task<Session> CreateAndSaveAsync(IAccountResource resource, string userName, string password, CancellationToken cancellation);
+        Task<Session> RenewAndSaveAsync(IAccountAuthenticator authenticator, string password, CancellationToken cancellation);
+        Task<Session> CreateAndSaveAsync(IAccountAuthenticator authenticator, string userName, string password, CancellationToken cancellation);
     }
 }

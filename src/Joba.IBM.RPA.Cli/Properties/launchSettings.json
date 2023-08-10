@@ -16,9 +16,13 @@
       "commandName": "Project",
       "commandLineArgs": "env new dev --url default --region US1 --userName joberto.diniz@ibm.com"
     },
-    "rpa env new QA": {
+    "rpa env new qa": {
       "commandName": "Project",
-      "commandLineArgs": "env new ocp --url https://cpd-ibm-rpa.apps.ocpqateam.cp.fyre.ibm.com/rpa/api/v1.0/ --tenant 5000 --userName superadmin@rpatest.ibm.com -v Detailed"
+      "commandLineArgs": "env new QA --url https://ap1qaapi.wdgautomation.com/v1.0/ --region QA_AP1 --userName owner@wdgautomation.com --tenant 5000 -v Detailed"
+    },
+    "rpa env new ocp": {
+      "commandName": "Project",
+      "commandLineArgs": "env new ocp --url https://cpd-ibm-rpa.apps.ocpqateam.cp.fyre.ibm.com/rpa/api/v1.0/ --tenant 5000 --userName superadmin@rpatest.ibm.com -p:cpconsole=https://cp-console.apps.ocpqateam.cp.fyre.ibm.com/ -v Detailed"
     },
     "rpa pull": {
       "commandName": "Project",

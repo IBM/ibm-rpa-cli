@@ -46,11 +46,9 @@
                 throw new ProjectException($"Cannot configure '{alias}' because it's already being used. Aliases need to be unique among environments and package sources.");
         }
 
-        public async Task<Environment> ConfigureEnvironment(IAccountResource resource, string alias,
-            Region region, AccountCredentials credentials, CancellationToken cancellation)
+        public Environment ConfigureEnvironment(string alias, Region region, CreatedSession session, ServerConfig server, PropertyOptions properties)
         {
-            var session = await credentials.AuthenticateAsync(resource, cancellation);
-            var environment = EnvironmentFactory.Create(userFile, userSettings, alias, region, session);
+            var environment = EnvironmentFactory.Create(userFile, userSettings, alias, region, session, server, properties);
             projectSettings.MapEnvironment(alias, environment.Remote);
 
             return environment;
@@ -80,8 +78,7 @@
 
         IEnumerable<Uri> GetConfiguredRemoteAddresses();
         void EnsureCanConfigure(string alias);
-        Task<Environment> ConfigureEnvironment(IAccountResource resource, string alias,
-            Region region, AccountCredentials credentials, CancellationToken cancellation);
+        Environment ConfigureEnvironment(string alias, Region region, CreatedSession session, ServerConfig server, PropertyOptions properties);
         Task SaveAsync(CancellationToken cancellation);
     }
 }

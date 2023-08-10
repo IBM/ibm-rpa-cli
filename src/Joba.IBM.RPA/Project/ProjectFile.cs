@@ -92,15 +92,24 @@ namespace Joba.IBM.RPA
         public required string TenantName { get; init; }
         public required string Region { get; init; }
         public required Uri Address { get; init; }
+        [JsonPropertyName("x-authentication")]
+        public AuthenticationMethod AuthenticationMethod { get; init; }
+        [JsonPropertyName("x-deployment")]
+        public DeploymentOption Deployment { get; init; }
+        [JsonPropertyName("x-properties")]
+        public PropertyOptions? Properties { get; init; }
 
-        internal static RemoteSettings Create(Region region, CreatedSession session)
+        internal static RemoteSettings Create(Region region, CreatedSession session, ServerConfig server, PropertyOptions properties)
         {
             return new RemoteSettings
             {
                 Region = region.Name,
                 Address = region.ApiAddress,
                 TenantCode = session.TenantCode,
-                TenantName = session.TenantName
+                TenantName = session.TenantName,
+                AuthenticationMethod = server.AuthenticationMethod,
+                Deployment = server.Deployment,
+                Properties = properties
             };
         }
 

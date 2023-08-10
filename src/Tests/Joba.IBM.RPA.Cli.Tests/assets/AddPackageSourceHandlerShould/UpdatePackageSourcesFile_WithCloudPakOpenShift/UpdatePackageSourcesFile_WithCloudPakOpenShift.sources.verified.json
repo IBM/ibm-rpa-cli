@@ -12,7 +12,10 @@
     "name": "quality assurance",
     "region": "us1qa",
     "address": "https://qa.ibm.com:443/v1.0/",
-    "x-authentication": "WDG",
-    "x-deployment": "SaaS"
+    "x-authentication": "OIDC",
+    "x-deployment": "OCP",
+    "x-properties": {
+      "cpconsole": "https://cloudpakconsole.ibm.com/"
+    }
   }
 }

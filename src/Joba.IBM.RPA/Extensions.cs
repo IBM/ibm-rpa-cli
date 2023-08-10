@@ -17,7 +17,7 @@
             return (withWildcards, withoutWildcards);
         }
 
-        public static async Task ThrowWhenUnsuccessful(this HttpResponseMessage response, CancellationToken cancellation = default)
+        public static async Task ThrowWhenUnsuccessfulAsync(this HttpResponseMessage response, CancellationToken cancellation = default)
         {
             if (response.IsSuccessStatusCode)
                 return;

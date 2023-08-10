@@ -66,12 +66,34 @@
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="assets\AddPackageSourceHandlerShould\UpdatePackageSourcesFile_WithCloudPakOpenShift\UpdatePackageSourcesFile_WithCloudPakOpenShift.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\AddPackageSourceHandlerShould\UpdatePackageSourcesFile_WithCloudPakOpenShift\UpdatePackageSourcesFile_WithCloudPakOpenShift.sources.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\AddPackageSourceHandlerShould\UpdatePackageSourcesFile_WithCloudPakOpenShift\UpdatePackageSourcesFile_WithCloudPakOpenShift.sources.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="assets\CreateProjectJsonFile.rpa.verified.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="assets\InstallPackageHandlerShould\ThrowException_WhenWilcardAndVersionIsSpecified\ThrowException_WhenWilcardAndVersionIsSpecified.rpa.json">
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\NewEnvironmentHandlerShould\AddCloudPakOpenShiftEnvironment\AddCloudPakOpenShiftEnvironment.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+    </None>
+    <None Update="assets\NewEnvironmentHandlerShould\AddCloudPakOpenShiftEnvironment\AddCloudPakOpenShiftEnvironment.rpa.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
     </None>
     <None Update="assets\NewEnvironmentHandlerShould\AddEnvironment\AddEnvironment.rpa.json">
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>

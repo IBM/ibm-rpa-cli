@@ -16,11 +16,11 @@
             init => regions = value.ToDictionary(d => d.Name, v => v);
         }
 
-        public AuthenticationMethod AuthenticationMethod { get; init; }
+        public required AuthenticationMethod AuthenticationMethod { get; init; }
         [JsonPropertyName("ProductEnvironment")]
-        public DeploymentOption Deployment { get; init; }
+        public required DeploymentOption Deployment { get; init; }
         [JsonPropertyName("SetupVersion")]
-        public Version Version { get; init; }
+        public required Version Version { get; init; }
 
         public Region? GetByName(string name)
         {
@@ -47,6 +47,7 @@
         public static readonly AuthenticationMethod OIDC = new(nameof(OIDC));
         private readonly string method;
 
+        public AuthenticationMethod() : this(nameof(WDG)) { }
         internal AuthenticationMethod(string method) => this.method = method;
         internal bool IsSupported => method == WDG || method == OIDC;
         public override string ToString() => method;
@@ -60,6 +61,7 @@
         public static readonly DeploymentOption OCP = new(nameof(OCP));
         private readonly string option;
 
+        public DeploymentOption() : this(nameof(SaaS)) { }
         internal DeploymentOption(string option) => this.option = option;
         internal bool IsSupported => option == SaaS || option == OnPrem || option == OCP;
         public override string ToString() => option;

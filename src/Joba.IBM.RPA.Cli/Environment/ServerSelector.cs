@@ -104,6 +104,4 @@
             return builder.Uri;
         }
     }
-
-    record struct RemoteOptions(string Alias, ServerAddress Address, string? RegionName = null, string? UserName = null, int? TenantCode = null, string? Password = null);
 }
