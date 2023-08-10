@@ -26,7 +26,9 @@ The configuration file can be updated without the RPA CLI. Here's an example of 
       "code": 5283,
       "name": "IBM RPA Product Management",
       "region": "US1",
-      "address": "https://us1api.wdgautomation.com/v1.0/"
+      "address": "https://us1api.wdgautomation.com/v1.0/",
+      "x-authentication": "WDG",
+      "x-deployment": "SaaS"
     }
   },
   "description": "Assistant",
@@ -48,7 +50,9 @@ The configuration file can be updated without the RPA CLI. Here's an example of 
       "type": "unattended",
       "timeout": "00:05:00",
       "description": "none",
-      "computer-group": "name-of-the-computer-group"
+      "x-properties": {
+        "computer-group": "dev computers"
+      }
     }
   },
   "packages": {
