@@ -27,7 +27,7 @@
             {
                 var cloudPakAddress = properties[PropertyOptions.CloudPakConsoleAddress];
                 return cloudPakAddress == null
-                    ? throw new NotSupportedException($"Since the server is deployed in the CloudPak cluster, the CloudPak Console URL is required and it was not provided. More information https://ibm.github.io/ibm-rpa-cli/#/guide/environment?id=options.")
+                    ? throw new NotSupportedException($"Since the server is deployed in the CloudPak cluster, the CloudPak Console URL is required and it was not provided. More information https://ibm.github.io/ibm-rpa-cli/#/guide/environment?id=red-hat®-openshift®-support-with-single-sign-on.")
                     : (IAccountAuthenticator)new RedHatOpenshiftOidcAuthenticator(httpFactory, region, new Uri(cloudPakAddress));
             }
 
