@@ -43,13 +43,15 @@
 
     public readonly struct AuthenticationMethod
     {
+        [Obsolete("It looks like IBM RPA 23.0.8 replaced 'WDG' for 'RPA'.")]
         public static readonly AuthenticationMethod WDG = new(nameof(WDG));
+        public static readonly AuthenticationMethod RPA = new(nameof(RPA));
         public static readonly AuthenticationMethod OIDC = new(nameof(OIDC));
         private readonly string method;
 
-        public AuthenticationMethod() : this(nameof(WDG)) { }
+        public AuthenticationMethod() : this(nameof(RPA)) { }
         internal AuthenticationMethod(string method) => this.method = method;
-        internal bool IsSupported => method == WDG || method == OIDC;
+        internal bool IsSupported => method == WDG || method == OIDC || method == RPA;
         public override string ToString() => method;
         public static implicit operator string(AuthenticationMethod method) => method.ToString();
     }
