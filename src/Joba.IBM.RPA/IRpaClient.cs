@@ -92,9 +92,9 @@ namespace Joba.IBM.RPA
     }
 
     public record class ComputerGroup(Guid Id, string Name);
-    public record class ServerBot(Guid ProjectId, Guid ScriptId, Guid ScriptVersionId, [property: JsonPropertyName("GroupId")] Guid ComputerGroupId, string Name, [property: JsonPropertyName("TechnicalName")] string UniqueId, string Description)
+    public record class ServerBot(Guid ProjectId, Guid ScriptId, Guid ScriptVersionId, [property: JsonPropertyName("GroupId")] Guid ComputerGroupId, string Name, [property: JsonPropertyName("TechnicalName")] UniqueId UniqueId, string Description)
     {
-        public static ServerBot Copy(ServerBot bot, string uniqueId) =>
+        public static ServerBot Copy(ServerBot bot, UniqueId uniqueId) =>
             new(bot.ProjectId, bot.ScriptId, bot.ScriptVersionId, bot.ComputerGroupId, bot.Name, uniqueId, bot.Description);
     }
 

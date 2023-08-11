@@ -1,0 +1,66 @@
+name: e2e
+
+on:
+  workflow_dispatch:
+    inputs:
+      Branch:
+        description: The branch to use to run end-to-end tests
+        required: true
+        default: develop
+        type: string
+      Url:
+        description: The target environment API URL
+        required: true
+        default: https://ibmrpaqa2api.wdgautomation.com/v1.0/
+        type: string
+      Region:
+        description: The target environment Region
+        required: true
+        default: QA2_IBMRPA
+        type: string
+      Tenant:
+        description: The target environment Tenant
+        required: true
+        default: 5000
+        type: number
+      Username:
+        description: The target environment Username
+        required: true
+        type: string
+      Password:
+        description: The target environment Password
+        required: true
+        type: string
+
+jobs:
+  e2e:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.Branch }}
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+    - name: Build
+      run: dotnet publish ./src/Joba.IBM.RPA.Cli/Joba.IBM.RPA.Cli.csproj -c Release -f net7.0 -r win-x64 -p:PublishSingleFile=true -o ./publish --self-contained
+    - name: e2e tests
+      run: dotnet test ./src/Tests/Joba.IBM.RPA.Cli.Tests --filter "Category=e2e" --verbosity normal
+      env:
+        RPA_EXECUTABLE_PATH: ${{github.workspace}}/publish/rpa.exe
+        E2E_SOURCE_URL: ${{ vars.E2E_SOURCE_URL }}
+        E2E_SOURCE_REGION: ${{ vars.E2E_SOURCE_REGION }}
+        E2E_SOURCE_TENANT: ${{ vars.E2E_SOURCE_TENANT }}
+        E2E_SOURCE_USERNAME: ${{ vars.E2E_SOURCE_USERNAME }}
+        RPA_SECRET_source: ${{ secrets.DEV_TENANT_PASSWORD }}
+        E2E_TARGET_URL: ${{ inputs.Url }}
+        E2E_TARGET_REGION: ${{ inputs.Region }}
+        E2E_TARGET_TENANT: ${{ inputs.Tenant }}
+        E2E_TARGET_USERNAME: ${{ inputs.Username }}
+        RPA_SECRET_target: ${{ secrets.Password }}
+        E2E_PACKAGE_URL: ${{ vars.E2E_PACKAGE_URL }}
+        E2E_PACKAGE_REGION: ${{ vars.E2E_PACKAGE_REGION }}
+        E2E_PACKAGE_TENANT: ${{ vars.E2E_PACKAGE_TENANT }}
+        E2E_PACKAGE_USERNAME: ${{ vars.E2E_PACKAGE_USERNAME }}
+        RPA_SECRET_package: ${{ secrets.JOBA_TENANT_PASSWORD }}

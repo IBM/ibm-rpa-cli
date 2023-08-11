@@ -34,9 +34,21 @@ jobs:
       run: dotnet test ./src/Tests/Joba.IBM.RPA.Cli.Tests --filter "Category=e2e" --verbosity normal
       env:
         RPA_EXECUTABLE_PATH: ${{github.workspace}}/publish/rpa.exe
-        RPA_SECRET_dev: ${{ secrets.DEV_TENANT_PASSWORD }}
-        RPA_SECRET_qa: ${{ secrets.QA_TENANT_PASSWORD }}
-        RPA_SECRET_joba: ${{ secrets.JOBA_TENANT_PASSWORD }}
+        E2E_SOURCE_URL: ${{ vars.E2E_SOURCE_URL }}
+        E2E_SOURCE_REGION: ${{ vars.E2E_SOURCE_REGION }}
+        E2E_SOURCE_TENANT: ${{ vars.E2E_SOURCE_TENANT }}
+        E2E_SOURCE_USERNAME: ${{ vars.E2E_SOURCE_USERNAME }}
+        RPA_SECRET_source: ${{ secrets.DEV_TENANT_PASSWORD }}
+        E2E_TARGET_URL: ${{ vars.E2E_TARGET_URL }}
+        E2E_TARGET_REGION: ${{ vars.E2E_TARGET_REGION }}
+        E2E_TARGET_TENANT: ${{ vars.E2E_TARGET_TENANT }}
+        E2E_TARGET_USERNAME: ${{ vars.E2E_TARGET_USERNAME }}
+        RPA_SECRET_target: ${{ secrets.QA_TENANT_PASSWORD }}
+        E2E_PACKAGE_URL: ${{ vars.E2E_PACKAGE_URL }}
+        E2E_PACKAGE_REGION: ${{ vars.E2E_PACKAGE_REGION }}
+        E2E_PACKAGE_TENANT: ${{ vars.E2E_PACKAGE_TENANT }}
+        E2E_PACKAGE_USERNAME: ${{ vars.E2E_PACKAGE_USERNAME }}
+        RPA_SECRET_package: ${{ secrets.JOBA_TENANT_PASSWORD }}
     - name: Github release
       shell: pwsh
       run: |

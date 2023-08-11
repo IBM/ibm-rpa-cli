@@ -17,6 +17,7 @@ namespace Joba.IBM.RPA.Cli
             @default.Converters.Add(new WalVersionJsonConverter());
             @default.Converters.Add(new AuthenticationMethodJsonConverter());
             @default.Converters.Add(new DeploymentOptionJsonConverter());
+            @default.Converters.Add(new UniqueIdJsonConverter());
             return @default;
         }
 
@@ -272,7 +273,7 @@ namespace Joba.IBM.RPA.Cli
             {
                 var project = (await SearchAsync(name, 1, cancellation)).FirstOrDefault();
                 if (project == null)
-                    return await CreateAsync(name, name.Replace(" ", "_"), description, cancellation);
+                    return await CreateAsync(name, new UniqueId(name), description, cancellation);
 
                 if (project.Name != name || project.Description != description)
                     return await UpdateAsync(project.Id, name, description, cancellation);
@@ -287,7 +288,7 @@ namespace Joba.IBM.RPA.Cli
                 return response.Results;
             }
 
-            private async Task<ServerProject> CreateAsync(string name, string uniqueId, string description, CancellationToken cancellation)
+            private async Task<ServerProject> CreateAsync(string name, UniqueId uniqueId, string description, CancellationToken cancellation)
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/project";
                 var project = new { Name = name, Description = description, TechnicalName = uniqueId };
@@ -344,7 +345,7 @@ namespace Joba.IBM.RPA.Cli
                 return response.Results;
             }
 
-            record ServerBotSearch(Guid Id, string Name, string Description, [property: JsonPropertyName("TechnicalName")] string UniqueId, ScriptVersion ScriptVersion);
+            record ServerBotSearch(Guid Id, string Name, string Description, [property: JsonPropertyName("TechnicalName")] UniqueId UniqueId, ScriptVersion ScriptVersion);
         }
 
         class ComputerGroupResource : IComputerGroupResource

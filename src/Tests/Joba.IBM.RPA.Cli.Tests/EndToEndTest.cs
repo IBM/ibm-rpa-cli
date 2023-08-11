@@ -20,18 +20,42 @@ namespace Joba.IBM.RPA.Cli.Tests
         [Fact]
         public async Task CreateAndDeployProject()
         {
-            var projectName = $"MyProject-{DateTimeOffset.UtcNow:ddMMyyyyhhmmss}";
-            await RunAsync($"project new {projectName}");
-            await RunAsync("env new dev --url https://us1api.wdgautomation.com/v1.0/ --region US1 --userName joberto.diniz@ibm.com --tenant 5283");
-            await RunAsync("env new qa --url https://ibmrpaqa2api.wdgautomation.com/v1.0/ --region QA2_IBMRPA --userName owner@wdgautomation.com --tenant 5000");
-            await RunAsync("package source joba --url https://us1api.wdgautomation.com/v1.0/ --region US1 --userName joberto.diniz@ibm.com --tenant 5547");
+            var parameters = ReadParameters();
+            await RunAsync($"project new {parameters.ProjectName}");
+            await RunAsync($"env new source --url {parameters.SourceOptions.ApiUrl} --region {parameters.SourceOptions.Region} --userName {parameters.SourceOptions.Username} --tenant {parameters.SourceOptions.TenantCode}");
+            await RunAsync($"env new target --url {parameters.TargetOptions.ApiUrl} --region {parameters.TargetOptions.Region} --userName {parameters.TargetOptions.Username} --tenant {parameters.TargetOptions.TenantCode}");
+            await RunAsync($"package source package --url {parameters.PackageOptions.ApiUrl} --region {parameters.PackageOptions.Region} --userName {parameters.PackageOptions.Username} --tenant {parameters.PackageOptions.TenantCode}");
             await RunAsync("package install Joba*");
-            await RunAsync("pull Assistant* --env dev");
+            await RunAsync("pull Assistant* --env source");
             await RunAsync("bot new Attended --template attended");
             await RunAsync("bot new Assistant --template chatbot");
             //await RunAsync("bot new Unattended --template unattended"); TODO: we would need to setup computer + computer group
 
-            await RunAsync("deploy qa");
+            await RunAsync("deploy target");
+        }
+
+        private E2eParameters ReadParameters()
+        {
+            return new E2eParameters(
+                $"MyProject-{DateTimeOffset.UtcNow:ddMMyyyyhhmmss}",
+                new E2eRemoteOptions(
+                    GetAndAssertEnvironmentVariable("E2E_SOURCE_URL"),
+                    GetAndAssertEnvironmentVariable("E2E_SOURCE_REGION"),
+                    Convert.ToInt32(GetAndAssertEnvironmentVariable("E2E_SOURCE_TENANT")),
+                    GetAndAssertEnvironmentVariable("E2E_SOURCE_USERNAME")),
+                new E2eRemoteOptions(
+                    GetAndAssertEnvironmentVariable("E2E_TARGET_URL"),
+                    GetAndAssertEnvironmentVariable("E2E_TARGET_REGION"),
+                    Convert.ToInt32(GetAndAssertEnvironmentVariable("E2E_TARGET_TENANT")),
+                    GetAndAssertEnvironmentVariable("E2E_TARGET_USERNAME")),
+                new E2eRemoteOptions(
+                    GetAndAssertEnvironmentVariable("E2E_PACKAGE_URL"),
+                    GetAndAssertEnvironmentVariable("E2E_PACKAGE_REGION"),
+                    Convert.ToInt32(GetAndAssertEnvironmentVariable("E2E_PACKAGE_TENANT")),
+                    GetAndAssertEnvironmentVariable("E2E_PACKAGE_USERNAME")));
+
+            static string GetAndAssertEnvironmentVariable(string variable) => 
+                System.Environment.GetEnvironmentVariable(variable) ?? throw new InvalidOperationException($"The environment variable '{variable}' is required and was not found.");
         }
 
         private async Task RunAsync(string arguments)
@@ -89,5 +113,8 @@ namespace Joba.IBM.RPA.Cli.Tests
             foreach (var file in walFiles)
                 file.Delete();
         }
+
+        record struct E2eParameters(string ProjectName, E2eRemoteOptions SourceOptions, E2eRemoteOptions TargetOptions, E2eRemoteOptions PackageOptions);
+        record struct E2eRemoteOptions(string ApiUrl, string Region, int TenantCode, string Username);
     }
 }

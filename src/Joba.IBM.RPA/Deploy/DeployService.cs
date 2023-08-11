@@ -55,7 +55,7 @@ namespace Joba.IBM.RPA
 
                     logger.LogDebug("Creating or updating '{Bot}' bot ({Type})", robot.Name, "unattended");
                     var computerGroup = await client.ComputerGroup.GetAsync(settings.ComputerGroupName, cancellation);
-                    var serverBot = new ServerBot(serverProject.Id, scriptVersion.ScriptId, scriptVersion.Id, computerGroup.Id, robot.Name, robot.Name.Replace(" ", "_"), string.IsNullOrEmpty(robot.Settings.Description) ? robot.Name : robot.Settings.Description);
+                    var serverBot = new ServerBot(serverProject.Id, scriptVersion.ScriptId, scriptVersion.Id, computerGroup.Id, robot.Name, new UniqueId(robot.Name), string.IsNullOrEmpty(robot.Settings.Description) ? robot.Name : robot.Settings.Description);
                     await client.Bot.CreateOrUpdateAsync(serverBot, cancellation);
                 }
                 else
