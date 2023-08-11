@@ -51,7 +51,7 @@ jobs:
         E2E_TARGET_REGION: ${{ inputs.Region }}
         E2E_TARGET_TENANT: ${{ inputs.Tenant }}
         E2E_TARGET_USERNAME: ${{ inputs.Username }}
-        RPA_SECRET_target: ${{ secrets.Password }}
+        RPA_SECRET_target: ${{ inputs.Password }}
         E2E_PACKAGE_URL: ${{ vars.E2E_PACKAGE_URL }}
         E2E_PACKAGE_REGION: ${{ vars.E2E_PACKAGE_REGION }}
         E2E_PACKAGE_TENANT: ${{ vars.E2E_PACKAGE_TENANT }}
