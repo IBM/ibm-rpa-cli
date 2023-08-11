@@ -139,7 +139,7 @@ namespace Joba.IBM.RPA.Cli
                 return await client.GetStringAsync(url, cancellation);
             }
         }
-       
+
         class AccountResource : IAccountResource
         {
             private readonly HttpClient client;

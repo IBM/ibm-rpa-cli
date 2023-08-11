@@ -1,17 +1,17 @@
 ﻿namespace Joba.IBM.RPA
 {
     /// <summary>
-    /// Must only contain latin letters (a-z, A-Z), numbers (0-9), underscores ( _ ) and cannot start with a number.
+    /// Must only contain lowercase latin letters (a-z), numbers (0-9), underscores ( _ ) and cannot start with a number.
     /// </summary>
-    public struct UniqueId
+    public readonly struct UniqueId
     {
         private readonly string uniqueId;
 
         public UniqueId(string name)
         {
             Original = name;
-            //TODO: use regex to replace everything except the allowed values.
-            uniqueId = name.Replace(" ", "_").Replace("-", "_");
+            //TODO: use regex to replace everything except the allowed values: @"^[a-z_]([a-z0-9_]+)?$"
+            uniqueId = name.ToLower().Replace(" ", "_").Replace("-", "_");
         }
 
         public string Original { get; }
