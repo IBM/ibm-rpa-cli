@@ -3,11 +3,6 @@ name: e2e
 on:
   workflow_dispatch:
     inputs:
-      Branch:
-        description: The branch to use to run end-to-end tests
-        required: true
-        default: develop
-        type: string
       Url:
         description: The target environment API URL
         required: true
@@ -37,8 +32,6 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
-      with:
-        ref: ${{ inputs.Branch }}
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
