@@ -13,7 +13,7 @@ namespace Joba.IBM.RPA.Cli
             {
                 var name = new Argument<string>("name", description: "The bot name.");
                 var template = new Option<string>("--template", () => "unattended", "The template to use. Depending on the template, different configurations are allowed.")
-                    .FromAmong("attended", "chatbot", "unattended", "excel");
+                    .FromAmong("attended", "chatbot", "unattended", "package", "excel");
 
                 AddArgument(name);
                 AddOption(template);

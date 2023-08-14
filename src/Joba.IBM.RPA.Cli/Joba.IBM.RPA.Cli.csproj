@@ -27,6 +27,7 @@
 	<ItemGroup>
 	  <None Remove="Templates\attended.wal" />
 	  <None Remove="Templates\excel.wal" />
+	  <None Remove="Templates\package.wal" />
 	  <None Remove="Templates\unattended.wal" />
 	</ItemGroup>
 
@@ -36,6 +37,7 @@
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </EmbeddedResource>
 	  <EmbeddedResource Include="Templates\excel.wal" />
+	  <EmbeddedResource Include="Templates\package.wal" />
 	  <EmbeddedResource Include="Templates\unattended.wal" />
 	</ItemGroup>
 

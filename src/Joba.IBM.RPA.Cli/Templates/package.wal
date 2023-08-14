@@ -1,0 +1,31 @@
+¾defVar --name methodName --type String --parameter 
+defVar --name methodNames --type List --innertype String --parameter 
+defVar --name workingDirectory --type String
+//************************************
+//Template for packages
+//- Create routines and this template exposes them as methods.
+//- To understand how to create packages using this template, read https://ibm.github.io/ibm-rpa-cli/#/guide/creating-packages
+//************************************
+//Set the working directory where all local .wal files are located. Always use 'workingDirectory' variable in the 'executeScript' to reference the scripts.
+//- The build process will ignore 'executeScripts' that do not reference local .wal files using 'workingDirectory'.
+//- DO NOT publish or use published scripts in the 'executeScript'. The build process will buil ONE script with all the local referenced dependencies.
+//- Also, this will ensure your dev team only has to change one variable (workingDirectory) to run the project.
+//- If you call an 'executeScript', always pass the 'workingDirectory' variable as a parameter, so you do not need to set in every script.
+//- To store the source code .wal files, use GIT. Do not use the Control Center to store the .wal files.
+setVarIf --variablename "${workingDirectory}" --value "@{workingDirectory}" --left "${workingDirectory}" --operator "Is_Null_Or_Empty" --comment "The build process will inject the correct value for \'workingDirectory\' at runtime."
+#region validating
+case --switches "CaseSwitchesAll"
+	when --left "${methodName}" --operator "Is_Null_Or_Empty"
+	when --left "${methodNames}" --operator "Is_Empty"
+then
+	failTest --message "The parameter \'methodName\' or \'methodNames\' is required and was not specified"
+endCase
+#endregion
+
+if --left "${methodName}" --operator "Is_Null_Or_Empty" --negate 
+	add --collection "${methodNames}" --value "${methodName}"
+endIf
+foreach --collection "${methodNames}" --variable "${methodName}" --distinct 
+	assert --message "The method \'${methodName}\' is not defined in ${rpa:scriptName} version ${rpa:scriptVersion}" --left "${rpa:scriptMetadata.Routines}" --operator "Contains" --right "${methodName}"
+	goSub --label "${methodName}"
+endFor*23.0.7.0

@@ -39,6 +39,7 @@ namespace Joba.IBM.RPA
         {
             return type switch
             {
+                PackageSettings.TypeName => new PackageSettings { Description = description },
                 ChatbotSettings.TypeName => new ChatbotSettings { Description = description },
                 AttendedSettings.TypeName => new AttendedSettings { Description = description },
                 UnattendedSettings.TypeName => new UnattendedSettings { Description = description },
@@ -73,6 +74,7 @@ namespace Joba.IBM.RPA
     }
 
     [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+    [JsonDerivedType(typeof(PackageSettings), typeDiscriminator: PackageSettings.TypeName)]
     [JsonDerivedType(typeof(ChatbotSettings), typeDiscriminator: ChatbotSettings.TypeName)]
     [JsonDerivedType(typeof(UnattendedSettings), typeDiscriminator: UnattendedSettings.TypeName)]
     [JsonDerivedType(typeof(AttendedSettings), typeDiscriminator: AttendedSettings.TypeName)]
@@ -107,5 +109,11 @@ namespace Joba.IBM.RPA
     {
         internal const string TypeName = "attended";
         internal AttendedSettings() : base() { }
+    }
+
+    internal class PackageSettings : RobotSettings
+    {
+        internal const string TypeName = "package";
+        internal PackageSettings() : base() { }
     }
 }
