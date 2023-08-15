@@ -5,7 +5,7 @@ Although limited to Control Center, [bot](https://www.ibm.com/docs/en/rpa/23.0?t
 To issue `rpa bot` commands you need to have a project configuration file within the working directory. See [managing projects](guide/project.md) section.
 
 ## Creating a robot
-Issue the following command to create a robot within the working directory, replacing `[name]` with the robot name and `[template]` with one of the available templates: *unattended*, *attended*, *chatbot*, *excel*.
+Issue the following command to create a robot within the working directory, replacing `[name]` with the robot name and `[template]` with one of the available templates: *unattended*, *attended*, *chatbot*, *excel*, *package*.
 
 ```bash
 rpa bot new [name] --template [template]
@@ -38,9 +38,7 @@ Example:
     "[name]": {
       "type": "[type]",
       ...
-      "x-properties": {
-        "computer-group": "[computer_group_name]"
-      }      
+      "computer-group": "[computer_group_name]"
     }
   }
 }

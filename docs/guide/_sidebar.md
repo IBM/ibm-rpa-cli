@@ -6,6 +6,7 @@
   * [Managing environments](guide/environment.md)
   * [Managing package sources](guide/package-source.md)
   * [Managing packages](guide/package.md)
+  * [Creating packages](guide/create-package.md)
   * [Joba packages](guide/joba-packages.md)
   * [Using executeScript](guide/execute-script.md)
   * [Deploying projects](guide/deploy.md)
