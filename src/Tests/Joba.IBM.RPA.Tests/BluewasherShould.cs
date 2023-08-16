@@ -20,7 +20,7 @@ namespace Joba.IBM.RPA.Tests
             var outputDir = new DirectoryInfo(Path.Combine(System.Environment.CurrentDirectory, "out/01"));
             outputDir.Create();
 
-            var robot = new Robot("main", RobotSettingsFactory.Create("unattended", "main"));
+            var robot = new Robot("main", RobotSettingsFactory.Create("unattended", "main", new PropertyOptions()));
             var project = MockProject(workingDir, nameof(Build_Robot_Without_Dependencies), robot);
             var sut = CreateCompiler(logger, project);
 
@@ -38,11 +38,12 @@ namespace Joba.IBM.RPA.Tests
         public async Task Build_Robot_With_Dependencies()
         {
             //arrange
+            var properties = new PropertyOptions();
             var workingDir = new DirectoryInfo(Path.GetFullPath(@"assets/build/02/working-directory"));
             var outputDir = new DirectoryInfo(Path.Combine(System.Environment.CurrentDirectory, @"out/02"));
             outputDir.Create();
 
-            var robot = new Robot("main", RobotSettingsFactory.Create("unattended", "main"));
+            var robot = new Robot("main", RobotSettingsFactory.Create("unattended", "main", new PropertyOptions()));
             var project = MockProject(workingDir, nameof(Build_Robot_With_Dependencies), robot);
             var sut = CreateCompiler(logger, project);
 
@@ -67,9 +68,9 @@ namespace Joba.IBM.RPA.Tests
             var outputDir = new DirectoryInfo(Path.Combine(System.Environment.CurrentDirectory, @"out/03"));
             outputDir.Create();
 
-            var unattendedBot = new Robot("unattended", RobotSettingsFactory.Create("unattended", "unattended"));
-            var attendedBot = new Robot("attended", RobotSettingsFactory.Create("attended", "attended"));
-            var chatbot = new Robot("chatbot", RobotSettingsFactory.Create("chatbot", "chatbot"));
+            var unattendedBot = new Robot("unattended", RobotSettingsFactory.Create("unattended", "unattended", new PropertyOptions()));
+            var attendedBot = new Robot("attended", RobotSettingsFactory.Create("attended", "attended", new PropertyOptions()));
+            var chatbot = new Robot("chatbot", RobotSettingsFactory.Create("chatbot", "chatbot", new PropertyOptions()));
             var project = MockProject(workingDir, nameof(Build_Project_With_Several_Robots), unattendedBot, attendedBot, chatbot);
             var sut = CreateCompiler(logger, project);
 

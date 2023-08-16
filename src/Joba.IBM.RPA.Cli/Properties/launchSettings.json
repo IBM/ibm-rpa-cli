@@ -12,9 +12,9 @@
       "commandName": "Project",
       "commandLineArgs": "bot new Assistant --template chatbot"
     },
-    "rpa env new dev": {
+    "rpa env new prod": {
       "commandName": "Project",
-      "commandLineArgs": "env new dev --url default --region US1 --userName joberto.diniz@ibm.com"
+      "commandLineArgs": "env new prod --url default --region US1 --userName joberto.diniz@ibm.com"
     },
     "rpa env new qa": {
       "commandName": "Project",
@@ -26,15 +26,15 @@
     },
     "rpa pull": {
       "commandName": "Project",
-      "commandLineArgs": "pull Assistant* -v --env dev"
+      "commandLineArgs": "pull Assistant* -v --env prod"
     },
     "rpa pull wal": {
       "commandName": "Project",
-      "commandLineArgs": "pull Assistant* --env dev --type wal"
+      "commandLineArgs": "pull Assistant* --env prod --type wal"
     },
     "rpa pull parameter": {
       "commandName": "Project",
-      "commandLineArgs": "pull Assistant* --env dev --type parameter"
+      "commandLineArgs": "pull Assistant* --env prod --type parameter"
     },
     "rpa package source joba": {
       "commandName": "Project",
@@ -82,7 +82,7 @@
     },
     "rpa deploy": {
       "commandName": "Project",
-      "commandLineArgs": "rpa deploy QA"
+      "commandLineArgs": "rpa deploy prod"
     },
     "rpa git config": {
       "commandName": "Project",

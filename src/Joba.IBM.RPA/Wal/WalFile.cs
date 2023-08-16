@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using Joba.IBM.RPA.Server;
+using ProtoBuf;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 

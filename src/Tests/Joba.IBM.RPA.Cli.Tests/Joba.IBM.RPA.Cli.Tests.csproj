@@ -130,11 +130,29 @@
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="assets\NewRobotHandlerShould\CreateWalAndUpdateProjectFile\CreateWalAndUpdateProjectFile.rpa.verified.json">
+    <None Update="assets\NewRobotHandlerShould\CreateChatbot\CreateChatbot.rpa.json">
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="assets\NewRobotHandlerShould\CreateWalAndUpdateProjectFile\CreateWalAndUpdateProjectFile.rpa.json">
+    <None Update="assets\NewRobotHandlerShould\CreateChatbot\CreateChatbot.rpa.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+    </None>
+    <None Update="assets\NewRobotHandlerShould\CreateAttended\CreateAttended.rpa.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\NewRobotHandlerShould\CreateAttended\CreateAttended.rpa.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <DependentUpon>%(ParentFile).cs</DependentUpon>
+    </None>
+    <None Update="assets\NewRobotHandlerShould\CreateUnattended\CreateUnattended.rpa.verified.json">
+      <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\NewRobotHandlerShould\CreateUnattended\CreateUnattended.rpa.json">
       <ParentFile>$([System.String]::Copy('%(FileName)').Split('.')[0])</ParentFile>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

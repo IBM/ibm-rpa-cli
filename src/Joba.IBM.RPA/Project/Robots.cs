@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using static Joba.IBM.RPA.ChatbotSettings;
 
 namespace Joba.IBM.RPA
 {
@@ -35,14 +36,14 @@ namespace Joba.IBM.RPA
 
     public static class RobotSettingsFactory
     {
-        public static RobotSettings Create(string type, string description)
+        public static RobotSettings Create(string type, string description, PropertyOptions properties)
         {
             return type switch
             {
                 PackageSettings.TypeName => new PackageSettings { Description = description },
-                ChatbotSettings.TypeName => new ChatbotSettings { Description = description },
+                ChatbotSettings.TypeName => ChatbotSettings.Create(description, properties),
                 AttendedSettings.TypeName => new AttendedSettings { Description = description },
-                UnattendedSettings.TypeName => new UnattendedSettings { Description = description },
+                UnattendedSettings.TypeName => UnattendedSettings.Create(description, properties),
                 _ => new UnattendedSettings { Description = description }
             };
         }
@@ -88,12 +89,53 @@ namespace Joba.IBM.RPA
         /// Specify wal files to include in the build process of 'this' robot.
         /// </summary>
         internal string[]? Include { get; set; }
+
+        internal virtual void EnsureValid()
+        {
+            if (Timeout == TimeSpan.Zero)
+                throw new InvalidOperationException($"Robot 'timeout' configuration must be greater than zero.");
+        }
     }
 
     internal class ChatbotSettings : RobotSettings
     {
         internal const string TypeName = "chatbot";
         internal ChatbotSettings() : base() { }
+
+        internal string? Name { get; init; }
+        internal string? Handle { get; init; }
+        [JsonPropertyName("unlock-machine")]
+        internal bool? UnlockMachine { get; init; }
+        internal string? Greeting { get; init; }
+        internal string? Style { get; init; }
+        internal string[] Computers { get; init; } = Array.Empty<string>();
+
+        internal override void EnsureValid()
+        {
+            base.EnsureValid();
+            if (string.IsNullOrEmpty(Name))
+                throw new InvalidOperationException($"The {TypeName} robot requires 'name' configuration. See https://ibm.github.io/ibm-rpa-cli/#/guide/robot?id=chatbot.");
+            if (string.IsNullOrEmpty(Handle))
+                throw new InvalidOperationException($"The {TypeName} robot requires 'handle' configuration. See https://ibm.github.io/ibm-rpa-cli/#/guide/robot?id=chatbot.");
+            if (Computers.Length == 0)
+                throw new InvalidOperationException($"The {TypeName} robot requires at least one 'computer' configuration. See https://ibm.github.io/ibm-rpa-cli/#/guide/robot?id=chatbot.");
+        }
+
+        internal static ChatbotSettings Create(string description, PropertyOptions properties)
+        {
+            var handle = properties["handle"] ?? string.Empty;
+            var name = properties["name"] ?? description;
+            var greeting = properties["greeting"];
+            var computers = properties["computers"] ?? string.Empty;
+            return new ChatbotSettings
+            {
+                Description = description,
+                Handle = handle,
+                Name = name,
+                Greeting = greeting,
+                Computers = computers.Split(',')
+            };
+        }
     }
 
     internal class UnattendedSettings : RobotSettings
@@ -103,6 +145,23 @@ namespace Joba.IBM.RPA
 
         [JsonPropertyName("computer-group")]
         internal string? ComputerGroupName { get; set; }
+
+        internal override void EnsureValid()
+        {
+            base.EnsureValid();
+            if (string.IsNullOrEmpty(ComputerGroupName))
+                throw new InvalidOperationException($"The {TypeName} robot requires 'computer-group' configuration. See https://ibm.github.io/ibm-rpa-cli/#/guide/robot?id=unattended.");
+        }
+
+        internal static UnattendedSettings Create(string description, PropertyOptions properties)
+        {
+            var handle = properties["computer-group"] ?? string.Empty;
+            return new UnattendedSettings
+            {
+                Description = description,
+                ComputerGroupName = handle,
+            };
+        }
     }
 
     internal class AttendedSettings : RobotSettings

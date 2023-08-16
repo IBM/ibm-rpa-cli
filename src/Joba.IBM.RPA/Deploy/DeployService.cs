@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Joba.IBM.RPA.Server;
+using Microsoft.Extensions.Logging;
 using System.Runtime.ExceptionServices;
 
 namespace Joba.IBM.RPA
@@ -21,6 +22,9 @@ namespace Joba.IBM.RPA
             this.compiler = compiler;
         }
 
+        /// <summary>
+        /// TODO: refactor this method
+        /// </summary>
         async Task IDeployService.DeployAsync(IProject project, Environment environment, CancellationToken cancellation)
         {
             var buildArguments = new BuildArguments(project, new DirectoryInfo(Path.Combine(project.RpaDirectory.FullName, "build")));
@@ -48,16 +52,10 @@ namespace Joba.IBM.RPA
                 }
 
                 var scriptVersion = await client.Script.PublishAsync(model, cancellation);
-                if (robot.Settings is UnattendedSettings settings)
-                {
-                    if (string.IsNullOrEmpty(settings.ComputerGroupName))
-                        throw new InvalidOperationException($"Cannot deploy 'unattended' bot because 'computer group' is required and was not provided");
-
-                    logger.LogDebug("Creating or updating '{Bot}' bot ({Type})", robot.Name, "unattended");
-                    var computerGroup = await client.ComputerGroup.GetAsync(settings.ComputerGroupName, cancellation);
-                    var serverBot = new ServerBot(serverProject.Id, scriptVersion.ScriptId, scriptVersion.Id, computerGroup.Id, robot.Name, new UniqueId(robot.Name), string.IsNullOrEmpty(robot.Settings.Description) ? robot.Name : robot.Settings.Description);
-                    await client.Bot.CreateOrUpdateAsync(serverBot, cancellation);
-                }
+                if (robot.Settings is UnattendedSettings unattendedSettings)
+                    await DeployUnattendedAsync(client, robot, scriptVersion, unattendedSettings, serverProject, cancellation);
+                else if (robot.Settings is ChatbotSettings chatbotSettings)
+                    await DeployChatbotAsync(client, robot, scriptVersion, chatbotSettings, environment, cancellation);
                 else
                 {
                     //TODO: add support for ChatMappings (chatbot)
@@ -65,6 +63,7 @@ namespace Joba.IBM.RPA
                 }
             }
 
+            //TODO: the "environment settings" should contain "RobotSettings" as well, such as 'computer-group', 'chat handle', etc.
             var (envFile, envSettings) = await environment.LoadSettingsAsync(project, cancellation);
             if (envFile.Exists)
                 logger.LogInformation("Using '{File}' to deploy environment configurable values", envFile.FullPath);
@@ -78,6 +77,39 @@ namespace Joba.IBM.RPA
             }).ToArray();
 
             await TaskExtensions.WhenAllFailFast(tasks, cancellation);
+        }
+
+        private async Task DeployChatbotAsync(IRpaClient client, Robot robot, ScriptVersion scriptVersion, ChatbotSettings settings, Environment environment, CancellationToken cancellation)
+        {
+            settings.EnsureValid();
+            logger.LogDebug("Creating or updating '{Bot}' bot ({Type})", robot.Name, ChatbotSettings.TypeName);
+
+            var computers = await client.Computer.SearchAsync(null, 50, cancellation);
+            if (!computers.Any())
+                throw new InvalidOperationException($"There are no computers registered in the server for ({environment.Alias}) {environment.Remote.TenantName}");
+            var chats = await client.Chat.GetAllAsync(cancellation);
+            if (!chats.Any())
+                throw new InvalidOperationException($"There are no chats registered in the server for ({environment.Alias}) {environment.Remote.TenantName}.");
+
+            logger.LogDebug("Creating or updating chat mapping '{Handle}' named '{Name}'", settings.Handle, settings.Name);
+            var chat = chats.FirstOrDefault(c => c.Handle == settings.Handle!) ?? throw new InvalidOperationException($"Could not find chat '{settings.Handle!}'. Available: {string.Join(',', chats.Select(c => c.Handle))}");
+            var chatComputers = computers.Where(c => settings.Computers.Contains(c.Name)).ToArray();
+            var except = settings.Computers.Except(chatComputers.Select(c => c.Name)).ToArray();
+            if (except.Any())
+                throw new InvalidOperationException($"The following computers were not found {string.Join(',', except)}");
+
+            var computerIds = chatComputers.Select(c => c.Id).ToArray();
+            var chatMapping = new CreateChatMappingRequest(chat.Id, scriptVersion.ScriptId, scriptVersion.Id, settings.Name!, settings.Greeting, settings.Style, computerIds, settings.UnlockMachine.GetValueOrDefault());
+            await client.ChatMapping.CreateOrUpdateAsync(chatMapping, cancellation);
+        }
+
+        private async Task DeployUnattendedAsync(IRpaClient client, Robot robot, ScriptVersion scriptVersion, UnattendedSettings settings, Server.Project serverProject, CancellationToken cancellation)
+        {
+            settings.EnsureValid();
+            logger.LogDebug("Creating or updating '{Bot}' bot ({Type})", robot.Name, UnattendedSettings.TypeName);
+            var computerGroup = await client.ComputerGroup.GetAsync(settings.ComputerGroupName!, cancellation);
+            var botRequest = new CreateBotRequest(serverProject.Id, scriptVersion.ScriptId, scriptVersion.Id, computerGroup.Id, robot.Name, new UniqueId(robot.Name), string.IsNullOrEmpty(robot.Settings.Description) ? robot.Name : robot.Settings.Description);
+            await client.Bot.CreateOrUpdateAsync(botRequest, cancellation);
         }
     }
 }

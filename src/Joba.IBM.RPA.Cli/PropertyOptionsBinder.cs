@@ -9,7 +9,7 @@
         protected override PropertyOptions GetBoundValue(BindingContext bindingContext)
         {
             var raw = bindingContext.ParseResult.GetValueForOption(option);
-            return raw == null ? new PropertyOptions() : PropertyOptions.Parse(raw);
+            return raw == null ? new PropertyOptions() : PropertyOptions.Parse(raw.ToArray());
         }
     }
 }

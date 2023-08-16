@@ -1,4 +1,7 @@
-﻿namespace Joba.IBM.RPA
+﻿using System.Text.Encodings.Web;
+using System.Text.Unicode;
+
+namespace Joba.IBM.RPA
 {
     static class JsonSerializerOptionsFactory
     {
@@ -6,6 +9,10 @@
 
         internal static JsonSerializerOptions CreateDefault(DirectoryInfo? workingDirectory = null)
         {
+            //https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/character-encoding
+            var encoderSettings = new TextEncoderSettings(UnicodeRanges.BasicLatin);
+            encoderSettings.AllowCharacter('\u0027'); //TODO: the character aphostofre (') should be allowed - this is not working
+
             var @default = new JsonSerializerOptions
             {
                 WriteIndented = true,
@@ -13,6 +20,7 @@
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 PropertyNamingPolicy = new JsonKebabCaseNamingPolicy(),
                 TypeInfoResolver = new IncludeInternalMembersJsonTypeInfoResolver(workingDirectory),
+                Encoder = JavaScriptEncoder.Create(encoderSettings)
             };
             @default.Converters.Add(new DeploymentOptionJsonConverter());
             @default.Converters.Add(new AuthenticationMethodJsonConverter());

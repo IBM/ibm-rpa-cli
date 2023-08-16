@@ -1,0 +1,11 @@
+{
+  "description": "CreateUnattended",
+  "robots": {
+    "CreateUnattended": {
+      "type": "unattended",
+      "computer-group": "MyComputerGroup",
+      "timeout": "00:05:00",
+      "description": "CreateUnattended"
+    }
+  }
+}

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Joba.IBM.RPA.Server;
+using Microsoft.Extensions.Logging;
 
 namespace Joba.IBM.RPA.Cli
 {

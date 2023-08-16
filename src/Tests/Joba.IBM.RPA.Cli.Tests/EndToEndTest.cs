@@ -26,10 +26,10 @@ namespace Joba.IBM.RPA.Cli.Tests
             await RunAsync($"env new target --url {parameters.TargetOptions.ApiUrl} --region {parameters.TargetOptions.Region} --userName {parameters.TargetOptions.Username} --tenant {parameters.TargetOptions.TenantCode}");
             await RunAsync($"package source package --url {parameters.PackageOptions.ApiUrl} --region {parameters.PackageOptions.Region} --userName {parameters.PackageOptions.Username} --tenant {parameters.PackageOptions.TenantCode}");
             await RunAsync("package install Joba*");
-            await RunAsync("pull Assistant* --env source");
-            await RunAsync("bot new Attended --template attended");
-            await RunAsync("bot new Assistant --template chatbot");
-            //await RunAsync("bot new Unattended --template unattended"); TODO: we would need to setup computer + computer group
+            await RunAsync("pull e2e* --env source");
+            await RunAsync("bot new attended --template attended");
+            await RunAsync($"bot new unattended --template unattended -p:computer-group={parameters.Unattended.ComputerGroup}");
+            await RunAsync($"bot new e2e --template chatbot -p:handle={parameters.Chat.Handle} -p:name=e2e -p:computers={parameters.Chat.Computers}");
 
             await RunAsync("deploy target");
         }
@@ -37,7 +37,7 @@ namespace Joba.IBM.RPA.Cli.Tests
         private E2eParameters ReadParameters()
         {
             return new E2eParameters(
-                $"MyProject-{DateTimeOffset.UtcNow:ddMMyyyyhhmmss}",
+                $"End to end RPA CLI tests",
                 new E2eRemoteOptions(
                     GetAndAssertEnvironmentVariable("E2E_SOURCE_URL"),
                     GetAndAssertEnvironmentVariable("E2E_SOURCE_REGION"),
@@ -52,7 +52,9 @@ namespace Joba.IBM.RPA.Cli.Tests
                     GetAndAssertEnvironmentVariable("E2E_PACKAGE_URL"),
                     GetAndAssertEnvironmentVariable("E2E_PACKAGE_REGION"),
                     Convert.ToInt32(GetAndAssertEnvironmentVariable("E2E_PACKAGE_TENANT")),
-                    GetAndAssertEnvironmentVariable("E2E_PACKAGE_USERNAME")));
+                    GetAndAssertEnvironmentVariable("E2E_PACKAGE_USERNAME")),
+                new E2eChat(GetAndAssertEnvironmentVariable("E2E_TARGET_CHAT_HANDLE"), GetAndAssertEnvironmentVariable("E2E_TARGET_CHAT_COMPUTERS")),
+                new E2eUnattended(GetAndAssertEnvironmentVariable("E2E_TARGET_COMPUTERGROUP")));
 
             static string GetAndAssertEnvironmentVariable(string variable) => 
                 System.Environment.GetEnvironmentVariable(variable) ?? throw new InvalidOperationException($"The environment variable '{variable}' is required and was not found.");
@@ -114,7 +116,9 @@ namespace Joba.IBM.RPA.Cli.Tests
                 file.Delete();
         }
 
-        record struct E2eParameters(string ProjectName, E2eRemoteOptions SourceOptions, E2eRemoteOptions TargetOptions, E2eRemoteOptions PackageOptions);
+        record struct E2eParameters(string ProjectName, E2eRemoteOptions SourceOptions, E2eRemoteOptions TargetOptions, E2eRemoteOptions PackageOptions, E2eChat Chat, E2eUnattended Unattended);
         record struct E2eRemoteOptions(string ApiUrl, string Region, int TenantCode, string Username);
+        record struct E2eChat(string Handle, string Computers);
+        record struct E2eUnattended(string ComputerGroup);
     }
 }

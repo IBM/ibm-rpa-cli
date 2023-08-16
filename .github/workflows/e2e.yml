@@ -18,6 +18,21 @@ on:
         required: true
         default: 5000
         type: number
+      ComputerGroup:
+        description: The target computer group name for unattended deployment
+        required: true
+        default: FVT_BotSkillsComputerGroup_2023081519153023
+        type: string  
+      ChatHandle:
+        description: The target chat handle for chatbot deployment
+        required: true
+        default: QABotMapping2_TC715_2023081518040559
+        type: string  
+      ChatComputers:
+        description: The target comma-separated computers for chatbot deployment
+        required: true
+        default: API_BotMappingComputer_TC109_202308151721465
+        type: string
       Username:
         description: The target environment Username
         required: true
@@ -51,6 +66,9 @@ jobs:
         E2E_TARGET_REGION: ${{ inputs.Region }}
         E2E_TARGET_TENANT: ${{ inputs.Tenant }}
         E2E_TARGET_USERNAME: ${{ inputs.Username }}
+        E2E_TARGET_COMPUTERGROUP: ${{ inputs.ComputerGroup }}
+        E2E_TARGET_CHAT_HANDLE: ${{ inputs.ChatHandle }}
+        E2E_TARGET_CHAT_COMPUTERS: ${{ inputs.ChatComputers }}
         RPA_SECRET_target: ${{ inputs.Password }}
         E2E_PACKAGE_URL: ${{ vars.E2E_PACKAGE_URL }}
         E2E_PACKAGE_REGION: ${{ vars.E2E_PACKAGE_REGION }}

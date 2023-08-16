@@ -1,0 +1,17 @@
+{
+  "description": "CreateChatbot",
+  "robots": {
+    "CreateChatbot": {
+      "type": "chatbot",
+      "name": "ChatName",
+      "handle": "ChatHandle",
+      "greeting": "I am warming up...",
+      "computers": [
+        "Computer1",
+        "Computer2"
+      ],
+      "timeout": "00:05:00",
+      "description": "CreateChatbot"
+    }
+  }
+}

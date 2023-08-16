@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Joba.IBM.RPA.Server;
 
 namespace Joba.IBM.RPA
 {
@@ -12,6 +12,9 @@ namespace Joba.IBM.RPA
         IProjectResource Project { get; }
         IBotResource Bot { get; }
         IComputerGroupResource ComputerGroup { get; }
+        IComputerResource Computer { get; }
+        IChatResource Chat { get; }
+        IChatMappingResource ChatMapping { get; }
     }
 
     public interface IRpaClientFactory
@@ -78,12 +81,12 @@ namespace Joba.IBM.RPA
 
     public interface IProjectResource
     {
-        Task<ServerProject> CreateOrUpdateAsync(string name, string description, CancellationToken cancellation);
+        Task<Server.Project> CreateOrUpdateAsync(string name, string description, CancellationToken cancellation);
     }
 
     public interface IBotResource
     {
-        Task CreateOrUpdateAsync(ServerBot bot, CancellationToken cancellation);
+        Task CreateOrUpdateAsync(CreateBotRequest bot, CancellationToken cancellation);
     }
 
     public interface IComputerGroupResource
@@ -91,15 +94,18 @@ namespace Joba.IBM.RPA
         Task<ComputerGroup> GetAsync(string name, CancellationToken cancellation);
     }
 
-    public record class ComputerGroup(Guid Id, string Name);
-    public record class ServerBot(Guid ProjectId, Guid ScriptId, Guid ScriptVersionId, [property: JsonPropertyName("GroupId")] Guid ComputerGroupId, string Name, [property: JsonPropertyName("TechnicalName")] UniqueId UniqueId, string Description)
+    public interface IComputerResource
     {
-        public static ServerBot Copy(ServerBot bot, UniqueId uniqueId) =>
-            new(bot.ProjectId, bot.ScriptId, bot.ScriptVersionId, bot.ComputerGroupId, bot.Name, uniqueId, bot.Description);
+        Task<IEnumerable<Computer>> SearchAsync(string? name, int limit, CancellationToken cancellation);
     }
 
-    public record class ServerProject(Guid Id, string Name, string Description, [property: JsonPropertyName("TechnicalName")] string UniqueId);
-    public record class Parameter([property: JsonPropertyName("Id")] string Name, string Value);
-    public record class PublishScript(Guid? Id, Guid? VersionId, string Name, string? Description, string Content, string ProductVersion,
-        bool SetAsProduction, int GreenExecutionTimeSeconds, int YellowExecutionTimeSeconds, int RedExecutionTimeSeconds);
+    public interface IChatMappingResource
+    {
+        Task CreateOrUpdateAsync(CreateChatMappingRequest mapping, CancellationToken cancellation);
+    }
+
+    public interface IChatResource
+    {
+        Task<IEnumerable<Chat>> GetAllAsync(CancellationToken cancellation);
+    }
 }

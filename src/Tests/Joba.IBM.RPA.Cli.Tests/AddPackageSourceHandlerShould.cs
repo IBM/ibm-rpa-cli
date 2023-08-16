@@ -143,7 +143,7 @@ namespace Joba.IBM.RPA.Cli.Tests
             try
             {
                 //arrange
-                var properties = PropertyOptions.Parse(new string[] { $"{PropertyOptions.CloudPakConsoleAddress}=https://cloudpakconsole.ibm.com/" });
+                var properties = PropertyOptions.Parse($"{PropertyOptions.CloudPakConsoleAddress}=https://cloudpakconsole.ibm.com/");
                 var options = new RemoteOptions("qa", new ServerAddress("https://qa.ibm.com"), "us1qa", "username", 501, "password");
                 var region = new Region(options.RegionName!, options.Address.ToUri());
                 var config = new ServerConfig { Regions = new Region[] { region }, Version = RpaCommand.SupportedServerVersion, Deployment = DeploymentOption.OCP, AuthenticationMethod = AuthenticationMethod.OIDC };

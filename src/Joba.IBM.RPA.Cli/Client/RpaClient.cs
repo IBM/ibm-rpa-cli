@@ -1,6 +1,9 @@
-﻿using System.Globalization;
+﻿using Joba.IBM.RPA.Server;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
+using System.Xml.Linq;
 
 namespace Joba.IBM.RPA.Cli
 {
@@ -34,7 +37,10 @@ namespace Joba.IBM.RPA.Cli
             Parameter = new ParameterResource(client);
             Project = new ProjectResource(client);
             Bot = new BotResource(client);
+            Computer = new ComputerResource(client);
             ComputerGroup = new ComputerGroupResource(client);
+            Chat = new ChatResource(client);
+            ChatMapping = new ChatMappingResource(client);
         }
 
         public Uri Address => client.BaseAddress!;
@@ -44,7 +50,10 @@ namespace Joba.IBM.RPA.Cli
         public IParameterResource Parameter { get; }
         public IProjectResource Project { get; }
         public IBotResource Bot { get; }
+        public IComputerResource Computer { get; }
         public IComputerGroupResource ComputerGroup { get; }
+        public IChatResource Chat { get; }
+        public IChatMappingResource ChatMapping { get; }
 
         public async Task<ServerConfig> GetConfigurationAsync(CancellationToken cancellation) =>
             await client.GetFromJsonAsync<ServerConfig>($"{CultureInfo.CurrentCulture.Name}/configuration", SerializerOptions, cancellation);
@@ -266,7 +275,7 @@ namespace Joba.IBM.RPA.Cli
 
             public ProjectResource(HttpClient client) => this.client = client;
 
-            public async Task<ServerProject> CreateOrUpdateAsync(string name, string description, CancellationToken cancellation)
+            public async Task<Project> CreateOrUpdateAsync(string name, string description, CancellationToken cancellation)
             {
                 var project = (await SearchAsync(name, 1, cancellation)).FirstOrDefault();
                 if (project == null)
@@ -278,29 +287,29 @@ namespace Joba.IBM.RPA.Cli
                 return project;
             }
 
-            private async Task<IEnumerable<ServerProject>> SearchAsync(string name, int limit, CancellationToken cancellation)
+            private async Task<IEnumerable<Project>> SearchAsync(string name, int limit, CancellationToken cancellation)
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/project?offset=0&limit={limit}&search={name}&orderBy=name&asc=true";
-                var response = await client.GetFromJsonAsync<PagedResponse<ServerProject>>(url, SerializerOptions, cancellation);
+                var response = await client.GetFromJsonAsync<PagedResponse<Project>>(url, SerializerOptions, cancellation);
                 return response.Results;
             }
 
-            private async Task<ServerProject> CreateAsync(string name, UniqueId uniqueId, string description, CancellationToken cancellation)
+            private async Task<Project> CreateAsync(string name, UniqueId uniqueId, string description, CancellationToken cancellation)
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/project";
                 var project = new { Name = name, Description = description, TechnicalName = uniqueId };
                 var response = await client.PostAsJsonAsync(url, project, SerializerOptions, cancellation);
                 await response.ThrowWhenUnsuccessfulAsync(cancellation);
-                return await response.Content.ReadFromJsonAsync<ServerProject>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
+                return await response.Content.ReadFromJsonAsync<Project>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
             }
 
-            private async Task<ServerProject> UpdateAsync(Guid id, string name, string description, CancellationToken cancellation)
+            private async Task<Project> UpdateAsync(Guid id, string name, string description, CancellationToken cancellation)
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/project/{id}";
                 var project = new { Name = name, Description = description };
                 var response = await client.PutAsJsonAsync(url, project, SerializerOptions, cancellation);
                 await response.ThrowWhenUnsuccessfulAsync(cancellation);
-                return await response.Content.ReadFromJsonAsync<ServerProject>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
+                return await response.Content.ReadFromJsonAsync<Project>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
             }
         }
 
@@ -310,39 +319,53 @@ namespace Joba.IBM.RPA.Cli
 
             public BotResource(HttpClient client) => this.client = client;
 
-            public async Task CreateOrUpdateAsync(ServerBot bot, CancellationToken cancellation)
+            public async Task CreateOrUpdateAsync(CreateBotRequest bot, CancellationToken cancellation)
             {
                 var server = (await SearchAsync(bot.ProjectId, bot.Name, 1, cancellation)).FirstOrDefault();
                 if (server == null)
                     _ = await CreateAsync(bot, cancellation);
                 else
-                    _ = await UpdateAsync(server.Id, ServerBot.Copy(bot, server.UniqueId), cancellation);
+                    _ = await UpdateAsync(server.Id, CreateBotRequest.Copy(bot, server.UniqueId), cancellation);
             }
 
-            private async Task<ServerBotSearch> UpdateAsync(Guid id, ServerBot bot, CancellationToken cancellation)
+            private async Task<BotSearchResponse> UpdateAsync(Guid id, CreateBotRequest bot, CancellationToken cancellation)
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/project/bot/{id}";
                 var response = await client.PutAsJsonAsync(url, bot, SerializerOptions, cancellation);
                 await response.ThrowWhenUnsuccessfulAsync(cancellation);
-                return await response.Content.ReadFromJsonAsync<ServerBotSearch>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
+                return await response.Content.ReadFromJsonAsync<BotSearchResponse>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
             }
 
-            private async Task<ServerBotSearch> CreateAsync(ServerBot bot, CancellationToken cancellation)
+            private async Task<BotSearchResponse> CreateAsync(CreateBotRequest bot, CancellationToken cancellation)
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/project/bot";
                 var response = await client.PostAsJsonAsync(url, bot, SerializerOptions, cancellation);
                 await response.ThrowWhenUnsuccessfulAsync(cancellation);
-                return await response.Content.ReadFromJsonAsync<ServerBotSearch>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
+                return await response.Content.ReadFromJsonAsync<BotSearchResponse>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
             }
 
-            private async Task<IEnumerable<ServerBotSearch>> SearchAsync(Guid projectId, string name, int limit, CancellationToken cancellation)
+            private async Task<IEnumerable<BotSearchResponse>> SearchAsync(Guid projectId, string name, int limit, CancellationToken cancellation)
             {
                 var url = $"{CultureInfo.CurrentCulture.Name}/project/bot?projectId={projectId}&include=ScriptVersion&offset=0&limit={limit}&search={name}&orderBy=name&asc=true";
-                var response = await client.GetFromJsonAsync<PagedResponse<ServerBotSearch>>(url, SerializerOptions, cancellation);
+                var response = await client.GetFromJsonAsync<PagedResponse<BotSearchResponse>>(url, SerializerOptions, cancellation);
                 return response.Results;
             }
 
-            record ServerBotSearch(Guid Id, string Name, string Description, [property: JsonPropertyName("TechnicalName")] UniqueId UniqueId, ScriptVersion ScriptVersion);
+            record BotSearchResponse(Guid Id, string Name, string Description, [property: JsonPropertyName("TechnicalName")] UniqueId UniqueId, ScriptVersion ScriptVersion);
+        }
+
+        class ComputerResource : IComputerResource
+        {
+            private readonly HttpClient client;
+
+            public ComputerResource(HttpClient client) => this.client = client;
+
+            async Task<IEnumerable<Computer>> IComputerResource.SearchAsync(string? name, int limit, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/computer?offset=0&limit={limit}&search={name}&orderBy=name&asc=true";
+                var response = await client.GetFromJsonAsync<PagedResponse<Computer>>(url, SerializerOptions, cancellation);
+                return response.Results;
+            }
         }
 
         class ComputerGroupResource : IComputerGroupResource
@@ -362,6 +385,61 @@ namespace Joba.IBM.RPA.Cli
                 var url = $"{CultureInfo.CurrentCulture.Name}/group?offset=0&limit={limit}&search={name}&orderBy=name&asc=true";
                 var response = await client.GetFromJsonAsync<PagedResponse<ComputerGroup>>(url, SerializerOptions, cancellation);
                 return response.Results;
+            }
+        }
+
+        class ChatMappingResource : IChatMappingResource
+        {
+            private readonly HttpClient client;
+
+            public ChatMappingResource(HttpClient client) => this.client = client;
+
+            async Task IChatMappingResource.CreateOrUpdateAsync(CreateChatMappingRequest mapping, CancellationToken cancellation)
+            {
+                var server = (await SearchAsync(mapping.Name, 1, cancellation)).FirstOrDefault();
+                if (server == null)
+                    _ = await CreateAsync(mapping, cancellation);
+                else
+                    _ = await UpdateAsync(server.Id, mapping, cancellation);
+            }
+
+            private async Task<IEnumerable<ChatMapping>> SearchAsync(string name, int limit, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/bot-mapping?include=Bot&offset=0&limit={limit}&search={name}&orderBy=name&asc=true";
+                var response = await client.GetFromJsonAsync<PagedResponse<ChatMappingSearchResponse>>(url, SerializerOptions, cancellation);
+                return response.Results.Select(r => new ChatMapping(r.Id, r.ChatId, r.Name, r.Chat.Handle)).ToArray();
+            }
+
+            private async Task<ChatMappingSearchResponse> CreateAsync(CreateChatMappingRequest mapping, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/bot-mapping";
+                var response = await client.PostAsJsonAsync(url, mapping, SerializerOptions, cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
+                return await response.Content.ReadFromJsonAsync<ChatMappingSearchResponse>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
+            }
+
+            private async Task<ChatMappingSearchResponse> UpdateAsync(Guid id, CreateChatMappingRequest mapping, CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/bot-mapping/{id}";
+                var response = await client.PutAsJsonAsync(url, mapping, SerializerOptions, cancellation);
+                await response.ThrowWhenUnsuccessfulAsync(cancellation);
+                return await response.Content.ReadFromJsonAsync<ChatMappingSearchResponse>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
+            }
+
+            record ChatMappingSearchResponse([property: JsonPropertyName("BotId")] Guid ChatId, Guid Id, string Name, [property: JsonPropertyName("Bot")] Chat Chat);
+        }
+
+        class ChatResource : IChatResource
+        {
+            private readonly HttpClient client;
+
+            public ChatResource(HttpClient client) => this.client = client;
+
+            async Task<IEnumerable<Chat>> IChatResource.GetAllAsync(CancellationToken cancellation)
+            {
+                var url = $"{CultureInfo.CurrentCulture.Name}/bot/dropdown?filterTenant=true";
+                var chats = await client.GetFromJsonAsync<IEnumerable<Chat>>(url, SerializerOptions, cancellation);
+                return chats ?? throw new Exception("Could not convert the response");
             }
         }
 

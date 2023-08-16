@@ -1,0 +1,10 @@
+{
+  "description": "CreateAttended",
+  "robots": {
+    "CreateAttended": {
+      "type": "attended",
+      "timeout": "00:05:00",
+      "description": "CreateAttended"
+    }
+  }
+}

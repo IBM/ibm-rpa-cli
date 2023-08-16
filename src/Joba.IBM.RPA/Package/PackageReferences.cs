@@ -1,4 +1,6 @@
-﻿namespace Joba.IBM.RPA
+﻿using Joba.IBM.RPA.Server;
+
+namespace Joba.IBM.RPA
 {
     internal class PackageReferences : IPackages
     {

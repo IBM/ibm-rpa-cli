@@ -14,19 +14,22 @@ namespace Joba.IBM.RPA.Cli
                 var name = new Argument<string>("name", description: "The bot name.");
                 var template = new Option<string>("--template", () => "unattended", "The template to use. Depending on the template, different configurations are allowed.")
                     .FromAmong("attended", "chatbot", "unattended", "package", "excel");
+                var properties = new Option<IEnumerable<string>?>(new[] { "--property", "-p" }, $"A key-value pair property to specify specific configurations for each template.") { AllowMultipleArgumentsPerToken = true };
 
                 AddArgument(name);
                 AddOption(template);
+                AddOption(properties);
                 this.SetHandler(HandleAsync, name, template,
+                    new PropertyOptionsBinder(properties),
                     Bind.FromLogger<RobotCommand>(),
                     Bind.FromServiceProvider<IProject>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string name, string templateName, ILogger<RobotCommand> logger, IProject project, InvocationContext context)
+            private async Task HandleAsync(string name, string templateName, PropertyOptions properties, ILogger<RobotCommand> logger, IProject project, InvocationContext context)
             {
                 var handler = new NewRobotHandler(logger, project);
-                await handler.HandleAsync(name, templateName, context.GetCancellationToken());
+                await handler.HandleAsync(name, templateName, properties, context.GetCancellationToken());
             }
 
             internal class NewRobotHandler
@@ -40,7 +43,7 @@ namespace Joba.IBM.RPA.Cli
                     this.project = project;
                 }
 
-                internal async Task HandleAsync(string name, string templateName, CancellationToken cancellation)
+                internal async Task HandleAsync(string name, string templateName, PropertyOptions properties, CancellationToken cancellation)
                 {
                     if (project.Robots.Exists(name))
                         throw new ProjectException($"Robot named '{name}' already exists.");
@@ -50,7 +53,7 @@ namespace Joba.IBM.RPA.Cli
                         var template = new TemplateFactory(project.WorkingDirectory, Assembly.GetExecutingAssembly());
                         _ = await template.CreateAsync(new WalFileName(name), templateName, cancellation);
                     }
-                    var settings = RobotSettingsFactory.Create(templateName, name);
+                    var settings = RobotSettingsFactory.Create(templateName, name, properties);
                     project.Robots.Add(name, settings);
 
                     await project.SaveAsync(cancellation);

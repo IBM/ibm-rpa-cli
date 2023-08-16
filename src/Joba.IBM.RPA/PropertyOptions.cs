@@ -11,7 +11,7 @@
         public string? this[string key] => properties.ContainsKey(key) ? properties[key] : null;
         public int Count => properties.Count;
 
-        public static PropertyOptions Parse(IEnumerable<string> values)
+        public static PropertyOptions Parse(params string[] values)
         {
             var properties = new Dictionary<string, string>();
             foreach (var value in values)
