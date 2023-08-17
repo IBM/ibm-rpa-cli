@@ -9,17 +9,20 @@ namespace Joba.IBM.RPA.Cli
             public NewProjectCommand() : base("new", "Creates a RPA project in the current directory")
             {
                 var name = new Argument<string>("name", "The project name.");
+                var description = new Option<string?>("--description", "The project description.");
+                description.AddAlias("-d");
 
                 AddArgument(name);
-                this.SetHandler(HandleAsync, name,
+                AddOption(description);
+                this.SetHandler(HandleAsync, name, description,
                     Bind.FromLogger<NewProjectCommand>(),
                     Bind.FromServiceProvider<InvocationContext>());
             }
 
-            private async Task HandleAsync(string name, ILogger<NewProjectCommand> logger, InvocationContext context)
+            private async Task HandleAsync(string name, string? description, ILogger<NewProjectCommand> logger, InvocationContext context)
             {
                 var handler = new NewProjectHandler(logger);
-                await handler.HandleAsync(new DirectoryInfo(System.Environment.CurrentDirectory), name, context.GetCancellationToken());
+                await handler.HandleAsync(new DirectoryInfo(System.Environment.CurrentDirectory), name, description, context.GetCancellationToken());
             }
         }
 
@@ -32,9 +35,9 @@ namespace Joba.IBM.RPA.Cli
                 this.logger = logger;
             }
 
-            internal async Task HandleAsync(DirectoryInfo workingDir, string name, CancellationToken cancellation)
+            internal async Task HandleAsync(DirectoryInfo workingDir, string name, string? description, CancellationToken cancellation)
             {
-                var project = ProjectFactory.Create(workingDir, name);
+                var project = ProjectFactory.Create(workingDir, name, description);
                 await project.SaveAsync(cancellation);
 
                 logger.LogInformation("Project '{ProjectName}' has been initialized. Use '{RpaCommandName} {BuildCommand}' to build the project. Or '{RpaCommandName} {RobotCommand} {NewBotCommand} [name]' to create bots",

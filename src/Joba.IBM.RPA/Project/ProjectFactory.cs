@@ -2,7 +2,7 @@
 {
     public static class ProjectFactory
     {
-        public static IProject Create(DirectoryInfo workingDir, string name)
+        public static IProject Create(DirectoryInfo workingDir, string name, string? description = null)
         {
             var projectFile = new ProjectFile(workingDir, name);
             if (projectFile.RpaDirectory.Exists)
@@ -11,7 +11,7 @@
 
             var userFile = new UserSettingsFile(projectFile.ProjectName);
             var packageSourcesFile = new PackageSourcesFile(workingDir, projectFile.ProjectName);
-            var projectSettings = new ProjectSettings(workingDir) { Description = name };
+            var projectSettings = new ProjectSettings(workingDir) { Description = description ?? name };
 
             return new Project(projectFile, projectSettings, userFile, new UserSettings(), packageSourcesFile);
         }

@@ -25,7 +25,7 @@ namespace Joba.IBM.RPA.Cli.Tests
                 var sut = new NewProjectHandler(logger);
 
                 //act
-                await sut.HandleAsync(workingDir, projectName, CancellationToken.None);
+                await sut.HandleAsync(workingDir, projectName, null, CancellationToken.None);
 
                 //assert
                 await VerifyFile(Path.Combine(workingDir.FullName, $"{projectName}.rpa.json"))
@@ -48,10 +48,10 @@ namespace Joba.IBM.RPA.Cli.Tests
                 //arrange
                 var projectName = nameof(ThrowException_WhenAnyProjectIsAlreadyConfiguredInTheWorkingDirectory);
                 var sut = new NewProjectHandler(logger);
-                await sut.HandleAsync(workingDir, projectName, CancellationToken.None);
+                await sut.HandleAsync(workingDir, projectName, null, CancellationToken.None);
 
                 //assert
-                _ = await Assert.ThrowsAsync<ProjectException>(async () => await sut.HandleAsync(workingDir, projectName, CancellationToken.None));
+                _ = await Assert.ThrowsAsync<ProjectException>(async () => await sut.HandleAsync(workingDir, projectName, null, CancellationToken.None));
             }
             finally
             {

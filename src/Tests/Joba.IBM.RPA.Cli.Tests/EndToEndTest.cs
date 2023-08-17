@@ -21,7 +21,7 @@ namespace Joba.IBM.RPA.Cli.Tests
         public async Task CreateAndDeployProject()
         {
             var parameters = ReadParameters();
-            await RunAsync($"project new {parameters.ProjectName}");
+            await RunAsync($"project new {parameters.ProjectName} -d '{parameters.ProjectDescription}'");
             await RunAsync($"env new source --url {parameters.SourceOptions.ApiUrl} --region {parameters.SourceOptions.Region} --userName {parameters.SourceOptions.Username} --tenant {parameters.SourceOptions.TenantCode}");
             await RunAsync($"env new target --url {parameters.TargetOptions.ApiUrl} --region {parameters.TargetOptions.Region} --userName {parameters.TargetOptions.Username} --tenant {parameters.TargetOptions.TenantCode}");
             await RunAsync($"package source package --url {parameters.PackageOptions.ApiUrl} --region {parameters.PackageOptions.Region} --userName {parameters.PackageOptions.Username} --tenant {parameters.PackageOptions.TenantCode}");
@@ -37,7 +37,8 @@ namespace Joba.IBM.RPA.Cli.Tests
         private E2eParameters ReadParameters()
         {
             return new E2eParameters(
-                $"End to end RPA CLI tests",
+                "e2e",
+                "End to end RPA CLI tests",
                 new E2eRemoteOptions(
                     GetAndAssertEnvironmentVariable("E2E_SOURCE_URL"),
                     GetAndAssertEnvironmentVariable("E2E_SOURCE_REGION"),
@@ -56,7 +57,7 @@ namespace Joba.IBM.RPA.Cli.Tests
                 new E2eChat(GetAndAssertEnvironmentVariable("E2E_TARGET_CHAT_HANDLE"), GetAndAssertEnvironmentVariable("E2E_TARGET_CHAT_COMPUTERS")),
                 new E2eUnattended(GetAndAssertEnvironmentVariable("E2E_TARGET_COMPUTERGROUP")));
 
-            static string GetAndAssertEnvironmentVariable(string variable) => 
+            static string GetAndAssertEnvironmentVariable(string variable) =>
                 System.Environment.GetEnvironmentVariable(variable) ?? throw new InvalidOperationException($"The environment variable '{variable}' is required and was not found.");
         }
 
@@ -116,7 +117,7 @@ namespace Joba.IBM.RPA.Cli.Tests
                 file.Delete();
         }
 
-        record struct E2eParameters(string ProjectName, E2eRemoteOptions SourceOptions, E2eRemoteOptions TargetOptions, E2eRemoteOptions PackageOptions, E2eChat Chat, E2eUnattended Unattended);
+        record struct E2eParameters(string ProjectName, string ProjectDescription, E2eRemoteOptions SourceOptions, E2eRemoteOptions TargetOptions, E2eRemoteOptions PackageOptions, E2eChat Chat, E2eUnattended Unattended);
         record struct E2eRemoteOptions(string ApiUrl, string Region, int TenantCode, string Username);
         record struct E2eChat(string Handle, string Computers);
         record struct E2eUnattended(string ComputerGroup);
