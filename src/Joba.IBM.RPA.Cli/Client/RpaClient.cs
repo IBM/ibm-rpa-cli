@@ -346,7 +346,7 @@ namespace Joba.IBM.RPA.Cli
 
             private async Task<IEnumerable<BotSearchResponse>> SearchAsync(Guid projectId, string name, int limit, CancellationToken cancellation)
             {
-                var url = $"{CultureInfo.CurrentCulture.Name}/project/bot?projectId={projectId}&include=ScriptVersion&offset=0&limit={limit}&search={name}&orderBy=name&asc=true";
+                var url = $"{CultureInfo.CurrentCulture.Name}/project/{projectId}/bot?include=ScriptVersion&offset=0&limit={limit}&search={name}&orderBy=name&asc=true";
                 var response = await client.GetFromJsonAsync<PagedResponse<BotSearchResponse>>(url, SerializerOptions, cancellation);
                 return response.Results;
             }

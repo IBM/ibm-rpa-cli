@@ -8,7 +8,7 @@ namespace Joba.IBM.RPA.Cli
 {
     internal class RpaCommand : RootCommand
     {
-        public static readonly Version SupportedServerVersion = new Version("23.0.3");
+        public static readonly Version SupportedServerVersion = new Version("23.0.8");
         public const string CommandName = "rpa";
         internal const string ServiceName = $"{CommandName} cli";
         internal static readonly Option<Verbosity> VerbosityOption = CreateVerbosityOption();
