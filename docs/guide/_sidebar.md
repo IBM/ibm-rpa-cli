@@ -9,6 +9,7 @@
   * [Creating packages](guide/create-package.md)
   * [Joba packages](guide/joba-packages.md)
   * [Using executeScript](guide/execute-script.md)
+  * [Referencing files](guide/file-reference.md)
   * [Deploying projects](guide/deploy.md)
 * [Concepts](concepts.md)
 * [Command Reference](reference.md "Describes the latest version of the RPA CLI in detail and provides basic syntax, options, and usage examples for each operation.")
