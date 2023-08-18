@@ -4,10 +4,10 @@
 Yes.
 
 ## Does it support On-Premise?
-Yes. RPA CLI supports On-Premise servers with version `23.0.3` and later.
+Yes. RPA CLI supports On-Premise servers with version `23.0.8` and later.
 
 ## Does it support Red Hat® OpenShift®?
-Yes. RPA CLI supports OpenShift® Container Platform (OCP) servers with version `23.0.3` and later.
+Yes. RPA CLI supports OpenShift® Container Platform (OCP) servers with version `23.0.8` and later.
 
 ## Does it support Single Sign-On?
 Yes. RPA CLI follows the [IBM RPA documentation](https://www.ibm.com/docs/en/rpa/23.0?topic=call-authenticating-rpa-api#authenticating-to-the-api-through-zen) to support Single Sign-On for Red Hat® OpenShift®.

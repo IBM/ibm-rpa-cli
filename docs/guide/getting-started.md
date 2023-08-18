@@ -4,7 +4,7 @@
 To access IBM® RPA platform with the RPA CLI, you need a IBM® RPA tenant and credentials to access it. When running RPA CLI commands, the RPA CLI access the tenant resources using the provided credentials. Therefore, the RPA CLI is limited by the provided credentials' permissions and roles. To increase the security of your RPA account, we recommend that you do not use your tenant administrator account credentials. You should create a user with least privilege to provide access credentials to the tasks you'll be running in. See the required [permissions](security.md#permissions) RPA CLI needs and optionally create a custom role for it.
 
 ### IBM® RPA version
-RPA CLI supports servers with `23.0.3` versions and later. SaaS and On-Prem deployments are supported. RPA CLI does not require the *client software* to be installed.
+RPA CLI supports servers with `23.0.8` versions and later. SaaS and On-Prem deployments are supported. RPA CLI does not require the *client software* to be installed.
 
 ## Install or Update
 This topic describes how to install or update the latest release of the RPA CLI on supported operating systems.
