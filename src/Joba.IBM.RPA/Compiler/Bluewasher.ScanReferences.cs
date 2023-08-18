@@ -41,11 +41,15 @@ namespace Joba.IBM.RPA
                     throw new InvalidOperationException($"The following explicit dependencies were not found:\n{string.Join(System.Environment.NewLine, nonExistingFiles.Select(n => n.FullName))}");
 
                 var @explicit = candidates.ToList();
-                foreach (var wal in candidates.Where(dependencyDoesNotExist).Select(WalFile.Read))
+                foreach (var file in candidates.Where(dependencyDoesNotExist))
                 {
-                    var scanner = new ReferenceScanner(logger, project, wal);
-                    var dependencies = scanner.Scan().Select(r => r.Right).Distinct();
-                    @explicit.AddRange(dependencies);
+                    @explicit.Add(file);
+                    if (file.Extension == WalFile.Extension)
+                    {
+                        var scanner = new ReferenceScanner(logger, project, WalFile.Read(file));
+                        var dependencies = scanner.Scan().Select(r => r.Right).Distinct();
+                        @explicit.AddRange(dependencies);
+                    }
                 }
 
                 return @explicit.DistinctBy(e => e.FullName);

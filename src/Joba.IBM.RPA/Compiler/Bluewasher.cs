@@ -183,37 +183,47 @@ namespace Joba.IBM.RPA
                     logger.LogWarning(new string(' ', logPadding) + message, args);
             }
 
-            internal IEnumerable<Reference> Scan() => ScanRecursively(this);
+            internal IEnumerable<Reference> Scan()
+            {
+                var excelOpen = ScanRecursively<ExcelOpenLine>(ExcelOpenLine.Verb, this);
+                var executeScript = ScanRecursively<ExecuteScriptLine>(ExecuteScriptLine.Verb, this);
+                //NOTE: the order of scanning matters, because when scanning .wal, we change the 'WalFile current' variable.
+                return excelOpen.Concat(executeScript);
+            }
 
-            private static IEnumerable<Reference> ScanRecursively(ReferenceScanner context)
+            private static IEnumerable<Reference> ScanRecursively<TCommand>(string verb, ReferenceScanner context) where TCommand : ReferenceableWalLine
             {
                 context.LogDebug("Analyzing '{Script}' ({File})", context.current.Name, context.current.Info.FullName);
                 var analyzer = context.CreateAnalyzer();
 
-                context.LogDebug("Searching '{command}' command references on '{Script}'", ExecuteScriptLine.Verb, context.current.Name);
-                var executeScripts = analyzer.EnumerateCommands<ExecuteScriptLine>(ExecuteScriptLine.Verb);
-                foreach (var executeScript in executeScripts)
+                context.LogDebug("Searching '{command}' command references on '{Script}'", verb, context.current.Name);
+                var commands = analyzer.EnumerateCommands<TCommand>(verb);
+                foreach (var command in commands)
                 {
-                    var relativePath = executeScript.GetRelativePath(context.project.WorkingDirectory);
+                    var relativePath = command.GetRelativePath(context.project.WorkingDirectory);
                     if (relativePath == null)
                     {
-                        context.LogWarning("Skipping the reference on line '{Line}' of '{Script}' because the '--name' parameter does not follow the format '[working_directory_variable]\\[path_of_the_wal_file_within_working_directory]'.", executeScript.LineNumber, context.current.Name, executeScript.Name);
+                        context.LogWarning("Skipping the reference on line '{Line}' of '{Script}' because the '{Parameters}' parameters do not follow the format '[working_directory_variable]\\[path_of_the_file_within_working_directory]'.", command.LineNumber, context.current.Name, string.Join(',', command.ReferenceParameterNames));
                         context.LogWarning("Examples:\n" +
                             "  ${workingDir}\\myscript.wal\n" +
+                            "  ${workingDir}\\myexcel.xlsx\n" +
                             "  ${var1}\\packages\\package1.wal");
                         continue;
                     }
 
-                    context.LogDebug("Reference found on line '{Line}' of '{Script}': {RelativePath}", executeScript.LineNumber, context.current.Name, relativePath);
+                    context.LogDebug("Reference found on line '{Line}' of '{Script}': {RelativePath}", command.LineNumber, context.current.Name, relativePath);
 
                     var file = new FileInfo(Path.Combine(context.project.WorkingDirectory.FullName, relativePath));
-                    var wal = context.project.Scripts.Get(file);
-                    yield return wal == null
-                        ? throw new FileNotFoundException($"The file '{file.FullName}' could not be found.", file.Name)
-                        : new Reference(context.current.Info, wal.Info);
+                    if (!file.Exists)
+                        throw new FileNotFoundException($"The file '{file.FullName}' could not be found.", file.Name);
 
-                    foreach (var reference in ScanRecursively(context.Next(wal)))
-                        yield return reference;
+                    yield return new Reference(context.current.Info, file);
+                    if (file.Extension == WalFile.Extension)
+                    {
+                        var wal = context.project.Scripts.Get(file) ?? throw new FileNotFoundException($"The file '{file.FullName}' could not be found.", file.Name);
+                        foreach (var reference in ScanRecursively<TCommand>(verb, context.Next(wal)))
+                            yield return reference;
+                    }
                 }
             }
         }

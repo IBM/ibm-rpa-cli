@@ -97,6 +97,32 @@ namespace Joba.IBM.RPA.Tests
             AssertImport(chatbotAnalyzer, @"utils.wal");
         }
 
+        [Fact]
+        public async Task Build_Robot_With_Wal_And_Excel_Dependencies()
+        {
+            //arrange
+            var properties = new PropertyOptions();
+            var workingDir = new DirectoryInfo(Path.GetFullPath(@"assets/build/04/working-directory"));
+            var outputDir = new DirectoryInfo(Path.Combine(System.Environment.CurrentDirectory, @"out/04"));
+            outputDir.Create();
+
+            var robot = new Robot("main", RobotSettingsFactory.Create("unattended", "main", new PropertyOptions()));
+            var project = MockProject(workingDir, nameof(Build_Robot_With_Wal_And_Excel_Dependencies), robot);
+            var sut = CreateCompiler(logger, project);
+
+            //act
+            var arguments = new BuildArguments(project, robot, outputDir);
+            var result = await sut.BuildAsync(arguments, CancellationToken.None);
+
+            //assert
+            Assert.True(result.Success, result.Error?.ToString());
+
+            var analyzer = new WalAnalyzer(result.Robots[robot]);
+            AssertDefineVariables(analyzer);
+            AssertRoutine(analyzer);
+            AssertImport(analyzer, "greetings.wal", "excel.xlsx", $"spreadsheets{Path.DirectorySeparatorChar}expense report.xlsx");
+        }
+
         private static void AssertImport(WalAnalyzer analyzer, params string[] entriesPaths)
         {
             var imports = analyzer.EnumerateCommands<ImportLine>(ImportLine.Verb).ToList();

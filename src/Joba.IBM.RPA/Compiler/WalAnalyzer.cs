@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Joba.IBM.RPA
 {
@@ -26,14 +27,15 @@ namespace Joba.IBM.RPA
             static WalParser()
             {
                 commandsMapping = new Dictionary<string, Type>
-            {
-                { ExecuteScriptLine.Verb, typeof(ExecuteScriptLine) },
-                { DefineVariableLine.Verb, typeof(DefineVariableLine) },
-                { ImportLine.Verb, typeof(ImportLine) },
-                { GoSubLine.Verb, typeof(GoSubLine) },
-                { BeginSubLine.Verb, typeof(BeginSubLine) },
-                { SetVarIfLine.Verb, typeof(SetVarIfLine) }
-            };
+                {
+                    { ExecuteScriptLine.Verb, typeof(ExecuteScriptLine) },
+                    { DefineVariableLine.Verb, typeof(DefineVariableLine) },
+                    { ImportLine.Verb, typeof(ImportLine) },
+                    { GoSubLine.Verb, typeof(GoSubLine) },
+                    { BeginSubLine.Verb, typeof(BeginSubLine) },
+                    { SetVarIfLine.Verb, typeof(SetVarIfLine) },
+                    { ExcelOpenLine.Verb, typeof(ExcelOpenLine) }
+                };
             }
 
             public WalLines Parse(WalContent wal) => new(ParseInternal(wal).ToList());
@@ -165,10 +167,69 @@ namespace Joba.IBM.RPA
         internal string Base64Content { get; }
     }
 
-    internal partial class ExecuteScriptLine : WalLine
+    internal class ExcelOpenLine : ReferenceableWalLine
+    {
+        public const string Verb = "excelOpen";
+        private readonly string[] referenceParameterNames = new string[] { "--file" };
+
+        public ExcelOpenLine(int number, string content, string? command)
+            : base(number, content, command)
+        {
+            var match = Regex.Match(content, @"--file\s+""(?<file>.*?)""", RegexOptions.IgnoreCase);
+            if (!match.Success)
+                throw new Exception($"Line {number} ({Verb}) does not have the '--file' parameter in the correct format.");
+
+            File = match.Groups["file"]?.Value;
+        }
+
+        internal override string[] ReferenceParameterNames => referenceParameterNames;
+        internal string File { get; }
+
+        internal override string? GetRelativePath(DirectoryInfo workingDir)
+        {
+            /*
+             * NOTE: IBM RPA version 23.0.x does not have 'working directory' concept,
+             *       but this tool is an OPINIONATED version of how PROJECTS should work.
+             * We expect ALL 'executeScript' references to be on the following format:
+             *   ${[working_directory_variable]}\[path_of_the_wal_file_within_working_directory]
+             * Examples
+             *   - ${workingDir}\myscript.wal
+             *   - ${var1}\packages\package1.wal
+             *   - ${folder}\math\sum.wal
+             * Not allowed (we're going to return NULL for those, so we skip adding them to the build package)
+             *   - ${workingDir}\${var1}\myscript.wal
+             *   - ${scriptName}
+             *   - c:\myscript.wal
+             *   - myscript
+             *   - myscript.wal
+             *   
+             * We need to find the 'relative path' to the 'working directory'.
+             * Let's replace the first (and only first) variable --> ${workingDir}\\ <-- with empty strings.
+             */
+
+            var name = File.Replace(@"\\", @"\");
+            if (Path.IsPathFullyQualified(name))
+                return null;
+
+            var path = StartsWithVariableAndDirectorySeparator().Replace(name, string.Empty).TrimStart('\\');
+            if (ContainsVariable().IsMatch(path))
+                return null;
+
+            /*
+             * NOTE: at this point, we should have gone from 
+             *   - "${workingDir}\sum.wal" -> "sum.wal"
+             *   - "${workingDir}\packages\sum.wal" -> "packages\sum.wal"
+             */
+
+            return path.Replace('\\', Path.DirectorySeparatorChar);
+        }
+    }
+
+    internal class ExecuteScriptLine : ReferenceableWalLine
     {
         public const string Verb = "executeScript";
         private readonly bool isServerReference;
+        private readonly string[] referenceParameterNames = new string[] { "--name" };
 
         public ExecuteScriptLine(int number, string content, string? command)
             : base(number, content, command)
@@ -187,9 +248,10 @@ namespace Joba.IBM.RPA
             isServerReference = string.IsNullOrEmpty(published) == false;
         }
 
+        internal override string[] ReferenceParameterNames => referenceParameterNames;
         internal string Name { get; }
 
-        internal string? GetRelativePath(DirectoryInfo workingDir)
+        internal override string? GetRelativePath(DirectoryInfo workingDir)
         {
             /*
              * NOTE: IBM RPA version 23.0.x does not have 'working directory' concept,
@@ -227,11 +289,6 @@ namespace Joba.IBM.RPA
 
             return path.Replace('\\', Path.DirectorySeparatorChar);
         }
-
-        [GeneratedRegex(@"^\$\{[a-z_0-9]+\}(?=\\)", RegexOptions.IgnoreCase)]
-        private static partial Regex StartsWithVariableAndDirectorySeparator();
-        [GeneratedRegex(@"\$\{[a-z_0-9]+\}", RegexOptions.IgnoreCase)]
-        private static partial Regex ContainsVariable();
     }
 
     internal class WalLines : IEnumerable<WalLine>
@@ -248,6 +305,18 @@ namespace Joba.IBM.RPA
 
         public IEnumerator<WalLine> GetEnumerator() => lines.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)lines).GetEnumerator();
+    }
+
+    internal abstract partial class ReferenceableWalLine : WalLine
+    {
+        internal ReferenceableWalLine(int number, string content, string? command) : base(number, content, command) { }
+        internal abstract string[] ReferenceParameterNames { get; }
+        internal abstract string? GetRelativePath(DirectoryInfo workingDir);
+
+        [GeneratedRegex(@"^\$\{[a-z_0-9]+\}(?=\\)", RegexOptions.IgnoreCase)]
+        protected static partial Regex StartsWithVariableAndDirectorySeparator();
+        [GeneratedRegex(@"\$\{[a-z_0-9]+\}", RegexOptions.IgnoreCase)]
+        protected static partial Regex ContainsVariable();
     }
 
     internal class WalLine

@@ -1,0 +1,20 @@
+¶defVar --name sum --type Numeric
+defVar --name workingDirectory --type String
+defVar --name success --type Boolean
+defVar --name multiply --type Numeric
+defVar --name errorMessage --type String
+defVar --name errorLineNumber --type Numeric
+defVar --name errorRoutine --type String
+defVar --name error --type Error
+defVar --name scriptName --type String
+defVar --name result --type Numeric
+defVar --name excel --type Excel
+defVar --name expenseReport --type Excel
+setVarIf --variablename "${workingDirectory}" --value "C:\\Users\\002742631\\Desktop\\ibm-rpa-cli-test-scripts" --left "${workingDirectory}" --operator "Is_Null_Or_Empty"
+
+executeScript --name "${workingDirectory}\\greetings.wal" --comment greetings
+excelOpen --file "${workingDirectory}\\excel.xlsx" excel=value
+excelClose --file ${excel}
+
+excelOpen --file "${workingDirectory}\\spreadsheets\\expense report.xlsx" expenseReport=value
+excelClose --file ${expenseReport}*23.0.7.0
