@@ -20,6 +20,7 @@ namespace Joba.IBM.RPA.Cli.Tests
         [Fact]
         public async Task CreateAndDeployProject()
         {
+            //TODO: need to create computer+computergroups+chat since QA by default is empty.
             var parameters = ReadParameters();
             await RunAsync($"project new {parameters.ProjectName} -d '{parameters.ProjectDescription}'");
             await RunAsync($"env new source --url {parameters.SourceOptions.ApiUrl} --region {parameters.SourceOptions.Region} --userName {parameters.SourceOptions.Username} --tenant {parameters.SourceOptions.TenantCode}");
@@ -38,7 +39,7 @@ namespace Joba.IBM.RPA.Cli.Tests
         {
             return new E2eParameters(
                 "e2e",
-                "End to end RPA CLI tests",
+                "e2e",
                 new E2eRemoteOptions(
                     GetAndAssertEnvironmentVariable("E2E_SOURCE_URL"),
                     GetAndAssertEnvironmentVariable("E2E_SOURCE_REGION"),
@@ -69,9 +70,11 @@ namespace Joba.IBM.RPA.Cli.Tests
 
         private async Task<int> StartProcessAsync(string arguments)
         {
+            logger.LogInformation($"rpa {arguments}");
+            arguments = $"{arguments} -v Detailed";
             var envVarName = "RPA_EXECUTABLE_PATH";
             var path = System.Environment.GetEnvironmentVariable(envVarName) ?? throw new InvalidOperationException($"The environment variable {envVarName} was not set.");
-            var info = new ProcessStartInfo(Path.GetFullPath(path), $"{arguments} -v Detailed")
+            var info = new ProcessStartInfo(Path.GetFullPath(path), arguments)
             {
                 UseShellExecute = false,
                 RedirectStandardError = true,
