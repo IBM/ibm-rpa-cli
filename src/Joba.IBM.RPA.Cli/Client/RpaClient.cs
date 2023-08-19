@@ -330,7 +330,7 @@ namespace Joba.IBM.RPA.Cli
 
             private async Task<BotSearchResponse> UpdateAsync(Guid id, CreateBotRequest bot, CancellationToken cancellation)
             {
-                var url = $"{CultureInfo.CurrentCulture.Name}/project/bot/{id}";
+                var url = $"{CultureInfo.CurrentCulture.Name}/project/{bot.ProjectId}/bot/{id}";
                 var response = await client.PutAsJsonAsync(url, bot, SerializerOptions, cancellation);
                 await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<BotSearchResponse>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
@@ -338,7 +338,7 @@ namespace Joba.IBM.RPA.Cli
 
             private async Task<BotSearchResponse> CreateAsync(CreateBotRequest bot, CancellationToken cancellation)
             {
-                var url = $"{CultureInfo.CurrentCulture.Name}/project/bot";
+                var url = $"{CultureInfo.CurrentCulture.Name}/project/{bot.ProjectId}/bot";
                 var response = await client.PostAsJsonAsync(url, bot, SerializerOptions, cancellation);
                 await response.ThrowWhenUnsuccessfulAsync(cancellation);
                 return await response.Content.ReadFromJsonAsync<BotSearchResponse>(SerializerOptions, cancellation) ?? throw new Exception("Could not convert the response");
@@ -346,7 +346,7 @@ namespace Joba.IBM.RPA.Cli
 
             private async Task<IEnumerable<BotSearchResponse>> SearchAsync(Guid projectId, string name, int limit, CancellationToken cancellation)
             {
-                var url = $"{CultureInfo.CurrentCulture.Name}/project/{projectId}/bot?include=ScriptVersion&offset=0&limit={limit}&search={name}&orderBy=name&asc=true";
+                var url = $"{CultureInfo.CurrentCulture.Name}/project/{projectId}/bot?offset=0&limit={limit}&search={name}&orderBy=name&asc=true";
                 var response = await client.GetFromJsonAsync<PagedResponse<BotSearchResponse>>(url, SerializerOptions, cancellation);
                 return response.Results;
             }
