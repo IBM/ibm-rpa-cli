@@ -31,7 +31,10 @@ body:
       label: Cli version
       description: What version of RPA CLI are you running?
       options:
-        - 1.0.0-beta-2 (latest)
+        - 1.0.0-beta-5 (latest)
+        - 1.0.0-beta-4
+        - 1.0.0-beta-3
+        - 1.0.0-beta-2
         - 1.0.0-beta-1
     validations:
       required: true
@@ -41,9 +44,10 @@ body:
       label: Server version
       description: What is the IBM RPA server version?
       options:
-        - 23.0.5
-        - 23.0.4
-        - 23.0.3
+        - 23.0.11
+        - 23.0.10
+        - 23.0.9
+        - 23.0.8
     validations:
       required: true
   - type: dropdown
