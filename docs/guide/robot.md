@@ -27,8 +27,14 @@ The above command updates the configuration file named `[project_name].rpa.json`
 
 The command also creates a WAL file named `[name].wal` within the working directory, where `[name]` is the specified robot name. This WAL file is the **entry point** or **main** file of the robot. If your code references other WAL files using the [executeScript](https://www.ibm.com/docs/en/rpa/23.0?topic=general-execute-script) command, those references will be embedded into the main file through the [build](reference.md#rpa-build) proccess.
 
+You can also specify specific properties that are not part of the command parameters by default. This mechanism is used when defining specific properties for robot types like unattended and chatbot. Use `-p:<key>=<value>` to specify properties and their values, where `<key>` is the name of the property, and `<value>` is its value. For example, `timeout` property is not part of the default parameters of `rpa bot new` command, so you can specify it like so:
+
+```bash
+rpa bot new [name] --template [template] -p:timeout=00:05:00
+```
+
 ### Unattended
-Unattended robot type has one extra **required** configuration for deployment of the project: `computer-group`. You need to specify a valid [computer group](https://www.ibm.com/docs/en/rpa/23.0?topic=computers-managing-computer-groups) **name** manually in the configuration file.
+Unattended robot type has one extra **required** configuration for deployment of the project: `computer-group`. You need to specify a valid [computer group](https://www.ibm.com/docs/en/rpa/23.0?topic=computers-managing-computer-groups) **name** either manually in the configuration file or through the command line using the `-p` parameter, like so: `-p:computer-group=[computer_group_name]`.
 
 Example:
 ```json
@@ -50,7 +56,29 @@ When you [deploy](guide/deploy.md) the project with unattended robots, Control C
 When you [deploy](guide/deploy.md) the project with attended robots, only WAL scripts are published. Support for creating Control Center [launchers](https://www.ibm.com/docs/en/rpa/23.0?topic=interfaces-launchers) is coming soon.
 
 ### Chatbot
-When you [deploy](guide/deploy.md) the project with chatbot robots, only WAL scripts are published. Support for creating Control Center [chat mappings](https://www.ibm.com/docs/en/rpa/23.0?topic=chatbots-chats-mappings) is coming soon.
+Chatbot robot type has four extra configuration for deployment of the project: `handle` (**required**), `computers` (**required**), `name`, `greeting`. You can specify them either manually in the configuration file or through the command line using the `-p` parameter, like so: `-p:handle=[handle] -p:computers=comp1,comp2`.
+
+- `handle` (**required**): a valid chatbot handle, also refered as [chatbot instance](https://www.ibm.com/docs/en/rpa/23.0?topic=saas-requesting-chatbot-instance).
+- `computers` (**required**): valid comma-separated [computer names](https://www.ibm.com/docs/en/rpa/23.0?topic=interfaces-computers).
+- `name`: the chatbot mapping name. If not provided, the *robot description* will be used.
+- `greeting`: the chatbot mapping greeting. If not provided, it will be empty.
+
+Example:
+```json
+{
+  ...
+  "robots": {
+    "[name]": {
+      "type": "[type]",
+      ...
+      "handle": "[handle]",
+      "computers": "[computer_names]"
+    }
+  }
+}
+```
+
+When you [deploy](guide/deploy.md) the project with chatbot robots, Control Center [chat mappings](https://www.ibm.com/docs/en/rpa/23.0?topic=chatbots-chats-mappings) are created or updated accordingly.
 
 ## Updating a robot
 You can update any robot configuration by changing the `[name].rpa.json` file, where `[name]` is the project name. RPA CLI updates the [Control Center bots](https://www.ibm.com/docs/en/rpa/23.0?topic=scripts-bots) using the configuration file as part of the [project deployment](guide/deploy.md).
