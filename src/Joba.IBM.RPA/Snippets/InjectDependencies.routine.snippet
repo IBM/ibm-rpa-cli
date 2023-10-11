@@ -1,7 +1,7 @@
 beginSub --name __ExportDependenciesAndSetWorkingDirectory
     //Get the current 'process id' 
 	writeToFile --value dummy --createrandomfile  --encoding "Default" __dummyFilePathForPowershell=value
-	powerShell --apartmentState "MTA" --script "$PID | OUT-FILE -FilePath \"${__dummyFilePathForPowershell}\"" success=success
+	powerShell --apartmentState "MTA" --script "$PID | OUT-FILE -FilePath \"${__dummyFilePathForPowershell}\""
 	readAllText --filepath "${__dummyFilePathForPowershell}" --encoding "Default" __pid=value
     trimString --text "${__pid}" --trimoption "TrimStartAndEnd" __pid=value
     //Unzipping
