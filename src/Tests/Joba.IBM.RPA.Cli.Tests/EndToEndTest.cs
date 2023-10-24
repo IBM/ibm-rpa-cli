@@ -20,6 +20,7 @@ namespace Joba.IBM.RPA.Cli.Tests
         [Fact]
         public async Task CreateAndDeployProject()
         {
+            ClearWorkingDirectory();
             //TODO: need to create computer+computergroups+chat since QA by default is empty.
             var parameters = ReadParameters();
             await RunAsync($"project new {parameters.ProjectName} -d '{parameters.ProjectDescription}'");
@@ -98,7 +99,9 @@ namespace Joba.IBM.RPA.Cli.Tests
                 logger.LogError($"Process error: {e.Data}");
         }
 
-        void IDisposable.Dispose()
+        void IDisposable.Dispose() => ClearWorkingDirectory();
+
+        private void ClearWorkingDirectory()
         {
             var rpaDir = new DirectoryInfo(Path.Combine(workingDirectory.FullName, ProjectFile.HiddenDirectoryName));
             if (rpaDir.Exists)
