@@ -11,6 +11,7 @@
   * [Using executeScript](guide/execute-script.md)
   * [Referencing files](guide/file-reference.md)
   * [Deploying projects](guide/deploy.md)
+  * [Git integration](guide/git.md)
 * [Concepts](concepts.md)
 * [Command Reference](reference.md "Describes the latest version of the RPA CLI in detail and provides basic syntax, options, and usage examples for each operation.")
 * [Security](security.md)
