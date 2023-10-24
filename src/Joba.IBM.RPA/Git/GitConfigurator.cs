@@ -350,7 +350,6 @@ namespace Joba.IBM.RPA
 
                 await ConfigureNameAsync(cancellation);
                 await ConfigureDriverAsync(cancellation);
-                await ConfigureRecursiveAsync(cancellation);
 
                 async Task ConfigureNameAsync(CancellationToken cancellation)
                 {
@@ -374,24 +373,6 @@ namespace Joba.IBM.RPA
                 {
                     var fileName = "git";
                     var arguments = $"config --global merge.{cliName}.driver \"{gitMergeCommandLine}\"";
-                    logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
-
-                    var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
-                    var process = Process.Start(info);
-                    if (process == null)
-                        throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
-                    process.ErrorDataReceived += OnGitError;
-                    process.BeginErrorReadLine();
-                    var output = await process.StandardOutput.ReadToEndAsync(cancellation);
-                    if (!string.IsNullOrEmpty(output))
-                        logger.LogInformation("Git output: {Output}", output);
-                    await process.WaitForExitAsync(cancellation);
-                }
-
-                async Task ConfigureRecursiveAsync(CancellationToken cancellation)
-                {
-                    var fileName = "git";
-                    var arguments = $"config --global merge.{cliName}.recursive text";
                     logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
 
                     var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };

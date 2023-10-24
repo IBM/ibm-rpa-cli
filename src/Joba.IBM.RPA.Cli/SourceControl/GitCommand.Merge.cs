@@ -41,7 +41,7 @@ namespace Joba.IBM.RPA.Cli
 
                 //TODO: not working... the 'base' file is corrupted by git :(
                 logger.LogDebug("Reading base {File} (exists={Exists})", baseFile, baseFile.Exists);
-                File.Copy(baseFile.FullName, @"C:\Users\002742631\Desktop\base.wal", true);
+                //Console.ReadLine();
                 var baseWal = WalFile.Read(baseFile);
                 logger.LogDebug("Reading local {File}", localFile);
                 var localWal = WalFile.Read(localFile);
