@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using System;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
@@ -50,13 +49,21 @@ namespace Joba.IBM.RPA.Cli
             }
         }
 
-        internal static CommandLineBuilder RegisterLoggerFactory(this CommandLineBuilder builder)
+        internal static CommandLineBuilder ConfigureLoggers(this CommandLineBuilder builder)
         {
             return builder.AddMiddleware(async (context, next) =>
             {
                 var verbosity = context.ParseResult.GetValueForOption(RpaCommand.VerbosityOption);
                 var loggerFactory = LoggerFactory.Create(builder =>
                 {
+                    //configuring simple logging to file
+                    builder.AddFile($@".rpa\{RpaCommand.ServiceName}.log", options =>
+                    {
+                        options.MinLevel = verbosity.ToLogLevel();
+                        options.UseUtcTimestamp = true;
+                        options.FileSizeLimitBytes = 1000000; //1mb
+                    });
+
                     builder.AddOpenTelemetry(o =>
                     {
                         o.IncludeFormattedMessage = true;
