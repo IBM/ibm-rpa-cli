@@ -12,7 +12,7 @@ namespace Joba.IBM.RPA.Cli
         {
             var parser = new CommandLineBuilder(new RpaCommand())
                 .AddInstrumentation()
-                .RegisterLoggerFactory()
+                .ConfigureLoggers()
                 .TrackUsage()
                 .UseHelp()
                 .UseVersionOption()
@@ -83,18 +83,18 @@ namespace Joba.IBM.RPA.Cli
         {
             var loggerFactory = context.BindingContext.GetRequiredService<ILoggerFactory>();
             context.BindingContext.AddService<ISecretProvider>(s => new DefaultSecretProvider());
-            context.BindingContext.AddService<IRpaHttpClientFactory>(s => new RpaHttpClientFactory(loggerFactory.CreateLogger<ILogger<RpaClientFactory>>()));
+            context.BindingContext.AddService<IRpaHttpClientFactory>(s => new RpaHttpClientFactory(loggerFactory.CreateLogger<RpaClientFactory>()));
             context.BindingContext.AddService<IAccountAuthenticatorFactory>(s => new AccountAuthenticatorFactory(
                 s.GetRequiredService<IRpaClientFactory>(), s.GetRequiredService<IRpaHttpClientFactory>()));
             context.BindingContext.AddService<IRpaClientFactory>(s => new RpaClientFactory(
                 context.Console, s.GetRequiredService<IRpaHttpClientFactory>()));
             context.BindingContext.AddService<IDeployService>(s => new DeployService(
-                loggerFactory.CreateLogger<ILogger<DeployService>>(),
+                loggerFactory.CreateLogger<DeployService>(),
                 s.GetRequiredService<IRpaClientFactory>(),
                 s.GetRequiredService<ICompiler>()));
             context.BindingContext.AddService<IPackageManagerFactory>(s => new PackageManagerFactory(s.GetRequiredService<IRpaClientFactory>()));
             context.BindingContext.AddService<ICompiler>(s => new Bluewasher(
-                loggerFactory.CreateLogger<ILogger<Bluewasher>>(),
+                loggerFactory.CreateLogger<Bluewasher>(),
                 s.GetRequiredService<IPackageManagerFactory>()));
 
             if (context.ParseResult.CommandResult != context.ParseResult.RootCommandResult &&
