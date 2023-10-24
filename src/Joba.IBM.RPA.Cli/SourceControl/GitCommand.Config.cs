@@ -25,8 +25,9 @@ namespace Joba.IBM.RPA.Cli
                     throw new Exception("Git is not initialized in this directory");
 
                 var cancellation = context.GetCancellationToken();
+                var cliFile = new FileInfo(System.Environment.ProcessPath!);
                 var configurator = new GitConfigurator(logger, new DirectoryInfo(System.Environment.CurrentDirectory),
-                    RpaCommand.CommandName, GitDiffCommandLine, GitMergeCommandLine);
+                    cliFile, GitDiffCommandLine, GitMergeCommandLine);
 
                 if (remove)
                     await configurator.RemoveAsync(cancellation);

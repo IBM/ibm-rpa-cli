@@ -7,15 +7,15 @@ namespace Joba.IBM.RPA
     {
         private readonly ILogger logger;
         private readonly DirectoryInfo workingDir;
-        private readonly string cliName;
+        private readonly FileInfo cliFile;
         private readonly string gitDiffCommandLine;
         private readonly string gitMergeCommandLine;
 
-        public GitConfigurator(ILogger logger, DirectoryInfo workingDir, string cliName, string gitDiffCommandLine, string gitMergeCommandLine)
+        public GitConfigurator(ILogger logger, DirectoryInfo workingDir, FileInfo cliFile, string gitDiffCommandLine, string gitMergeCommandLine)
         {
             this.logger = logger;
             this.workingDir = workingDir;
-            this.cliName = cliName;
+            this.cliFile = cliFile;
             this.gitDiffCommandLine = gitDiffCommandLine;
             this.gitMergeCommandLine = gitMergeCommandLine;
             var gitDir = new DirectoryInfo(Path.Combine(workingDir.FullName, ".git"));
@@ -25,32 +25,32 @@ namespace Joba.IBM.RPA
 
         public async Task ConfigureAsync(CancellationToken cancellation)
         {
-            var gitAttributes = new GitAttributes(workingDir, cliName);
+            var gitAttributes = new GitAttributes(workingDir, Path.GetFileNameWithoutExtension(cliFile.Name));
             await gitAttributes.ConfigureAsync(cancellation);
 
-            var gitIgnore = new GitIgnore(workingDir,cliName);
+            var gitIgnore = new GitIgnore(workingDir, Path.GetFileNameWithoutExtension(cliFile.Name));
             await gitIgnore.ConfigureAsync(cancellation);
 
-            var diffConfigurator = new DiffConfigurator(logger, cliName, gitDiffCommandLine);
+            var diffConfigurator = new DiffConfigurator(logger, cliFile, gitDiffCommandLine);
             await diffConfigurator.CreateConversionWrapperAsync(cancellation);
             await diffConfigurator.ConfigureAsync(cancellation);
 
-            var mergeConfigurator = new MergeConfigurator(logger, cliName, gitMergeCommandLine);
+            var mergeConfigurator = new MergeConfigurator(logger, Path.GetFileNameWithoutExtension(cliFile.Name), gitMergeCommandLine);
             await mergeConfigurator.ConfigureAsync(cancellation);
         }
 
         public async Task RemoveAsync(CancellationToken cancellation)
         {
-            var mergeConfigurator = new MergeConfigurator(logger, cliName, gitMergeCommandLine);
+            var mergeConfigurator = new MergeConfigurator(logger, Path.GetFileNameWithoutExtension(cliFile.Name), gitMergeCommandLine);
             await mergeConfigurator.DeleteAsync(cancellation);
 
-            var diffConfigurator = new DiffConfigurator(logger, cliName, gitDiffCommandLine);
+            var diffConfigurator = new DiffConfigurator(logger, cliFile, gitDiffCommandLine);
             await diffConfigurator.DeleteAsync(cancellation);
 
-            var gitIgnore = new GitIgnore(workingDir, cliName);
+            var gitIgnore = new GitIgnore(workingDir, Path.GetFileNameWithoutExtension(cliFile.Name));
             await gitIgnore.RemoveAsync(cancellation);
 
-            var gitAttributes = new GitAttributes(workingDir, cliName);
+            var gitAttributes = new GitAttributes(workingDir, Path.GetFileNameWithoutExtension(cliFile.Name));
             await gitAttributes.RemoveAsync(cancellation);
         }
 
@@ -143,21 +143,21 @@ namespace Joba.IBM.RPA
 
         internal class DiffConfigurator
         {
-            private readonly FileInfo file;
+            private readonly FileInfo converterFile;
             private readonly ILogger logger;
             private readonly string cliName;
             private readonly string gitDiffCommandLine;
 
-            public DiffConfigurator(ILogger logger, string cliName, string gitDiffCommandLine)
+            public DiffConfigurator(ILogger logger, FileInfo cliFile, string gitDiffCommandLine)
             {
                 this.logger = logger;
-                this.cliName = cliName;
                 this.gitDiffCommandLine = gitDiffCommandLine;
-                file = new FileInfo(Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), cliName, "wal2txt"));
+                cliName = Path.GetFileNameWithoutExtension(cliFile.Name);
+                converterFile = new FileInfo(Path.Combine(cliFile.Directory!.FullName, "wal2txt"));
             }
 
-            internal string Name => file.Name;
-            internal DirectoryInfo Directory => file.Directory!;
+            internal string Name => converterFile.Name;
+            internal DirectoryInfo Directory => converterFile.Directory!;
 
             /// <summary>
             /// Provides an intermediate file that tells git how to call 'rpa git diff [fileName]', since git does not know how to call that directly.
@@ -166,8 +166,8 @@ namespace Joba.IBM.RPA
             /// <returns></returns>
             internal async Task CreateConversionWrapperAsync(CancellationToken cancellation)
             {
-                file.Directory!.Create();
-                await File.WriteAllTextAsync(file.FullName, GetContents(), cancellation);
+                converterFile.Directory!.Create();
+                await File.WriteAllTextAsync(converterFile.FullName, GetContents(), cancellation);
                 AppendToPathEnvironmentVariable();
             }
 
@@ -221,7 +221,7 @@ namespace Joba.IBM.RPA
                 var fileName = "git";
                 var arguments = $"config --global --get-regexp diff.{cliName}.*";
                 logger.LogDebug("Executing {FileName} {Arguments}", fileName, arguments);
-                
+
                 var info = new ProcessStartInfo(fileName, arguments) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true };
                 using var process = Process.Start(info) ?? throw new Exception($"Could not start '{info.FileName} {info.Arguments}'");
                 process.ErrorDataReceived += OnGitError;
@@ -276,8 +276,8 @@ namespace Joba.IBM.RPA
 
             internal async Task DeleteAsync(CancellationToken cancellation)
             {
-                if (file.Exists)
-                    file.Delete();
+                if (converterFile.Exists)
+                    converterFile.Delete();
 
                 var fileName = "git";
                 var arguments = $"config --global --remove-section diff.{cliName}";
