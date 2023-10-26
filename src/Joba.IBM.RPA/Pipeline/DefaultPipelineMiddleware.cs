@@ -4,7 +4,7 @@
     /// Default implementation of <see cref="IAsyncMiddleware{TParameter}"/>.
     /// </summary>
     /// <typeparam name="TContext"></typeparam>
-    public abstract class DefaultPipelineMiddleware<TContext> : IAsyncMiddleware<TContext>
+    abstract class DefaultPipelineMiddleware<TContext> : IAsyncMiddleware<TContext>
     {
         /// <summary>
         /// Override this method to implement the middleware logic.

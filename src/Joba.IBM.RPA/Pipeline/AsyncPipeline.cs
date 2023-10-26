@@ -5,7 +5,7 @@
     /// Based on: https://github.com/ipvalverde/PipelineNet
     /// </summary>
     /// <typeparam name="TContext">The parameter type.</typeparam>
-    public sealed class AsyncPipeline<TContext> : IAsyncPipeline<TContext>
+    sealed class AsyncPipeline<TContext> : IAsyncPipeline<TContext>
     {
         private readonly IList<IAsyncMiddleware<TContext>> middlewares;
         private IAsyncMiddleware<TContext> @finally = EmptyMiddleware.None;

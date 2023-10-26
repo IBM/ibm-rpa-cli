@@ -7,6 +7,12 @@ using System.Net.Security;
 
 namespace Joba.IBM.RPA.Cli
 {
+    internal interface IRpaHttpClientFactory
+    {
+        HttpClient Create(Uri address);
+        HttpClient Create(Uri address, IRenewExpiredSession sessionRenewal);
+    }
+
     internal class RpaHttpClientFactory : IRpaHttpClientFactory
     {
         private const int MaxParallelism = 10;

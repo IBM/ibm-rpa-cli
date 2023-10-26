@@ -1,8 +1,44 @@
 ﻿using Joba.IBM.RPA.Server;
 using System.Net.Http.Json;
 
-namespace Joba.IBM.RPA
+namespace Joba.IBM.RPA.Cli
 {
+    internal class AccountAuthenticatorFactory : IAccountAuthenticatorFactory
+    {
+        private readonly IRpaClientFactory clientFactory;
+        private readonly IRpaHttpClientFactory httpFactory;
+
+        public AccountAuthenticatorFactory(IRpaClientFactory clientFactory, IRpaHttpClientFactory httpFactory)
+        {
+            this.clientFactory = clientFactory;
+            this.httpFactory = httpFactory;
+        }
+
+        IAccountAuthenticator IAccountAuthenticatorFactory.Create(DeploymentOption deployment, AuthenticationMethod authenticationMethod, Region region, PropertyOptions properties)
+        {
+            if (deployment == DeploymentOption.OCP && authenticationMethod == AuthenticationMethod.OIDC)
+            {
+                var cloudPakAddress = properties[PropertyOptions.CloudPakConsoleAddress];
+                return cloudPakAddress == null
+                    ? throw new NotSupportedException($"Since the server is deployed in the CloudPak cluster, the CloudPak Console URL is required and it was not provided. More information https://ibm.github.io/ibm-rpa-cli/#/guide/environment?id=red-hat®-openshift®-support-with-single-sign-on.")
+                    : (IAccountAuthenticator)new RedHatOpenshiftOidcAuthenticator(httpFactory, region, new Uri(cloudPakAddress));
+            }
+
+            var client = clientFactory.CreateFromRegion(region);
+            return new WdgAuthenticator(client.Account);
+        }
+    }
+
+    class WdgAuthenticator : IAccountAuthenticator
+    {
+        private readonly IAccountResource resource;
+
+        public WdgAuthenticator(IAccountResource resource) => this.resource = resource;
+
+        async Task<CreatedSession> IAccountAuthenticator.AuthenticateAsync(AccountCredentials credentials, CancellationToken cancellation) =>
+            await resource.AuthenticateAsync(credentials.TenantCode, credentials.UserName, credentials.Password, cancellation);
+    }
+
     class RedHatOpenshiftOidcAuthenticator : IAccountAuthenticator
     {
         private readonly IRpaHttpClientFactory httpFactory;

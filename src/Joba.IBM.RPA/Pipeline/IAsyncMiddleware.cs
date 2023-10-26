@@ -4,7 +4,7 @@
     /// Defines a piece of code (a step) to be executed inside a pipeline.
     /// </summary>
     /// <typeparam name="TParameter">The parameter type.</typeparam>
-    public interface IAsyncMiddleware<TParameter>
+    interface IAsyncMiddleware<TParameter>
     {
         /// <summary>
         /// Runs this middleware and enables calling the next middleware.

@@ -25,12 +25,6 @@ namespace Joba.IBM.RPA
         IRpaClient CreateFromPackageSource(PackageSource source);
     }
 
-    public interface IRpaHttpClientFactory
-    {
-        HttpClient Create(Uri address);
-        HttpClient Create(Uri address, IRenewExpiredSession sessionRenewal);
-    }
-
     public interface IRenewExpiredSession
     {
         Task<Session> RenewAsync(CancellationToken cancellation);

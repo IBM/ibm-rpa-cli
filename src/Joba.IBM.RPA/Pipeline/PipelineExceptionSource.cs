@@ -3,7 +3,7 @@
     /// <summary>
     /// Defines the exception structure of a pipeline.
     /// </summary>
-    public sealed class PipelineExceptionSource
+    sealed class PipelineExceptionSource
     {
         public PipelineExceptionSource(Exception ex)
         {

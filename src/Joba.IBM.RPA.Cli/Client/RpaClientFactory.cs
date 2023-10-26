@@ -2,7 +2,7 @@
 
 namespace Joba.IBM.RPA.Cli
 {
-    public class RpaClientFactory : IRpaClientFactory
+    internal class RpaClientFactory : IRpaClientFactory
     {
         private readonly IConsole console;
         private readonly IRpaHttpClientFactory httpFactory;

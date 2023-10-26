@@ -4,7 +4,7 @@
     /// Defines and executes a pipeline.
     /// </summary>
     /// <typeparam name="TContext">The parameter type.</typeparam>
-    public interface IAsyncPipeline<TContext>
+    interface IAsyncPipeline<TContext>
     {
         /// <summary>
         /// Adds a middleware.
