@@ -38,11 +38,5 @@
 
             throw new HttpRequestException(builder.ToString(), null, response.StatusCode);
         }
-
-        public static void CreateHidden(this DirectoryInfo dir)
-        {
-            dir.Create();
-            dir.Attributes |= FileAttributes.Hidden;
-        }
     }
 }

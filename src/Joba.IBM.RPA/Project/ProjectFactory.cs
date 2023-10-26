@@ -5,9 +5,7 @@
         public static IProject Create(DirectoryInfo workingDir, string name, string? description = null)
         {
             var projectFile = new ProjectFile(workingDir, name);
-            if (projectFile.RpaDirectory.Exists)
-                throw new ProjectException($"A project is already configured in the '{workingDir.FullName}' directory");
-            projectFile.RpaDirectory.CreateHidden();
+            projectFile.EnsureNoProjectHasBeenCreated();
 
             var userFile = new UserSettingsFile(projectFile.ProjectName);
             var packageSourcesFile = new PackageSourcesFile(workingDir, projectFile.ProjectName);

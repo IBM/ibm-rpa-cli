@@ -23,7 +23,7 @@ namespace Joba.IBM.RPA
         internal string FullPath => file.FullName;
         internal string ProjectName => file.Name.Replace(Extension, null);
         internal DirectoryInfo RpaDirectory => rpaDir;
-        internal DirectoryInfo WorkingDirectory => file.Directory ?? throw new Exception($"The file directory of '{file}' should exist");
+        internal DirectoryInfo WorkingDirectory => file.Directory ?? throw new Exception($"The directory of '{file}' should exist.");
 
         internal async Task SaveAsync(ProjectSettings projectSettings, CancellationToken cancellation)
         {
@@ -59,6 +59,15 @@ namespace Joba.IBM.RPA
                 return null;
 
             return new ProjectFile(files[0]);
+        }
+
+        internal void EnsureNoProjectHasBeenCreated()
+        {
+            var projectFiles = WorkingDirectory.EnumerateFiles("*.rpa.json").ToArray();
+            if (projectFiles.Length > 0)
+                throw new ProjectException($"Another project ({projectFiles[0].Name}) is already configured in the '{WorkingDirectory.FullName}' directory.");
+
+            rpaDir.Create();
         }
 
         public override string ToString() => file.FullName;
