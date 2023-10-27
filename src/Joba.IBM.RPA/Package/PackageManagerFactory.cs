@@ -4,7 +4,7 @@
     {
         IPackageManager Create(IProject project, string? sourceAlias = null);
     }
-    
+
     public sealed class PackageManagerFactory : IPackageManagerFactory
     {
         private readonly IRpaClientFactory clientFactory;

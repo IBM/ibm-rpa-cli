@@ -40,7 +40,7 @@ namespace Joba.IBM.RPA.Cli
             private async Task HandleAsync(RemoteOptions options, PropertyOptions properties, ILogger<EnvironmentCommand> logger,
                 IRpaClientFactory clientFactory, ISecretProvider secretProvider, IAccountAuthenticatorFactory authenticatorFactory,
                 IProject project, InvocationContext context) =>
-                await HandleAsync(options, properties, (ILogger)logger, clientFactory, secretProvider,  authenticatorFactory, project, context);
+                await HandleAsync(options, properties, (ILogger)logger, clientFactory, secretProvider, authenticatorFactory, project, context);
 
             public async Task HandleAsync(RemoteOptions options, PropertyOptions properties, ILogger logger,
                 IRpaClientFactory clientFactory, ISecretProvider secretProvider, IAccountAuthenticatorFactory authenticatorFactory,

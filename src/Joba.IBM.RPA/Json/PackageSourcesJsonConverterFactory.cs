@@ -17,7 +17,7 @@
 
         public override bool CanConvert(Type typeToConvert) => typeof(IPackageSources).IsAssignableFrom(typeToConvert);
 
-        public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options) => 
+        public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options) =>
             projectSettings == null || userFile == null || userSettings == null
                 ? new WriteJsonConverter()
                 : new ReadJsonConverter(projectSettings, userFile.Value, userSettings);

@@ -108,7 +108,7 @@ namespace Joba.IBM.RPA.Cli.Tests
                 var config = new ServerConfig { Regions = new Region[] { region }, Version = RpaCommand.SupportedServerVersion, Deployment = DeploymentOption.SaaS, AuthenticationMethod = AuthenticationMethod.WDG };
                 var session = new CreatedSession { TenantCode = options.TenantCode!.Value, TenantName = "quality assurance" };
                 var credentials = new AccountCredentials(options.TenantCode!.Value, options.UserName!, options.Password!);
-                var console = new Mock<IConsole>();                
+                var console = new Mock<IConsole>();
                 var client = new Mock<IRpaClient>();
                 client.Setup(c => c.GetConfigurationAsync(It.IsAny<CancellationToken>())).ReturnsAsync(config);
                 var clientFactory = new Mock<IRpaClientFactory>();

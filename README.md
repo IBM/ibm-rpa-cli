@@ -1,10 +1,12 @@
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
-![Build](https://github.com/IBM/ibm-rpa-cli/actions/workflows/build.yml/badge.svg)
-[![Release](https://img.shields.io/github/v/release/IBM/ibm-rpa-cli?include_prereleases&sort=semver)](https://github.com/IBM/ibm-rpa-cli/releases/latest)
-![](https://img.shields.io/github/downloads/IBM/ibm-rpa-cli/total?color=green&label=downloads)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-
 # IBM® RPA Command Line Interface
+
+[![conventional commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
+[![linter](https://github.com/IBM/ibm-rpa-cli/actions/workflows/linter.yml/badge.svg)](https://github.com/marketplace/actions/super-linter)
+![build](https://github.com/IBM/ibm-rpa-cli/actions/workflows/build.yml/badge.svg)
+[![release](https://img.shields.io/github/v/release/IBM/ibm-rpa-cli?include_prereleases&sort=semver)](https://github.com/IBM/ibm-rpa-cli/releases/latest)
+![downloads](https://img.shields.io/github/downloads/IBM/ibm-rpa-cli/total?color=green&label=downloads)
+[![license: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 The IBM® RPA Command Line Interface (RPA CLI) is an *unofficial* tool that provides a interface to manage and deploy IBM® RPA projects.
 
 ## Documentation
