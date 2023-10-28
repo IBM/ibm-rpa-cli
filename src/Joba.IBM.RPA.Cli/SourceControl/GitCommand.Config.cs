@@ -5,7 +5,7 @@ namespace Joba.IBM.RPA.Cli
     internal partial class GitCommand
     {
         internal static readonly string GitDiffCommandLine = $"{RpaCommand.CommandName} {GitCommand.CommandName} {GitCommand.DiffCommand.CommandName} \"$1\"";
-        internal static readonly string GitMergeCommandLine = $"{RpaCommand.CommandName} {GitCommand.CommandName} {GitCommand.MergeCommand.CommandName} %O %A %B -v";
+        internal static readonly string GitMergeCommandLine = $"{RpaCommand.CommandName} {GitCommand.CommandName} {GitCommand.MergeCommand.CommandName} %O %A %B %P -v";
 
         internal class ConfigureCommand : Command
         {

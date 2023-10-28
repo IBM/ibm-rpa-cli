@@ -30,7 +30,7 @@ namespace Joba.IBM.RPA.Cli
             private async Task HandleAsync(FileInfo baseFile, FileInfo localFile, FileInfo remoteFile, FileInfo? mergedFile,
                 ILogger<GitCommand> logger, InvocationContext context)
             {
-                logger.LogDebug("Files: base={base} | local={local} | remote={remote} | merged={merged}", baseFile, localFile, remoteFile, mergedFile?.FullName ?? "<null>");
+                logger.LogDebug("Files: base={base} | local={local} | remote={remote} | merged={merged}", baseFile, localFile, remoteFile, mergedFile?.FullName);
 
                 var cancellation = context.GetCancellationToken();
                 mergedFile ??= localFile; //if 'merged' was not provided, then save the merge result back to 'local'
@@ -39,9 +39,9 @@ namespace Joba.IBM.RPA.Cli
                 remoteFile = new FileInfo(Path.GetFullPath(remoteFile.FullName));
                 mergedFile = new FileInfo(Path.GetFullPath(mergedFile.FullName));
 
-                //TODO: not working... the 'base' file is corrupted by git :(
+                var fileName = mergedFile.Name;
+
                 logger.LogDebug("Reading base {File} (exists={Exists})", baseFile, baseFile.Exists);
-                //Console.ReadLine();
                 var baseWal = WalFile.Read(baseFile);
                 logger.LogDebug("Reading local {File}", localFile);
                 var localWal = WalFile.Read(localFile);
@@ -49,11 +49,11 @@ namespace Joba.IBM.RPA.Cli
                 var remoteWal = WalFile.Read(remoteFile);
                 var mergedWal = mergedFile.Exists ? WalFile.Read(mergedFile) : remoteWal.CloneTo(mergedFile);
 
-                using var baseTxt = await TempFile.CreateAsync(baseWal, "base", cancellation);
+                using var baseTxt = await TempFile.CreateAsync(baseWal, $"base {fileName}", cancellation);
                 logger.LogDebug("Temp created for base {File}", baseTxt.Info);
-                using var localTxt = await TempFile.CreateAsync(localWal, "local", cancellation);
+                using var localTxt = await TempFile.CreateAsync(localWal, $"local {fileName}", cancellation);
                 logger.LogDebug("Temp created for local {File}", localTxt.Info);
-                using var remoteTxt = await TempFile.CreateAsync(remoteWal, "remote", cancellation);
+                using var remoteTxt = await TempFile.CreateAsync(remoteWal, $"remote {fileName}", cancellation);
                 logger.LogDebug("Temp created for remote {File}", remoteTxt.Info);
                 using var mergedTxt = await TempFile.CreateAsync(mergedWal, "merged", cancellation);
                 logger.LogDebug("Temp created for merged {File}", mergedTxt.Info);
