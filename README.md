@@ -1,7 +1,7 @@
 # IBM® RPA Command Line Interface
 
 [![conventional commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
-[![linter](https://github.com/IBM/ibm-rpa-cli/actions/workflows/linter.yml/badge.svg)](https://github.com/marketplace/actions/super-linter)
+[![linter](https://github.com/IBM/ibm-rpa-cli/workflows/linter/badge.svg)](https://github.com/IBM/ibm-rpa-cli/actions?query=workflow%3Alinter)
 ![build](https://github.com/IBM/ibm-rpa-cli/actions/workflows/build.yml/badge.svg)
 [![release](https://img.shields.io/github/v/release/IBM/ibm-rpa-cli?include_prereleases&sort=semver)](https://github.com/IBM/ibm-rpa-cli/releases/latest)
 ![downloads](https://img.shields.io/github/downloads/IBM/ibm-rpa-cli/total?color=green&label=downloads)
