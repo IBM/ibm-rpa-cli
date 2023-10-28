@@ -9,9 +9,9 @@
       lint:
         runs-on: ubuntu-latest
         permissions:
-          contents: read
-          packages: read
-          statuses: write
+          contents: write
+          issues: write
+          pull-requests: write
         steps:
           - name: Checkout Code
             uses: actions/checkout@v4
@@ -19,13 +19,20 @@
               # Full git history is needed to get a proper
               # list of changed files within `super-linter`
               fetch-depth: 0
-          - name: Lint Code Base
-            uses: super-linter/super-linter@v5
+          - name: Mega Linter
+            uses: oxsecurity/megalinter/flavors/dotnet@v7.4.0
             env:
               VALIDATE_ALL_CODEBASE: false
-              VALIDATE_CSHARP: true
-              VALIDATE_YAML: true
-              VALIDATE_MARKDOWN: true
               FILTER_REGEX_EXCLUDE: LICENSE.md
+              ENABLE_LINTERS: CSHARP_DOTNET_FORMAT, MARKDOWN_MARKDOWNLINT
               DEFAULT_BRANCH: develop
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Upload MegaLinter artifacts
+          - name: Archive production artifacts
+            uses: actions/upload-artifact@v3
+            if: ${{ success() }} || ${{ failure() }}
+            with:
+              name: MegaLinter reports
+              path: |
+                megalinter-reports
+                mega-linter.log
